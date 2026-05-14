@@ -62,6 +62,15 @@ MasterGo 设计 / 还原子任务、更新流、部署流，还是需要选择�
 - 只有这些情况才能暂停提问: blocker 会改变真实交付物、验收标准或部署风险；缺 token/URL/API key/权限；或涉及生产部署、远端推送、覆盖写入、付费资源、写 secrets 等高风险副作用。
 - 如果用户要求上线但未明确生产环境，自动推进到安全的 preview/staging 可访问链接；production 仍需显式授权和 release gate。
 - 从中间阶段恢复时，先恢复 Stage Card 和状态台账，然后从当前阶段继续向后轮转，不要只补一份报告后结束。
+- 完整 OPC 请求如果已经完成 PRD、方案和 UI，下一步默认是进入 `implementation`，不是等待用户在“MasterGo 画布 / 前端原型 / API 契约 / 产品评审”之间重新选号。
+- 用户给的是从零开始的新需求、当前工作区又没有现成仓库时，代理要按方案里选定的框架自动起实现脚手架并继续交付；“空工作区”不是把完整 OPC 缩成“只交设计包”的理由。
+
+### 自治补齐契约
+
+- 完整 OPC 交付里，缺 Git 仓库、前端脚手架、`package.json`、mock 数据、测试命令、CI/CD 或本地预览配置时，默认由代理补齐；先读 [autonomous-bootstrap.md](references/autonomous-bootstrap.md)。
+- 当前业务工作区没有 `.git/` 且不在父级 Git 仓库内时，代理应执行 `git init`、补 `.gitignore`，并继续实现；不要让用户先创建仓库。
+- 只有 API key/token/secret、服务器/域名/账号权限、production、远端 push、付费资源、覆盖写入、破坏性迁移、不可推断的品牌风格或合规边界，才作为暂停确认门。
+- 确认门默认给 2-3 个选择项和“自定义 / type something”；用户选完或说“你决定”后，立即继续自动轮转。
 
 ### 上下文持久化契约
 
@@ -151,6 +160,10 @@ OPC Stage Card
 0.5 开源交付模式门禁
    Pattern Card -> JTBD/MoSCoW -> 方案对比 -> 验证/发布/校准门禁
    -> references/open-source-patterns.md
+
+0.75 自治补齐门禁
+   missing repo/package/test/CI/deploy defaults -> create locally or ask only for real gates
+   -> references/autonomous-bootstrap.md
 
 1. 需求阶段
    PRD + 验收标准 + open questions + state

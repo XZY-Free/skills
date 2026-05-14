@@ -123,6 +123,8 @@ discovery、foundation、delivery、verification、follow-through。
 进入代码实现前，方案必须给出:
 
 - 使用现有项目栈还是新建项目；
+- 如果是新建项目，实现目录放哪里、脚手架怎么起、默认框架是什么；
+- 是否需要自动初始化 Git、`.gitignore`、测试命令、mock 数据和最小 CI/CD；
 - 目标路由和组件边界；
 - 数据来源和字段映射；
 - 交互状态和错误处理；

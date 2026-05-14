@@ -7,6 +7,10 @@ preview，不默认 production。
 凭证、构建条件或用户明确暂停。不要因为 production 需要确认就停止部署阶段；先交付安全的
 预览上线证据，再记录 production gate。
 
+缺部署前置条件时先补齐能本地完成的部分: 没有 Git 仓库就本地 `git init`，没有 CI/CD 就补
+最小 build/test workflow 或 release checklist，没有 preview 平台凭证就先完成本地 preview
+和部署包证据，再用选择题收集平台、服务器或 token。
+
 ## 目录
 
 - [进入条件](#进入条件)
@@ -37,6 +41,11 @@ preview，不默认 production。
    ├── GitHub Actions/server -> workflow + environment/secrets + rollback
    └── 未指定但项目有安全默认路径 -> 自动 preview/staging
        未指定且无安全默认路径 -> 选择题澄清
+
+3. 缺少本地发布基础设施吗?
+   ├── 无 Git -> git init + .gitignore，然后继续本地 build/preview
+   ├── 无 CI -> 补最小 build/test workflow 或 release checklist
+   └── 无部署凭证/服务器 -> 记录 blocked gate，给选择题拿 token/server
 ```
 
 选择题:
@@ -66,6 +75,7 @@ premortem 记录 top risks、early warning、prevention、mitigation、owner。r
 ## CI/CD 最小规范
 
 - 构建前: 安装依赖、lint、typecheck、test、build；
+- repo: 没有本地 Git 时初始化；没有 remote 不是 preview/local release 的停点；
 - secrets: 只放平台 secret store 或安全环境变量，不写入仓库；
 - environments: preview 和 production 分开；
 - production gate: 明确审批、分支、tag 或 release 条件；

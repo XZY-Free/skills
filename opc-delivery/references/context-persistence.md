@@ -59,6 +59,9 @@ python3 <skill-dir>/scripts/opc-task-state.py note \
   --next-action "<恢复后的下一步>"
 ```
 
+自治补齐动作也要记录: 例如 `git init`、创建 `.gitignore`、脚手架、mock 数据、测试命令、
+CI/CD 或 preview 配置。记录自动创建了什么、还缺什么凭证/授权、恢复后第一步继续做什么。
+
 ## 主动拆分
 
 不要把 PRD、方案、设计说明、实现报告、验证报告、发布证据、校准报告塞进一个大文件。

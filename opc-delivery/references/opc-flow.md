@@ -7,6 +7,14 @@
 上线交付证据。阶段产物是下一阶段输入，不是等待用户确认的自然停点；除非用户明确说
 “暂停 / 停下 / 只做当前阶段”，或遇到硬阻塞 / 高风险副作用确认门禁。
 
+空工作区不是设计收尾理由: 如果这是一个从零开始的新需求，当前目录又没有可复用前端仓库，
+代理也要把 `.opc/` 里的 PRD/方案/UI 当成实现输入，自动进入前端脚手架和实现阶段，而不是
+停在“请用户选择下一步”。
+
+缺失项默认补齐: 完整 OPC 里，缺 Git、脚手架、mock、测试、CI/CD 或预览配置时，先读
+[autonomous-bootstrap.md](autonomous-bootstrap.md)，把它们当作交付准备工作自动创建。
+只有凭证、生产环境、远端推送、付费资源、破坏性写入、不可推断的风格/合规边界才暂停确认。
+
 ## 目录
 
 - [决策树](#决策树)
@@ -20,7 +28,7 @@
 
 ```text
 1. 用户要完整 OPC / 从需求到上线吗?
-   ├── 是 -> Stage Card + Pattern Card -> open-source-patterns.md -> requirements-workflow.md
+   ├── 是 -> Stage Card + Pattern Card -> autonomous-bootstrap.md -> open-source-patterns.md -> requirements-workflow.md
    └── 否 -> 进 2
 
 2. 用户要 MasterGo 画布设计 / 修改吗?
@@ -63,6 +71,10 @@
 5. 用户只说“上线”但没有明确 production 时，自动走 preview/staging 可访问链接作为上线交付证据。
 6. 如果某阶段被用户明确跳过，状态写 `skipped`、记录原因和替代证据，然后继续后续阶段。
 7. 如果当前输入来自中间阶段，先恢复或补齐 Stage Card，再从当前阶段继续向后轮转。
+8. `ui-design` 完成后的默认下一步是 `implementation`；只有用户明确说“先别实现”或缺少会改变真实交付物的 blocker，才允许停在设计包。
+9. 当前工作区没有现成代码仓库、`package.json` 或前端项目结构时，按方案里的目标框架自动新建实现工作区；不要把“没有 repo”解释成“本轮只做产品设计”。
+10. 当前业务工作区没有 Git 仓库且不在父级 Git 仓库内时，完整 OPC 默认 `git init`、补 `.gitignore`，并继续推进本地实现和验证；没有 remote 不是停点。
+11. 缺 mock 数据、测试脚本、CI/CD 或 preview 默认配置时，先创建最小可用版本；缺 API key、服务器、production 授权或风格/合规关键选择时，给选择题，用户选择后继续。
 
 ## 状态台账
 
@@ -105,6 +117,14 @@ python3 <skill-dir>/scripts/opc-task-state.py validate --for-completion
 ```
 
 `blocked` 和 `pending` 不是完成。`skipped` 必须有用户授权或明确原因。
+
+以下说法都属于错误停点，不应出现在完整 OPC 任务里:
+
+- “我先产出可评审的设计包，后面等你选下一步”
+- “这里不是 Git 仓库，所以本轮先停在方案/设计”
+- “MasterGo 画布、前端原型、API 契约或产品评审，你来选一个我再继续”
+- “没有 Git 仓库，你先创建好我再继续”
+- “没有部署服务器，所以本轮只能结束在设计”
 
 ## 澄清策略
 

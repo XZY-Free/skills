@@ -1170,6 +1170,53 @@
           "重新把需求讲一遍"
         ]
       }
+    },
+    {
+      "id": 60,
+      "name": "empty-workspace-full-opc-enters-implementation",
+      "prompt": "Use $opc-delivery; 帮我设计一个企业级的模型管理平台，从需求到上线都交给你。当前目录是空的，没有现成代码仓库。",
+      "expected_output": "应该把这类请求视为完整 OPC 连续交付：Stage Card、需求、方案和 UI 之后默认继续进入 implementation，而不是把空工作区收缩成产品设计包。若当前目录没有现成仓库或 package.json，代理应基于选定框架自动新建项目脚手架，说明实现目录、默认框架和初始命令，并继续推进到验证/部署门前；只有高风险副作用、权限缺失或真正 blocker 才暂停。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "implementation",
+          "当前目录",
+          "新建项目",
+          "脚手架",
+          "继续"
+        ],
+        "must_not_include": [
+          "产品设计包",
+          "等待用户选择下一步",
+          "这里不是一个 Git 仓库",
+          "前端原型、API 契约或产品评审"
+        ]
+      }
+    },
+    {
+      "id": 61,
+      "name": "missing-prerequisites-auto-bootstrap",
+      "prompt": "Use $opc-delivery; 帮我从零做一个企业级模型管理平台，需求、设计、前端、验证、上线你都负责。当前目录没有 Git 仓库、没有 package.json、没有测试、没有部署配置；风格你可以给我选择题。",
+      "expected_output": "应该把缺少 Git、前端脚手架、mock 数据、测试命令、CI/CD 或预览配置视为代理要自动补齐的交付准备工作：本地执行 git init、创建 .gitignore、生成 package.json/项目结构、补 mock/fixture 和最小验证命令，并继续自动轮转。只有 API key/token/secret、服务器/域名/账号权限、production、远端 push、付费资源、覆盖写入、破坏性迁移、无法推断的品牌风格或合规边界才暂停，用 2-3 个选项加自定义项提问；用户选择后继续，不把提问当成收尾。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "git init",
+          ".gitignore",
+          "package.json",
+          "mock",
+          "测试",
+          "CI/CD",
+          "选择题",
+          "继续"
+        ],
+        "must_not_include": [
+          "你先创建 Git 仓库",
+          "没有 package.json，所以不能实现",
+          "没有部署服务器，本轮只能结束在设计",
+          "等你决定风格后我再开始做，当前先到这里"
+        ]
+      }
     }
   ],
   "negative_evals": [

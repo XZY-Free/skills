@@ -26,6 +26,8 @@ REQUIRED_EVAL_NAMES = {
     "opc-intake-produces-stage-card",
     "requirements-prd-before-ui",
     "solution-design-before-implementation",
+    "empty-workspace-full-opc-enters-implementation",
+    "missing-prerequisites-auto-bootstrap",
     "implementation-does-not-skip-browser-qa",
     "deployment-preview-before-production",
     "golden-feature-calibration",
@@ -197,6 +199,7 @@ def check_scope_contract() -> list[str]:
     errors: list[str] = []
     required_files = [
         ROOT / "references/opc-flow.md",
+        ROOT / "references/autonomous-bootstrap.md",
         ROOT / "references/context-persistence.md",
         ROOT / "references/open-source-patterns.md",
         ROOT / "references/requirements-workflow.md",
@@ -242,6 +245,7 @@ def check_scope_contract() -> list[str]:
         "需求覆盖契约",
         "选择题澄清契约",
         "自动轮转契约",
+        "自治补齐契约",
         "上下文持久化契约",
         "UI 文案语种契约",
         "专业完成定义",
@@ -255,16 +259,34 @@ def check_scope_contract() -> list[str]:
         "requirements-workflow.md",
         "open-source-patterns.md",
         "deployment-workflow.md",
+        "autonomous-bootstrap.md",
         "context-persistence.md",
         "opc-task-state.py",
         "自动阶段轮转",
         "自定义 / type something",
+        "git init",
     ]:
         if phrase not in opc_flow:
             errors.append(f"references/opc-flow.md missing phrase {phrase!r}")
 
+    bootstrap_text = read(ROOT / "references/autonomous-bootstrap.md")
+    for phrase in [
+        "git init",
+        ".gitignore",
+        "package.json",
+        "mock",
+        "CI/CD",
+        "API key",
+        "production",
+        "远端 push",
+        "自定义 / type something",
+        "没有 Git 仓库，你先创建好我再继续",
+    ]:
+        if phrase not in bootstrap_text:
+            errors.append(f"references/autonomous-bootstrap.md missing phrase {phrase!r}")
+
     context_text = read(ROOT / "references/context-persistence.md")
-    for phrase in ["代理自动执行", "不是让用户手动运行", "nextAction", "主动拆分", "只存摘要"]:
+    for phrase in ["代理自动执行", "不是让用户手动运行", "nextAction", "主动拆分", "只存摘要", "自治补齐动作"]:
         if phrase not in context_text:
             errors.append(f"references/context-persistence.md missing phrase {phrase!r}")
 
@@ -295,17 +317,17 @@ def check_scope_contract() -> list[str]:
             errors.append(f"references/delivery-contract.md missing phrase {phrase!r}")
 
     solution_text = read(ROOT / "references/solution-design.md")
-    for phrase in ["2-3 个方案", "Planning Packet", "自我审查", "推荐方案"]:
+    for phrase in ["2-3 个方案", "Planning Packet", "自我审查", "推荐方案", "自动初始化 Git"]:
         if phrase not in solution_text:
             errors.append(f"references/solution-design.md missing phrase {phrase!r}")
 
     implementation_text = read(ROOT / "references/implementation-workflow.md")
-    for phrase in ["TDD", "regression ratchet", "systematic debugging", "gate truth"]:
+    for phrase in ["TDD", "regression ratchet", "systematic debugging", "gate truth", "空工作区启动规则", "git init", "缺仓库 / 缺脚手架", "不是 Git 仓库，所以本轮先停在设计包"]:
         if phrase not in implementation_text:
             errors.append(f"references/implementation-workflow.md missing phrase {phrase!r}")
 
     deployment_text = read(ROOT / "references/deployment-workflow.md")
-    for phrase in ["preview", "production", "rollback", ".opc/deployment/release.md", "release profile", "premortem", "red-team", "stop conditions"]:
+    for phrase in ["preview", "production", "rollback", ".opc/deployment/release.md", "release profile", "premortem", "red-team", "stop conditions", "git init", "无部署凭证/服务器"]:
         if phrase not in deployment_text:
             errors.append(f"references/deployment-workflow.md missing phrase {phrase!r}")
 

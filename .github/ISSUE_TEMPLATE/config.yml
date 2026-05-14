@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 阅读 troubleshooting 文档
+    url: https://github.com/sunshine/skills/blob/main/mastergo/references/troubleshooting.md
+    about: 提 issue 前请先查 troubleshooting.md，常见的 MCP 报错都有现成答案。
+  - name: 提问 / 用法讨论（Discussions）
+    url: https://github.com/sunshine/skills/discussions
+    about: 不确定是不是 bug、想讨论用法或路线图，请走 Discussions。

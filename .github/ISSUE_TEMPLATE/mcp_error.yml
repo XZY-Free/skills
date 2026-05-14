@@ -1,0 +1,96 @@
+name: MCP 错误 / MCP Error
+description: Codify MCP 或 MasterGo Magic MCP 报错、行为异常、渲染出问题
+title: "[MCP] "
+labels: ["mcp", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        提交前请先查 `mastergo/references/troubleshooting.md` —— 大部分常见错误已有现成答案。
+        如果文档里已经有，请告诉我们文档不够清楚（也算 bug，但走 **Bug 报告** 模板）。
+
+        如果你没查过文档，请先按 SKILL.md 的"遇错查文档"原则跑一下：
+        ```bash
+        curl -sL https://mastergo.com/help/MG/MCP -o /tmp/mg.html
+        curl -sL https://registry.npmjs.org/@mastergo/magic-mcp/latest | jq '.version'
+        ```
+  - type: dropdown
+    id: mcp-source
+    attributes:
+      label: 哪个 MCP 出问题
+      options:
+        - MasterGo Magic MCP (mcp__mastergo-magic-mcp__*)
+        - Codify MCP (mcp__codify__*)
+        - 两个都有问题
+        - 不确定
+    validations:
+      required: true
+  - type: dropdown
+    id: error-category
+    attributes:
+      label: 错误类别（参考 troubleshooting.md）
+      options:
+        - "Magic A.1: Could not extract layerId from URL"
+        - "Magic A.2: Request too large (max 20MB)"
+        - "Magic A.3: 10003 权限错误 / 禁止访问"
+        - "Magic A.4: D2C 缓存（设计变了但 HTML 没变）"
+        - "Magic 渲染: 蒙版丢失 / 字体回退 / 胶囊换行 / SVG 位置"
+        - "Codify: 未找到 API 终结点或活跃连接"
+        - "Codify: 10003 权限"
+        - "Codify: 代码列表为空"
+        - "Codify: 组件库找不到 / get_library_list 返回空"
+        - "MCP 装不上 / 配置不生效 / 工具不出现"
+        - "其它（请在描述里说明）"
+    validations:
+      required: true
+  - type: input
+    id: mcp-version
+    attributes:
+      label: MCP 包版本
+      description: |
+        Magic: `curl -sL https://registry.npmjs.org/@mastergo/magic-mcp/latest | jq -r '.version'`
+        Codify: 看你装的具体包，`npm view <pkg> version`
+      placeholder: "magic-mcp: 1.x.x / codify: ..."
+  - type: dropdown
+    id: client
+    attributes:
+      label: 宿主客户端
+      options:
+        - Claude Code
+        - Codex CLI
+        - Cursor
+        - VSCode + MCP 扩展
+        - 其它
+    validations:
+      required: true
+  - type: textarea
+    id: error-output
+    attributes:
+      label: 错误原文 / MCP 返回
+      description: 把 MCP 工具调用的完整错误粘进来。**请脱敏 token 和文件 ID**。
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: doc-check
+    attributes:
+      label: 查官方文档 / npm 后的结果
+      description: |
+        SKILL.md 强调"遇错先查文档"。请贴你 curl 出来的关键信息（mastergo.com/help、npm registry、或 DDG 搜索结果），方便我们判断是不是文档已经过时。
+      render: shell
+  - type: textarea
+    id: context
+    attributes:
+      label: 上下文
+      description: 你是在做什么任务时遇到的？设计稿 URL（可隐去 fileId）、操作步骤等
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已经查过 troubleshooting.md 对应的章节
+          required: true
+        - label: 我已经按 SKILL.md "遇错查文档" 原则跑过 curl，没瞎猜
+          required: true
+        - label: 我已经脱敏 token / fileId / 内网信息
+          required: true

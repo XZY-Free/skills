@@ -1,0 +1,69 @@
+name: Bug 报告 / Bug Report
+description: skill 行为不符合预期，但不是 MCP 本身的报错（那种请用 "MCP 错误" 模板）
+title: "[Bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈 bug。提交前请先确认：
+        - 已经读过 `mastergo/references/troubleshooting.md` 没找到对应条目
+        - 不是 MCP 本身报错（如果是，请走 **MCP 错误** 模板）
+  - type: input
+    id: skill-version
+    attributes:
+      label: skill 版本
+      description: 在 `mastergo/SKILL.md` frontmatter 找，或者贴 git commit hash
+      placeholder: v0.1.0-alpha / commit abc1234
+    validations:
+      required: true
+  - type: dropdown
+    id: client
+    attributes:
+      label: 宿主客户端
+      options:
+        - Claude Code
+        - Codex CLI
+        - Cursor
+        - VSCode + MCP 扩展
+        - 其它
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: 复现步骤
+      description: 你跟 Claude 说了什么，skill 做了什么
+      placeholder: |
+        1. 我说："帮我设计一个登录页"
+        2. skill 应该走 Codify 路径并询问团队组件库
+        3. 实际上跳过了组件库询问，直接生成
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 相关日志 / 上下文
+      description: Claude 的输出、工具调用记录等，请脱敏（不要包含 token / 公司内部信息）
+      render: shell
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已经查过 troubleshooting.md
+          required: true
+        - label: 我已经脱敏所有 token、用户名、内网地址
+          required: true

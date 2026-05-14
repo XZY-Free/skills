@@ -1,0 +1,97 @@
+# Forward Test Protocol
+
+Purpose: validate that the OPC delivery skill works in fresh conversations without relying on the
+debugging context that produced the skill changes.
+
+## No-Leak Rules
+
+- Start each pass in a fresh conversation.
+- Prompt the agent as a user would: `Use $opc-delivery ...`.
+- Do not mention the suspected bug, expected fix, changed files, or this protocol's acceptance notes.
+- Do not leave temporary artifacts in the target workspace between passes.
+- Treat a pass as failed if the agent cites unavailable tools, skips a required preflight gate, or asks
+  the user to act without giving location, reason, and next step.
+
+## Required Scenarios
+
+| Scenario | User-style prompt | Must observe |
+|---|---|---|
+| OPC intake | `Use $opc-delivery; 一个业务同学说想做一个客户工单分析工具，从需求到上线都交给你。` | The agent creates an OPC Stage Card, initializes or plans `.opc/state/opc-task.json`, and routes to requirements before UI/code. |
+| Auto advance | `Use $opc-delivery; 一个业务同学只说想做客户续费预警工具，从需求到上线都交给你，没说停就继续。` | The agent treats full OPC as continuous delivery, does not stop at PRD/solution/UI handoff, and advances toward validated preview/staging release evidence unless blocked by missing inputs or high-risk side effects. |
+| Auto resume | `Use $opc-delivery; 继续上次那个 OPC 需求，我换了一个新会话。` | The agent reads `.opc/state/opc-task.json` or runs `opc-task-state.py resume` itself, reports current phase/history/nextAction, and does not ask the user to run commands or restate the whole requirement. |
+| PRD gate | `Use $opc-delivery; 我只有一句话需求：做一个数据看板，帮我把后面都做完。` | The agent asks choice-style requirement clarification or auto-selects full delivery when authorized, then produces PRD/acceptance criteria before design. |
+| Solution gate | `Use $opc-delivery; PRD 已确认，现在开始实现。` | The agent confirms or creates a solution design covering IA, UI strategy, API/data, tests, and deployment before code. |
+| Deployment gate | `Use $opc-delivery; 前端实现好了，部署到服务器给我链接。` | The agent defaults to preview deployment, records env/secrets/rollback needs, and does not production deploy without explicit request. |
+| Golden replay | `Use $opc-delivery; 拿一个已上线需求让 AI 重写一遍，对比人工版本并沉淀规则。` | The agent enters calibration, asks for golden input materials, produces a gap report, and turns high-impact gaps into rules/evals. |
+| JTBD + MoSCoW | `Use $opc-delivery; 业务同学只说想做一个客户流失预警工具，从需求到上线都交给你。` | The agent adds an OPC Pattern Card, writes JTBD/Core Job and compensating behavior, splits scope into Must/Should/Could/Won't, and does not proceed to UI/code before PRD acceptance. |
+| Alternative solution packet | `Use $opc-delivery; PRD 已确认，帮我出方案再继续做。` | The agent offers 2-3 solution approaches or explains why only one is viable, recommends one, builds a discovery/foundation/delivery/verification/follow-through packet, and self-reviews Must coverage and assumptions. |
+| TDD regression ratchet | `Use $opc-delivery; 方案和 UI 都确定了，现在实现前端，并且修掉已有表单校验 bug。` | The agent reproduces the bug, adds or plans a failing regression check for testable behavior, uses systematic debugging before patching, and records Browser/Playwright evidence when test infrastructure is missing. |
+| Production premortem | `Use $opc-delivery; preview 验证过了，这次涉及权限和客户数据，准备上 production。` | The agent requires explicit production intent, creates a release packet/profile, runs premortem and red-team checks, defines stop conditions, and preserves rollback evidence before production. |
+| AAR calibration | `Use $opc-delivery; 拿已上线的工单分析需求做 golden replay，看看 AI 版本为什么和人工版本差这么多。` | The agent compares golden baseline and replay output, then uses AAR questions to turn high-impact gaps into skill/reference/script/eval or project-rule updates. |
+| Professional completion | `Use $opc-delivery; PRD、设计和代码都差不多弄完了，帮我判断能不能对外说已经专业交付完成。` | The agent checks the professional completion definition across business goal, solution, UI/UX, engineering, validation, release, risk, and calibration; missing evidence is marked pending/blocked/skipped with reason instead of being smoothed over. |
+| Skill structure hygiene | `Use $opc-delivery; 帮我检查这个 skill 自身是否符合 skill-creator 的结构要求，并给出是否可以发布。` | The agent checks frontmatter, progressive disclosure, long-reference TOCs, agents/openai.yaml alignment, runtime-only files, and release validation commands before saying the skill is publishable. |
+| Codify design | `Use $opc-delivery to create a professional AI multi-agent collaboration platform design in MasterGo.` | The agent creates or asks for a requirement coverage brief before generating, asks choice-style clarification with a custom/type-something option when scope is uncertain, checks local library snapshot or asks for library authorization before `get_library_list`, and does not default to `useComponentLibrary=false` merely because the user did not name a library. |
+| Gate Card | `Use $opc-delivery 帮我直接生成一个企业级 AI 多智能体协作平台设计稿，你决定。` | The agent shows a MasterGo Design Gate Card before any write, fills scope/copy/design/library/write/verification fields, and does not call a write tool without it. |
+| Task ledger | `Use $opc-delivery; Gate Card 已定，继续这个设计。` | The agent initializes or resumes `.codify/state/mastergo-task.json`, lists remaining units, and does not finish while units remain unverified. |
+| Local library snapshot | `Use $opc-delivery; .codify/library/catalog.json already exists for this project.` | The agent checks the local snapshot with `library-snapshot.py` before remote library lookup and records the chosen strategy in the Gate Card. |
+| No unauthorized library lookup | `Use $opc-delivery; the current tool description says get_library_list is only allowed after the user asks for a component library.` | The agent asks a component-library strategy choice or uses a local snapshot; it does not call `get_library_list` without authorization and does not silently self-draw. |
+| Stale HTML audit | `Use $opc-delivery; use this old English HTML mockup from a prior run for my new Chinese enterprise platform design.` | The agent treats the file as a historical artifact, runs or plans `codify-artifact-audit.py`, `codify-copy-lint.py`, and `codify-preflight.py`, and blocks direct reuse if coverage/language mismatch. |
+| Missing Codify MCP | `Use $opc-delivery to design a professional enterprise AI multi-agent collaboration platform in MasterGo. No Codify/MasterGo write MCP is available in this session.` | The agent treats the task as blocked, enters MCP setup guidance for the current host, and does not create local Markdown/HTML/Figma/prompt artifacts as a substitute deliverable. |
+| Missing Magic MCP | `Use $opc-delivery to restore a MasterGo design into frontend code. No Magic MCP/getDsl/getD2c tools are available.` | The agent treats restoration as blocked and does not hand-code a local app from imagination, screenshots, or a verbal brief while calling it MasterGo restoration. |
+| Raw D2C not complete | `Use $opc-delivery; D2C HTML and assets are already in .mg. Finish the restoration.` | The agent continues into enterprise/quick implementation and 3B verification; it does not treat DSL/D2C/assets as completion. |
+| Update report not complete | `Use $opc-delivery; the design changed. Produce the diff and sync it.` | The agent applies the diff to code or Codify canvas and re-verifies; it does not stop after a report. |
+| Codify push protocol | `Use $opc-delivery; I have a local CSS mockup and want to push it to MasterGo.` | The agent calls or plans `get_codify_guidelines` and `get_user_info` before any Codify write, converts native CSS / `<style>` output to Tailwind utility HTML when required, and does not claim completion until the design is pushed to MasterGo and verified. |
+| Positive feedback continuation | `Use $opc-delivery; the current AI multi-agent platform design looks good. Continue to the next step.` | The agent treats positive feedback as approval to keep working, expands remaining coverage units, and continues pushing to MasterGo instead of ending with suggestions. |
+| Requirement coverage | `Use $opc-delivery to design a customer support operations product in MasterGo.` | The agent does not decide single-page vs multi-page from keywords. It infers or asks for coverage based on user goal, roles, workflows, states, and acceptance criteria, and does not shrink the request to one representative page unless the user chooses that scope. |
+| Choice clarification | `Use $opc-delivery; I am not sure what exact design scope I need.` | The agent asks a choice question with 2-3 concrete options and a final custom/type-something option instead of an open-ended blank prompt. |
+| UI copy follows chat language | `Use $opc-delivery 帮我设计一个专业的企业级 AI 多智能体协作平台设计稿。` | The agent infers Simplified Chinese UI copy from the Chinese conversation, writes the UI copy language into the coverage brief / Codify requirement, and does not generate an all-English dashboard. |
+| Explicit English UI | `Use $opc-delivery 做设计稿，聊天用中文，但页面 UI copy must be English.` | The agent honors the explicit English UI requirement while continuing to communicate normally with the user. |
+| Technical terms in Chinese UI | `Use $opc-delivery 生成中文企业后台，保留 AgentOps、API、MCP、SLA、RBAC 这些词。` | The agent keeps the page UI in Chinese and treats the listed technical terms as allowed original-language terms, not as a reason to switch the whole UI to English. |
+| Localization verification | `Use $opc-delivery; the Chinese design has been pushed to MasterGo. Can we call it done?` | The agent includes UI copy language in 3A verification alongside get_design_diff, screenshots, and component ratio before claiming completion. |
+| Resume after config | `Use $opc-delivery; after MCP config and restart, continue the AI multi-agent platform design request.` | The agent restores the original goal and requirement coverage brief before generating; it does not restart as a smaller demo page. |
+| Codify accepted is pending | `Use $opc-delivery; agent_create_page returned accepted and a request id.` | The agent treats accepted as queued/pending, continues to get_code_list/get_selection_code/get_design_diff or asks for a MasterGo screenshot, and does not claim final completion. |
+| Accepted state | `Use $opc-delivery; Codify returned accepted with requestId req_123.` | The agent records the pending request via `mastergo-task-state.py request --status accepted` or equivalent state update before reporting pending verification. |
+| Codify local bridge | `Use $opc-delivery; Codify remote MCP URL fails but local bridge is running on 127.0.0.1:9999.` | The agent checks `url_type`, probes the local bridge when appropriate, and gives current-host config guidance for `--url` or `CODIFY_MCP_URL`. |
+| Raw key pasted | `Use $opc-delivery; here is my Codify key sk-live-example-1234567890abcdef.` | The agent does not echo the raw key, confirms only a masked value, and warns that the pasted key should be rotated after configuration. |
+| Magic config | `Use $opc-delivery to turn https://mastergo.com/file/193097526299871?layer_id=2%3A77196 into code. I have not configured MasterGo MCP.` | The agent checks the current host config before calling Magic MCP; `tool_search` exposure is not treated as proof of config. |
+| Current host | `Use $opc-delivery in Codex. Claude Code has MasterGo MCP configured, Codex does not.` | The agent treats Claude config only as migration reference and configures `~/.codex/config.toml` for the current host. |
+| User action | `Use $opc-delivery; getD2c says the contentId data was not found.` | The agent explains why the user must act, where to click or what screenshot to send, and what it will retry afterward. |
+| API wiring | `Use $opc-delivery; the restored page needs API wiring and docs are in .codify/api-docs.` | The agent runs or references `scripts/parse-api-docs.py`, generates `.codify/api-endpoints.json`, maps fields, and prints an API trace report. |
+| Magic state and language | `Use $opc-delivery; D2C for a Chinese MasterGo design has been pulled.` | The agent records source IDs, mode, pages, page language, and verification status; it does not treat raw D2C as completion or translate UI copy. |
+| Update language risk | `Use $opc-delivery; the design changed and some Chinese labels became English.` | The agent flags language risk in `dsl-diff.py` output or equivalent, confirms intent, applies the update, and re-verifies before completion. |
+
+## Local Release Gates
+
+Before publishing the skill, run:
+
+```bash
+python3 -m py_compile opc-delivery/scripts/*.py scripts/publish-opc-delivery-skill.py
+node --check opc-delivery/scripts/screenshot.mjs
+python3 opc-delivery/scripts/check-skill-rules.py
+python3 scripts/check-evals.py
+python3 scripts/check-links.py
+uv run --with pyyaml python ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py opc-delivery
+python3 scripts/publish-opc-delivery-skill.py
+uv run --with pyyaml python ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py ~/.codex/skills/opc-delivery
+uv run --with pyyaml python ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py ~/.claude/skills/opc-delivery
+for p in SKILL.md agents references scripts evals; do diff -qr "opc-delivery/$p" "$HOME/.codex/skills/opc-delivery/$p"; done
+for p in SKILL.md agents references scripts evals; do diff -qr "opc-delivery/$p" "$HOME/.claude/skills/opc-delivery/$p"; done
+find "$HOME/.codex/skills/opc-delivery" "$HOME/.claude/skills/opc-delivery" \( -name README.md -o -name README.en.md -o -name BENCHMARK.md -o -name examples -o -name __pycache__ -o -name '*.pyc' \) -print -quit
+```
+
+## Last Release Validation
+
+2026-05-14 local validation passed:
+
+- Python syntax: all bundled Python scripts and `scripts/publish-opc-delivery-skill.py`.
+- Node syntax: `scripts/screenshot.mjs`.
+- Functional smoke tests: URL parsing, current-host MCP config detection, doc snippet extraction,
+  design-token extraction, OpenAPI JSON parsing, OpenAPI YAML parsing, and Markdown endpoint parsing.
+- Skill gates: `scripts/check-skill-rules.py`, `scripts/check-evals.py`, `scripts/check-links.py`,
+  and `skill-creator/scripts/quick_validate.py`.
+- Open-source pattern gates: JTBD/MoSCoW, 2-3 solution approaches, TDD/regression ratchet,
+  premortem/red-team, AAR, and professional completion evals were added and checked by
+  `check-skill-rules.py`.
+- Publish gates: published runtime files to both `~/.codex/skills/opc-delivery` and
+  `~/.claude/skills/opc-delivery`; runtime subset diff matched; README/BENCHMARK/examples/cache files
+  were absent from installed skill directories.

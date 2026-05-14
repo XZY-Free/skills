@@ -1,0 +1,4 @@
+interface:
+  display_name: "OPC Delivery"
+  short_description: "粗需求到需求、设计、实现、验证、预览上线证据的OPC闭环"
+  default_prompt: "Use $opc-delivery to take a rough business request through requirements, solution, UI, frontend implementation, validation, preview release evidence, and calibration without stopping unless blocked."

@@ -1,0 +1,72 @@
+# OMC runtime state (local-only, not part of the project)
+.omc/
+.omx/
+.opc/
+.claude/
+.codex/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.fuse_hidden*
+.Trash-*
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Vim / Emacs
+*.swp
+*.swo
+*~
+.#*
+\#*\#
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Logs / temp
+*.log
+*.tmp
+*.bak
+*.orig
+
+# Node / JS (in case any skill demo pulls deps locally)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.env
+.env.local
+
+# Build artifacts
+dist/
+build/
+*.egg-info/

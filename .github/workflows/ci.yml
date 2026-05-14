@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Repo validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Check internal markdown links
+        run: python3 scripts/check-links.py
+
+      - name: Validate SVG XML
+        run: python3 scripts/check-svgs.py
+
+      - name: Validate SKILL.md frontmatter
+        run: python3 scripts/check-skill-frontmatter.py
+
+      - name: Validate evals.json schema
+        run: python3 scripts/check-evals.py

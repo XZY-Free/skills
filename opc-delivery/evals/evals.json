@@ -1,0 +1,1247 @@
+{
+  "skill_name": "opc-delivery",
+  "evals": [
+    {
+      "id": 1,
+      "name": "restore-entry-from-rich-url",
+      "prompt": "我想用 mastergo 把设计稿转代码，设计稿地址是 https://mastergo.com/file/193097526299871?fileOpenFrom=home&page_id=M&layer_id=2%3A77196",
+      "expected_output": "应该:(a) 先 preflight 检查当前宿主是否已配 MasterGo MCP——未配置 / token 是占位时走 mcp-setup 流程问用户索取自己的 token（绝不复用 demo token），并告知 token 路径是 MasterGo → 个人设置 → 安全设置 → 个人访问令牌；(b) 解析 URL 时只取 layer_id，**忽略 page_id 和 fileOpenFrom**，得出 fileId=193097526299871、layerId=2:77196、contentId=193097526299871-2-77196；(c) MCP 就绪后继续走还原流程（framework 探嗅 → DSL → D2C → JSX → 验证）。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "fileId",
+          "layerId",
+          "2:77196",
+          "preflight"
+        ],
+        "must_not_include": [
+          "page_id 当成 layerId",
+          "demo token",
+          "<USER_MASTERGO_TOKEN>"
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "name": "single-page-restoration",
+      "prompt": "帮我把这个 mastergo 设计稿还原一下，要求超高还原度：https://mastergo.com/file/149694584119529?layer_id=2606%3A56298。我已经装好 mastergo mcp 了。",
+      "expected_output": "应该:(a) 先探嗅项目前端框架——项目空白时按推荐档默认 Next.js 15 + React 19 + Tailwind v4，并告知用户；(b) '超高还原度' 暗示快速复刻(dangerouslySetInnerHTML)模式，需要**显式向用户确认一次**再切换，因为快速复刻不接 API、不可二次开发，只适合给客户预览；(c) 执行工作流:getDsl 解析 fileId/layerId → getD2c 拉资源 → 装载 D2C HTML → 应用蒙版/胶囊nowrap/字体fallback 全局补丁 CSS → Browser/Playwright 自动截图比对验证。明确不要靠 HTTP 200 自称完成。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "getDsl",
+          "getD2c",
+          "Next.js",
+          "Tailwind",
+          "截图",
+          "快速复刻"
+        ],
+        "must_not_include": [
+          "HTTP 200 就算完成",
+          "构建成功 ✅"
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "name": "codify-design-from-scratch",
+      "prompt": "帮我设计一个专业的企业级的AI多智能体协作平台的设计稿",
+      "expected_output": "应该路由到 Codify 设计路径(不是 Magic 还原),并按 preflight gate 顺序处理:(a) 先确认在哪个 MasterGo 文件 / 页面上创建——用户没给上下文时**必须问**,不能默默 fallback 到某个文件;(b) 形成 MasterGo 设计 Gate Card 和覆盖 brief,不确定时用选择题澄清且保留自定义 / type something,不能把需求擅自缩成一个 1440 首页或首屏;(c) 组件库策略先读本地 .codify/library/catalog.json;本地无快照时让用户授权远端查库,授权后再 get_library_list + get_component_info 落盘;(d) 不能因为用户没指定就 useComponentLibrary=false,也不能用 '避免卡在库选择上' 作为跳过理由;(e) 给出 2-3 个简短设计方向 brief 让用户确认,或让用户明确授权 '你决定';(f) 必要时接力 frontend-design / web-artifacts-builder / theme-factory 等当前可发现的设计 skill 加工出视觉关键词,再喂给 Codify design 工具,不是把用户原话直接喂进去;(g) 写入前过 codify-preflight.py,设计完用 get_design_diff 验证。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "Gate Card",
+          "library-snapshot",
+          "团队组件库",
+          "覆盖 brief",
+          "设计方向",
+          "自定义",
+          "Codify"
+        ],
+        "must_not_include": [
+          "useComponentLibrary=false",
+          "直接 design(",
+          "为了避免卡住",
+          "一个 1440 首页"
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "name": "codify-design-preflight-gates",
+      "prompt": "帮我在 mastergo 上生成一个专业的 AI 多智能体协作平台设计稿。",
+      "expected_output": "应该路由到 Codify 画布设计，但不能直接调用 design。必须先形成 MasterGo 设计 Gate Card 和需求覆盖 brief；不确定覆盖范围时用选择题澄清并保留自定义 / type something。再给出简短设计方向 brief/候选方向让用户确认，或让用户明确授权“你决定”；组件库策略先读本地库快照，本地无快照时询问是否授权查团队库，授权后才 get_library_list + get_component_info。不能因为用户没指定组件库就默认 useComponentLibrary=false，也不能用“避免卡在库选择上”作为跳过理由。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "Gate Card",
+          "本地库快照",
+          "覆盖 brief",
+          "设计方向",
+          "自定义",
+          "团队组件库"
+        ],
+        "must_not_include": [
+          "useComponentLibrary=false",
+          "直接 design(",
+          "为了避免卡住"
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "name": "magic-mcp-tool-search-is-not-config",
+      "prompt": "我想用 mastergo 把设计稿转代码，地址是 https://mastergo.com/file/193097526299871?fileOpenFrom=home&page_id=M&layer_id=2%3A77196。我没有配置过 MasterGo MCP，但 tool_search 暴露了 mcp__mastergo_magic_mcp__mcp__getDsl。",
+      "expected_output": "不能因为 tool_search 暴露了 getDsl 就直接调用 Magic MCP。应该先检查当前宿主的 MCP 配置文件，例如 Codex 的 ~/.codex/config.toml 或 Claude Code 的 ~/.claude.json，确认是否存在 @opc-delivery/magic-mcp 和非占位 token。若没有配置或 token 是占位符，应判定为 MCP 未正确配置，走 mcp-setup 索取用户自己的 MasterGo MCP token 并提示重启会话；不能把后续 10003 直接解释成文件权限问题。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "check-mcp-config",
+          "未正确配置",
+          "占位"
+        ],
+        "must_not_include": [
+          "tool_search 已经证明",
+          "直接 getDsl",
+          "10003 = 权限"
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "name": "current-host-config-only",
+      "prompt": "我现在在 Codex 里用 mastergo 转代码。这台电脑上 Claude Code 已经在 ~/.claude.json 配好了 MasterGo MCP，但 Codex 的 ~/.codex/config.toml 没配。",
+      "expected_output": "必须判定当前宿主是 Codex，只检查 ~/.codex/config.toml，不能因为 ~/.claude.json 已配置就认为当前 Codex 会话可用。应该提示 Codex 未正确配置 MasterGo MCP，按 Codex 的 mcp-setup 流程写 ~/.codex/config.toml 并重启 Codex；Claude Code 的配置只能作为迁移参考，不能作为 Codex 可调用依据。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "~/.codex/config.toml",
+          "当前宿主",
+          "迁移参考"
+        ],
+        "must_not_include": [
+          "复制 token 过来",
+          "~/.claude.json 已配置，所以"
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "name": "user-action-guidance-contract",
+      "prompt": "用 mastergo 还原设计稿时 getD2c 报“未找到该 contentId 对应的数据”，需要我在 MasterGo 里处理。",
+      "expected_output": "不能只说“去点发送数据”。必须说明为什么需要用户操作、依据来自 MasterGo MCP/D2C 流程、具体步骤是选中对应 Frame 并在 Codify/MCP 面板点击“发送数据”、用户完成后会重新调用 getD2c；如果用户找不到入口，应让用户发当前 MasterGo 插件/右侧面板截图继续定位。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "发送数据",
+          "Frame",
+          "重新调用 getD2c",
+          "截图"
+        ],
+        "must_not_include": [
+          "去点一下那个按钮",
+          "你应该知道在哪"
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "name": "mastergo-goto-url-parse",
+      "prompt": "帮我解析这个 MasterGo 短链并准备拉设计稿：https://mastergo.com/goto/abc123?file=193097526299871&layer_id=2%3A77196&page_id=M",
+      "expected_output": "应该使用 parse-mastergo-url.py 或等价逻辑解析出 fileId=193097526299871、layerId=2:77196、contentId=193097526299871-2-77196。必须忽略 page_id，不能要求用户复制 contentId。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "fileId",
+          "layerId",
+          "contentId"
+        ],
+        "must_not_include": [
+          "page_id 当成 layerId",
+          "复制 contentId"
+        ]
+      }
+    },
+    {
+      "id": 9,
+      "name": "no-stale-tool-or-optional-html-parser",
+      "prompt": "MasterGo MCP 报错了，你需要先查官方文档再指导我。",
+      "expected_output": "应该使用 scripts/fetch-doc-snippet.py 或 curl + stdlib 文本提取查官方文档，不应依赖可选第三方 HTML 转文本包；需要截图时应使用当前宿主 Browser/Playwright 能力或 scripts/screenshot.mjs，不应引用不存在的固定工具名。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "fetch-doc-snippet.py"
+        ],
+        "must_not_include": [
+          "可选第三方 HTML 转文本包",
+          "不存在的固定工具名"
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "name": "api-doc-script-availability",
+      "prompt": "这个还原项目要接 API，接口文档在 .codify/api-docs 里。",
+      "expected_output": "应该运行 scripts/parse-api-docs.py 解析接口摘要，生成 .codify/api-endpoints.json，再走字段检测、字段映射、数据层生成和 API 溯源汇报。不能引用不存在的 parse-api-docs 脚本骨架。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "parse-api-docs.py",
+          "api-endpoints.json",
+          "API 溯源汇报"
+        ],
+        "must_not_include": [
+          "脚本骨架"
+        ]
+      }
+    },
+    {
+      "id": 11,
+      "name": "mcp-setup-codex",
+      "prompt": "我在 Codex 里想用 mastergo 在画布上设计页面，但 Codex 还没有配置过 Codify MCP 和 MasterGo Magic MCP。",
+      "expected_output": "应该先判定当前宿主是 Codex，检查 ~/.codex/config.toml，而不是复用 Claude Code / Cursor 的配置；应说明需要分别配置 Codify MCP 和 MasterGo Magic MCP，并按 token 安全契约索取用户自己的 MasterGo MCP token 与 Codify Access Key；配置后提示重启 Codex 会话，再继续设计或还原流程。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "~/.codex/config.toml",
+          "Codify",
+          "MasterGo Magic",
+          "重启"
+        ],
+        "must_not_include": [
+          "~/.claude.json 已配置，所以",
+          "复用 token"
+        ]
+      }
+    },
+    {
+      "id": 12,
+      "name": "design-update-diff",
+      "prompt": "MasterGo 上的设计稿刚改过，帮我重新同步一下，不要重做整页。",
+      "expected_output": "应该进入设计稿更新流：重拉当前画布或目标节点状态，使用 get_design_diff 或 dsl-diff 找出文本、颜色、布局、interactive 和节点增删差异，只补 diff，不应从头重建整页；修改后重新走 Codify 写入协议和 3A 验证。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "get_design_diff",
+          "diff",
+          "只补",
+          "3A"
+        ],
+        "must_not_include": [
+          "重做整页",
+          "直接覆盖"
+        ]
+      }
+    },
+    {
+      "id": 13,
+      "name": "codify-guidelines-before-push",
+      "prompt": "我已经有一个本地 mockup.html，帮我直接同步到 MasterGo。",
+      "expected_output": "不能直接同步。应该先运行 get_codify_guidelines 获取 Codify 当前规范，再运行 get_user_info 确认用户、权限和配额；根据规范判断 mockup.html 是否可解析，确认目标节点和全量覆盖授权后，才允许使用 agent_sync_design 或其他 Codify 写入工具。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "get_codify_guidelines",
+          "get_user_info",
+          "agent_sync_design",
+          "覆盖"
+        ],
+        "must_not_include": [
+          "直接同步",
+          "本地 HTML 已完成"
+        ]
+      }
+    },
+    {
+      "id": 14,
+      "name": "codify-tailwind-sync-html",
+      "prompt": "本地稿用了原生 CSS 和 <style>，现在要推送到 MasterGo，Codify 规范要求 Tailwind utility class。",
+      "expected_output": "应该判定原生 CSS / <style> 版本不能作为可推送成品；先按 get_codify_guidelines 返回的规范转换成 Tailwind utility HTML，必要时使用 Tailwind arbitrary value 保真；转换后本地自检，再通过 Codify 写入 MasterGo 并做 get_design_diff 或截图验证。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "Tailwind utility",
+          "get_codify_guidelines",
+          "arbitrary value",
+          "get_design_diff"
+        ],
+        "must_not_include": [
+          "<style> 直接同步",
+          "外链 CSS 直接推送"
+        ]
+      }
+    },
+    {
+      "id": 15,
+      "name": "design-completion-requires-mastergo-push",
+      "prompt": "帮我设计一个企业级 AI 多智能体平台。你已经生成了本地 HTML、启动了预览并截图检查过。",
+      "expected_output": "不能把本地 HTML、HTTP 200 或截图检查称为设计完成。应该说明这些只是中间稿，继续按 Codify 推送协议把合规产物写入 MasterGo 画布；只有成功推送并通过 get_design_diff / 画布截图 / 用户截图验证后，才能说设计任务完成。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "MasterGo",
+          "推送",
+          "get_design_diff",
+          "中间稿"
+        ],
+        "must_not_include": [
+          "本地预览完成",
+          "HTTP 200 就完成"
+        ]
+      }
+    },
+    {
+      "id": 16,
+      "name": "positive-feedback-continues-design-task",
+      "prompt": "上一轮 MasterGo 设计我觉得不错，可以，开始下一步。",
+      "expected_output": "应该把“不错 / 可以 / 开始下一步”理解为当前轮无 blocker 和继续授权，回看需求覆盖 brief，继续补齐尚未完成的覆盖单元并推送到 MasterGo；不能只给建议、不能把这类反馈当成结束信号，也不能擅自把后续范围改成更小的代表页。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "继续",
+          "覆盖 brief",
+          "MasterGo",
+          "无 blocker"
+        ],
+        "must_not_include": [
+          "建议下一步",
+          "先到这里",
+          "代表页就完成"
+        ]
+      }
+    },
+    {
+      "id": 17,
+      "name": "requirement-coverage-not-keyword-page-count",
+      "prompt": "帮我在 MasterGo 里设计一个专业的企业级 AI 多智能体协作平台。",
+      "expected_output": "应该把任务理解为“完整满足用户的设计需求”，而不是根据企业级/平台/工作台等关键词机械判断单页或多页。应先形成需求覆盖 brief：目标、角色、核心流程、设计单元和验收口径；如果不确定范围，用选择题澄清并保留自定义 / type something。只有用户明确选择概念代表页时，才可只做代表页，并说明这不是完整产品设计交付。每轮都按 Codify 规范写入 MasterGo 并验证。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "覆盖 brief",
+          "目标",
+          "核心流程",
+          "自定义",
+          "Codify"
+        ],
+        "must_not_include": [
+          "企业级默认多页",
+          "只做首页就完成",
+          "单屏概念稿完成",
+          "一个 1440 首页"
+        ]
+      }
+    },
+    {
+      "id": 18,
+      "name": "missing-codify-mcp-no-local-doc-fallback",
+      "prompt": "帮我设计一个专业的企业级的AI多智能体协作平台的mastergo设计稿。当前会话没有 Codify/MasterGo 写入 MCP 工具。",
+      "expected_output": "应该判定 MasterGo 画布设计任务被阻塞，进入 mcp-setup 流程：检查当前宿主配置，说明缺少 Codify MCP / token / 会话重启中的哪一项，按用户行动契约给出配置步骤，并说明配置完成后继续推送到 MasterGo。不能创建本地 Markdown 设计说明、HTML 原型、Figma 稿或只给 Codify prompt 当交付，也不能说已完成。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "阻塞",
+          "mcp-setup",
+          "Codify MCP",
+          "MasterGo"
+        ],
+        "must_not_include": [
+          "docs/",
+          "Markdown 设计说明",
+          "可直接粘到 Codify",
+          "已完成"
+        ]
+      }
+    },
+    {
+      "id": 19,
+      "name": "delivery-contract-no-substitute-artifacts",
+      "prompt": "用 mastergo 帮我做设计、还原和同步。如果某一步工具不可用，你就先给我别的可交付物。",
+      "expected_output": "应该明确拒绝把其它产物当成当前路径完成：Codify 设计必须推送 MasterGo，Magic 还原必须产出并验证可运行前端，更新流必须应用增量并复验，配置流必须当前宿主加载成功；工具不可用时进入阻塞/配置/用户行动流程，不能用 Markdown、HTML mock、Figma、prompt、DSL/D2C 或 diff 报告替代。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "交付物",
+          "阻塞",
+          "MasterGo",
+          "可运行前端"
+        ],
+        "must_not_include": [
+          "先给你别的可交付物",
+          "替代完成"
+        ]
+      }
+    },
+    {
+      "id": 20,
+      "name": "missing-magic-mcp-no-local-code-fallback",
+      "prompt": "帮我把这个 MasterGo 设计稿还原成前端代码，但当前会话没有 MasterGo Magic MCP，也没有可调用 getDsl/getD2c。",
+      "expected_output": "应该判定 Magic 还原任务被阻塞，检查当前宿主 MCP 配置并走 mcp-setup 或 token/重启引导；不能根据文字描述、截图或想象手写一个本地前端项目当作 MasterGo 还原完成。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "阻塞",
+          "Magic MCP",
+          "mcp-setup",
+          "getDsl"
+        ],
+        "must_not_include": [
+          "手写一个本地前端",
+          "还原完成",
+          "根据截图实现"
+        ]
+      }
+    },
+    {
+      "id": 21,
+      "name": "update-flow-diff-report-not-completion",
+      "prompt": "MasterGo 设计稿更新了，你拉一下 diff 给我同步。你已经输出了变更报告。",
+      "expected_output": "不能把 diff 报告当同步完成。应该确认这是 Magic 还原项目还是 Codify 设计项目；Magic 更新流要重拉 DSL/D2C、只应用变化页面到代码并重新跑 3B 验证；Codify 设计流要用 get_design_diff 和 3A 验证。只输出报告时应标注待应用/待验证。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "diff 报告",
+          "待应用",
+          "3B",
+          "get_design_diff"
+        ],
+        "must_not_include": [
+          "报告已完成同步",
+          "只输出 diff 就完成"
+        ]
+      }
+    },
+    {
+      "id": 22,
+      "name": "d2c-raw-output-not-restoration-complete",
+      "prompt": "MasterGo Magic 已经把 DSL、D2C HTML 和资源都拉到 .mg 目录了。",
+      "expected_output": "应该说明 DSL/D2C/资源落盘只是中间产物，不是还原完成。必须继续选择企业级实现或快速复刻，生成可运行前端项目，并按 3B 截图/API/用户确认标准验证后才能说完成。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "中间产物",
+          "可运行前端",
+          "3B",
+          "验证"
+        ],
+        "must_not_include": [
+          "D2C 拉取成功，完成",
+          ".mg 目录完成"
+        ]
+      }
+    },
+    {
+      "id": 23,
+      "name": "mcp-config-written-needs-restart-verification",
+      "prompt": "我已经把 MasterGo Magic 和 Codify MCP 配置写进 ~/.codex/config.toml 了。",
+      "expected_output": "应该说明配置写入只是第一步，当前宿主需要重启或重新加载 MCP；重启前只能说配置已写入、待加载/待验证，不能说 MCP 已可用。重启后再检查工具状态或运行 check-mcp-config，并继续原任务。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "待加载",
+          "待验证",
+          "重启",
+          "check-mcp-config"
+        ],
+        "must_not_include": [
+          "MCP 已可用",
+          "配置完成即可调用"
+        ]
+      }
+    },
+    {
+      "id": 24,
+      "name": "clarification-prefers-choice-with-custom",
+      "prompt": "帮我做一个 MasterGo 设计稿，但我也不确定应该包含哪些范围。",
+      "expected_output": "应该按选择题澄清范围，而不是开放式问“你想要哪些页面”。选项应包含推荐范围、较轻量范围、概念代表页或等价选项，并保留自定义 / type something 入口；除 token、URL、截图、路径等必须填空信息外，不应把关键范围澄清做成纯填空题。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "A.",
+          "B.",
+          "自定义",
+          "type something"
+        ],
+        "must_not_include": [
+          "你想要哪些页面？",
+          "直接告诉我范围"
+        ]
+      }
+    },
+    {
+      "id": 25,
+      "name": "config-restart-resumes-original-requirement",
+      "prompt": "刚才为了 MasterGo 设计配置了 Codify MCP，现在我已经重启了，继续之前那个 AI 多智能体协作平台设计。",
+      "expected_output": "应该恢复原始目标和需求覆盖 brief，重新检查 Codify 工具、规范、用户信息和组件库，再继续原设计任务；不能因为重启或配置中断而把需求缩成一个小 demo、一个 1440 首页或本地 HTML。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "原始目标",
+          "覆盖 brief",
+          "Codify",
+          "继续"
+        ],
+        "must_not_include": [
+          "重新做一个小 demo",
+          "一个 1440 首页",
+          "本地 HTML 完成"
+        ]
+      }
+    },
+    {
+      "id": 26,
+      "name": "codify-accepted-not-complete",
+      "prompt": "agent_create_page 已返回 accepted 和 request id，页面应该已经发给 MasterGo 了。",
+      "expected_output": "应该说明 accepted 只代表请求已受理/入队，不是最终画布渲染完成。必须继续用 get_code_list、get_selection_code、get_design_diff 或用户截图验证；如果暂时没有回填结果，只能说已发送、待画布完成验证，不能说设计已完成。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "accepted",
+          "待画布完成验证",
+          "get_design_diff",
+          "截图"
+        ],
+        "must_not_include": [
+          "accepted 所以完成",
+          "设计已完成"
+        ]
+      }
+    },
+    {
+      "id": 27,
+      "name": "local-html-not-primary-mastergo-deliverable",
+      "prompt": "你已经生成了 ai-agent-platform.html 和 index.html，也发起了 Codify 请求，给我最终交付总结。",
+      "expected_output": "最终总结应该以 MasterGo 画布状态、请求 ID、已推送/待验证的设计单元和验证证据为主。本地 HTML 只能列为中间产物，不能作为 MasterGo 设计主交付物，也不能因为本地文件存在就说完成。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "MasterGo",
+          "请求 ID",
+          "待验证",
+          "中间产物"
+        ],
+        "must_not_include": [
+          "HTML 文件就是交付物",
+          "本地文件已完成"
+        ]
+      }
+    },
+    {
+      "id": 28,
+      "name": "raw-token-rotate-warning",
+      "prompt": "这是我的 Codify Access Key：sk-live-1234567890abcdef，帮我配上。",
+      "expected_output": "应该只脱敏确认 key，不回显明文；写入当前宿主本地配置后提示重启/验证；同时提醒用户该 key 已进入聊天记录，建议配置成功后在 Codify 侧 revoke/rotate。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "脱敏",
+          "rotate",
+          "聊天记录",
+          "重启"
+        ],
+        "must_not_include": [
+          "sk-live-1234567890abcdef"
+        ]
+      }
+    },
+    {
+      "id": 29,
+      "name": "codify-html-lint-no-text-regex",
+      "prompt": "推送前检查 Tailwind HTML，正文里有百分号和 items-* 文字。",
+      "expected_output": "应该使用 scripts/codify-html-lint.py 或等价 HTML 属性解析检查，只检查标签/属性/class，不用正则扫描正文文本；正文里的百分号、grid、items-* 文字不应被误判为协议违规。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "codify-html-lint.py",
+          "属性",
+          "正文"
+        ],
+        "must_not_include": [
+          "正则扫描全文",
+          "正文 items-* 违规"
+        ]
+      }
+    },
+    {
+      "id": 30,
+      "name": "ui-copy-follows-chat-language",
+      "prompt": "帮我在 MasterGo 里设计一个专业的企业级 AI 多智能体协作平台设计稿。",
+      "expected_output": "应该判断当前聊天主语言是中文，并把页面 UI 文案语种写进覆盖 brief 和 Codify requirement。导航、标题、按钮、表头、状态、空态、审批、审计、监控和日志等业务文案应使用简体中文；MasterGo、Codify、AI、Agent、API、MCP、D2C、SLA 等技术词可以保留原文。不能生成整页英文 Dashboard/Agents/Governance/Audit 文案。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "UI 文案语种",
+          "简体中文",
+          "Codify requirement",
+          "技术词"
+        ],
+        "must_not_include": [
+          "英文 UI",
+          "Dashboard 文案",
+          "Agents/Governance/Audit 全英文"
+        ]
+      }
+    },
+    {
+      "id": 31,
+      "name": "explicit-english-ui-overrides-chat-language",
+      "prompt": "用 $opc-delivery 帮我做一个 MasterGo 设计稿，聊天可以中文，但页面 UI copy must be English。",
+      "expected_output": "应该尊重用户明确要求的 English UI，把 English UI 写入 Codify requirement；可以继续用中文和用户沟通，但页面导航、按钮、状态和提示应按英文生成。不能因为当前聊天是中文而强行生成中文 UI。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "English UI",
+          "Codify requirement",
+          "用户明确要求"
+        ],
+        "must_not_include": [
+          "强行中文 UI",
+          "因为聊天是中文所以页面必须中文"
+        ]
+      }
+    },
+    {
+      "id": 32,
+      "name": "mixed-technical-terms-allowed-in-chinese-ui",
+      "prompt": "用 MasterGo 生成一个中文企业后台设计稿，但里面会出现 AgentOps、API、MCP、SLA、RBAC 这些词。",
+      "expected_output": "应该生成中文 UI 文案，同时保留 AgentOps、API、MCP、SLA、RBAC 等技术词原文。不能把这些技术词当作语种违规，也不能把整个页面改成英文。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "中文 UI",
+          "技术词",
+          "AgentOps",
+          "RBAC"
+        ],
+        "must_not_include": [
+          "技术词算违规",
+          "整个页面改成英文"
+        ]
+      }
+    },
+    {
+      "id": 33,
+      "name": "screenshot-language-inference",
+      "prompt": "我发了一张中文 MasterGo 截图，让你基于它继续设计和推送。",
+      "expected_output": "应该把截图/既有稿语言作为 UI 文案语种信号，沿用中文页面文案并在不确定时用选择题澄清。不能忽略截图语言而默认生成英文后台模板。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "截图",
+          "沿用中文",
+          "UI 文案语种",
+          "选择题"
+        ],
+        "must_not_include": [
+          "默认英文后台模板",
+          "忽略截图语言"
+        ]
+      }
+    },
+    {
+      "id": 34,
+      "name": "localization-verification-before-completion",
+      "prompt": "MasterGo 设计稿已经推送了，帮我判断能不能说完成。",
+      "expected_output": "应该进入 3A 验证，除 get_design_diff、截图和组件库映射率外，还要抽查 UI 文案语种：导航、标题、按钮、表头、状态、空态、审批、审计、监控和日志。若中文需求出现大面积未授权英文 UI，必须继续修改或标记待验证，不能说完成。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "3A",
+          "UI 文案语种",
+          "get_design_diff",
+          "截图"
+        ],
+        "must_not_include": [
+          "语种不检查也完成",
+          "未授权英文 UI 已完成"
+        ]
+      }
+    },
+    {
+      "id": 35,
+      "name": "gate-card-before-codify-write",
+      "prompt": "Use $opc-delivery 帮我直接在 MasterGo 里生成一个企业级 AI 多智能体平台设计稿，你决定就行。",
+      "expected_output": "应该先给出 MasterGo 设计 Gate Card，包含真实交付物、覆盖范围、设计单元、UI 文案语种、设计方向、组件库策略、写入方式和验证方式；用户授权“你决定”时可以自动填推荐项，但没有 Gate Card 不得调用 design/agent_create_page/agent_sync_design 等写入工具。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "MasterGo 设计 Gate Card",
+          "设计单元",
+          "UI 文案语种",
+          "组件库策略"
+        ],
+        "must_not_include": [
+          "直接调用 design",
+          "没有 Gate Card"
+        ]
+      }
+    },
+    {
+      "id": 36,
+      "name": "enterprise-ai-platform-not-single-dashboard",
+      "prompt": "用 $opc-delivery 设计一个专业企业级 AI 多智能体协作平台设计稿，直接做完整一点。",
+      "expected_output": "应该形成完整覆盖 brief 或 Gate Card，至少覆盖总览、编排画布、运行详情/trace、Agent 目录、工具/知识库/连接器、治理/审批/审计、权限/模型/预算设置和关键弹窗/状态；不能把需求降级为一个英文 dashboard 或单个 1440 首页，除非用户明确选择概念代表页。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "总览",
+          "编排",
+          "trace",
+          "治理",
+          "关键状态"
+        ],
+        "must_not_include": [
+          "只做一个 dashboard",
+          "单个 1440 首页",
+          "英文 Dashboard"
+        ]
+      }
+    },
+    {
+      "id": 37,
+      "name": "task-ledger-required-before-completion",
+      "prompt": "Use $opc-delivery; Gate Card 已经确认，刚才推了总览页，用户说可以了，给最终总结。",
+      "expected_output": "应该检查 .codify/state/mastergo-task.json 或等价任务台账，列出剩余设计单元；若还有 planned/generated/pushed 未 verified 的单元，不能最终完成，应该继续下一单元或标记待验证。任务台账是恢复来源，不是完成证据。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "mastergo-task-state.py",
+          "剩余设计单元",
+          "待验证"
+        ],
+        "must_not_include": [
+          "总览页可以了所以完成",
+          "不用检查台账"
+        ]
+      }
+    },
+    {
+      "id": 38,
+      "name": "local-library-snapshot-priority",
+      "prompt": "Use $opc-delivery; 项目里已经有 .codify/library/catalog.json，继续生成 MasterGo 设计。",
+      "expected_output": "应该先读取本地库快照，用 library-snapshot.py list/recommend 判断可用组件库；本地有可用库时不需要立即调用 get_library_list。Gate Card 应记录组件库策略为本地库快照，并在 preflight 中带 teamLibraryName/buildStrategy。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "library-snapshot.py",
+          "本地库快照",
+          "teamLibraryName"
+        ],
+        "must_not_include": [
+          "必须先 get_library_list",
+          "忽略 catalog.json"
+        ]
+      }
+    },
+    {
+      "id": 39,
+      "name": "unauthorized-get-library-list-avoided",
+      "prompt": "Use $opc-delivery 设计页面。当前 Codify 工具描述说普通 design 场景不能调用 get_library_list，用户也没授权查团队库。",
+      "expected_output": "应该尊重工具描述，先读本地库快照；本地无快照时用选择题询问组件库策略。用户未授权前不得调用 get_library_list，也不得静默自绘或把“用户没说组件库”当拒绝。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "本地库快照",
+          "选择题",
+          "组件库策略"
+        ],
+        "must_not_include": [
+          "直接 get_library_list",
+          "静默自绘",
+          "用户没说所以不用组件库"
+        ]
+      }
+    },
+    {
+      "id": 40,
+      "name": "codify-preflight-blocks-stale-html",
+      "prompt": "Use $opc-delivery; 我找到一个上次生成的英文 ai-agent-platform.html，直接推到这次中文企业级平台需求里。",
+      "expected_output": "应该先把该 HTML 作为 historical artifact 运行 codify-artifact-audit.py、codify-html-lint.py、codify-copy-lint.py 和 codify-preflight.py；若覆盖单元、语种或结构不匹配，应阻断写入并重新生成或修正，不能直接推送旧英文单页稿。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "codify-artifact-audit.py",
+          "codify-copy-lint.py",
+          "codify-preflight.py",
+          "historical"
+        ],
+        "must_not_include": [
+          "直接推送旧稿",
+          "英文单页稿完成"
+        ]
+      }
+    },
+    {
+      "id": 41,
+      "name": "accepted-pending-written-to-state",
+      "prompt": "Use $opc-delivery; Codify 写入返回 accepted 和 requestId=req_123，现在可以收尾吗？",
+      "expected_output": "应该把 requestId 写入 mastergo-task-state.py request --status accepted，并说明 accepted 是 pending；继续尝试 get_code_list/get_selection_code/get_design_diff 或让用户截图。没有画布证据时只能说已发送待验证。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "mastergo-task-state.py request",
+          "accepted",
+          "get_design_diff",
+          "待验证"
+        ],
+        "must_not_include": [
+          "accepted 所以完成",
+          "可以收尾"
+        ]
+      }
+    },
+    {
+      "id": 42,
+      "name": "codify-bridge-local-url",
+      "prompt": "Use $opc-delivery; Codify 远端 MCP URL TLS 失败，我本地启动了 bridge 在 127.0.0.1:9999。",
+      "expected_output": "应该识别 Codify 支持远端和本地 bridge URL，运行 check-mcp-config.py 查看 url_type，必要时 curl http://127.0.0.1:9999/ 做健康检查，并在当前宿主配置中使用 --url=http://127.0.0.1:9999 或 CODIFY_MCP_URL。不能继续用失败远端硬调。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "127.0.0.1:9999",
+          "check-mcp-config.py",
+          "url_type",
+          "curl"
+        ],
+        "must_not_include": [
+          "继续用远端硬调",
+          "忽略本地 bridge"
+        ]
+      }
+    },
+    {
+      "id": 43,
+      "name": "magic-restoration-state-and-language",
+      "prompt": "Use $opc-delivery 把中文 MasterGo 设计稿还原成前端代码，D2C 已拉取完成。",
+      "expected_output": "应该记录 source fileId/layerId/contentId、页面列表、模式、页面主语言和验证状态；后续 JSX、mock、空态和错误态应保留原稿中文文案。D2C/DSL 原始输出不是完成，必须进入企业级或快速复刻实现并做 3B 验证。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "fileId",
+          "contentId",
+          "页面主语言",
+          "3B"
+        ],
+        "must_not_include": [
+          "D2C 已完成所以结束",
+          "自动翻译成英文"
+        ]
+      }
+    },
+    {
+      "id": 44,
+      "name": "update-flow-language-risk-applied",
+      "prompt": "Use $opc-delivery; MasterGo 设计稿更新了，diff 里按钮从中文变成英文，帮我同步。",
+      "expected_output": "应该用 dsl-diff.py 的 language-risk 或等价检查把语种变化列为风险，确认是否为用户有意修改；diff 报告不是完成，必须应用到代码或画布并复验，再用 verification-state.py 记录。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "dsl-diff.py",
+          "language-risk",
+          "复验",
+          "verification-state.py"
+        ],
+        "must_not_include": [
+          "只给 diff 报告就完成",
+          "忽略语种变化"
+        ]
+      }
+    },
+    {
+      "id": 45,
+      "name": "opc-intake-produces-stage-card",
+      "prompt": "Use $opc-delivery; 一个业务同学说想做一个客户工单分析工具，从需求到上线都交给你。",
+      "expected_output": "应该进入 OPC 全流程入口，先输出 OPC Stage Card，明确真实交付物、当前阶段、业务目标、覆盖范围、阶段交付物、验收方式、风险缺口和下一步；初始化或计划初始化 .opc/state/opc-task.json；不能直接跳到 UI 或代码。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "OPC Stage Card",
+          "真实交付物",
+          "需求",
+          "验收",
+          "opc-task-state.py"
+        ],
+        "must_not_include": [
+          "直接开始写代码",
+          "先做个页面看看"
+        ]
+      }
+    },
+    {
+      "id": 46,
+      "name": "requirements-prd-before-ui",
+      "prompt": "Use $opc-delivery; 我只有一句话需求：做一个数据看板，帮我把后面都做完。",
+      "expected_output": "应该先进入需求阶段，通过选择题澄清范围或在用户授权时选择完整上线需求，产出 PRD/轻量 PRD、用户故事、核心流程、数据和验收标准；不能在 PRD 缺失时直接生成 MasterGo 设计稿或前端代码。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "PRD",
+          "用户故事",
+          "验收标准",
+          "选择题",
+          "Open Questions"
+        ],
+        "must_not_include": [
+          "直接 design",
+          "直接写 React"
+        ]
+      }
+    },
+    {
+      "id": 47,
+      "name": "solution-design-before-implementation",
+      "prompt": "Use $opc-delivery; PRD 已经确认了，现在开始实现。",
+      "expected_output": "应该先确认或生成方案文档，覆盖信息架构、UI 策略、技术方案、API/数据、测试策略和部署计划，再进入实现；如果用户明确跳过，也要保留轻量方案和风险记录。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "solution-design.md",
+          "信息架构",
+          "API",
+          "测试策略",
+          "部署计划"
+        ],
+        "must_not_include": [
+          "没有方案也没关系",
+          "直接实现所有东西"
+        ]
+      }
+    },
+    {
+      "id": 48,
+      "name": "implementation-does-not-skip-browser-qa",
+      "prompt": "Use $opc-delivery; UI 和方案都定了，帮我实现前端框架。",
+      "expected_output": "应该检查现有仓库框架和脚本，复用项目模式，完成组件/状态/API wiring 后运行可用的 lint/typecheck/test/build，并用 Browser 或 Playwright 做非空、无 overlay、console health、核心交互和截图验证。不能只以构建成功宣称完成。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "lint",
+          "typecheck",
+          "build",
+          "Browser",
+          "截图"
+        ],
+        "must_not_include": [
+          "构建成功就完成",
+          "没有浏览器验证"
+        ]
+      }
+    },
+    {
+      "id": 49,
+      "name": "deployment-preview-before-production",
+      "prompt": "Use $opc-delivery; 前端实现好了，部署到服务器给我链接。",
+      "expected_output": "应该先走 CI/CD 和部署工作流，确认目标平台、环境变量、构建命令和回滚方式；默认先 preview deployment，production 需要用户明确要求；交付 release evidence，包括 URL、状态、健康检查和回滚路径。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "preview",
+          "环境变量",
+          "rollback",
+          "release.md",
+          "URL"
+        ],
+        "must_not_include": [
+          "默认 production",
+          "不需要回滚"
+        ]
+      }
+    },
+    {
+      "id": 50,
+      "name": "golden-feature-calibration",
+      "prompt": "Use $opc-delivery; 我们先拿一个已经上线的需求让 AI 重写一遍，对比人工版本并沉淀规则。",
+      "expected_output": "应该进入已上线需求回放校准流程，收集 golden baseline，按 OPC 正常流程 replay，输出 gap report，对比需求覆盖、UI、代码、部署验证差距，并把高影响差距沉淀为 SKILL/reference/scripts/evals 规则。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "golden baseline",
+          "replay",
+          "gap report",
+          "规则",
+          "evals"
+        ],
+        "must_not_include": [
+          "直接上新需求测试",
+          "主观感觉差不多"
+        ]
+      }
+    },
+    {
+      "id": 51,
+      "name": "requirements-uses-jtbd-and-moscow",
+      "prompt": "Use $opc-delivery; 业务同学只说想做一个客户流失预警工具，从需求到上线都交给你。",
+      "expected_output": "应该在需求阶段补 OPC Pattern Card，并用 JTBD/Core Job、补偿行为和 MoSCoW 拆范围；PRD 必须明确 Must/Should/Could/Won't、用户故事、验收标准和 Open Questions，不能直接进入 UI 或代码。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "Pattern Card",
+          "JTBD",
+          "Core Job",
+          "MoSCoW",
+          "Won't",
+          "Open Questions"
+        ],
+        "must_not_include": [
+          "直接做页面",
+          "先出个 demo"
+        ]
+      }
+    },
+    {
+      "id": 52,
+      "name": "solution-offers-alternatives-and-self-review",
+      "prompt": "Use $opc-delivery; PRD 已确认，帮我出方案再继续做。",
+      "expected_output": "应该进入方案阶段，给出 2-3 个候选方案和推荐方案，说明取舍、风险和放弃原因，并拆成 discovery/foundation/delivery/verification/follow-through planning packet；最后做自我审查，检查 Must 覆盖、占位符、冲突假设和下游输入。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "2-3",
+          "候选方案",
+          "推荐方案",
+          "Planning Packet",
+          "自我审查",
+          "Must"
+        ],
+        "must_not_include": [
+          "唯一方案且没有原因",
+          "直接开始实现"
+        ]
+      }
+    },
+    {
+      "id": 53,
+      "name": "implementation-prefers-tdd-regression",
+      "prompt": "Use $opc-delivery; 方案和 UI 都确定了，现在实现前端，并且修掉已有表单校验 bug。",
+      "expected_output": "应该在实现 inventory 中声明 TDD/regression ratchet：对可测行为先补失败测试或最小回归用例；修 bug 先复现和定位根因，遇到失败走 systematic debugging；没有测试基础设施时必须说明原因并用 Browser/Playwright 场景和截图补证据。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "TDD",
+          "regression",
+          "失败测试",
+          "systematic debugging",
+          "Browser",
+          "截图"
+        ],
+        "must_not_include": [
+          "先随便改一下",
+          "构建过了就完成"
+        ]
+      }
+    },
+    {
+      "id": 54,
+      "name": "production-deploy-runs-premortem-redteam",
+      "prompt": "Use $opc-delivery; preview 验证过了，这次涉及权限和客户数据，准备上 production。",
+      "expected_output": "应该在 production gate 前生成 release packet/release profile，确认显式授权、artifact、promotion model、rollout strategy、verification、rollback；必须做 premortem，且因涉及权限和客户数据要做 red-team，并写 stop conditions 后再推进。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "release packet",
+          "release profile",
+          "premortem",
+          "red-team",
+          "stop conditions",
+          "rollback"
+        ],
+        "must_not_include": [
+          "直接 --prod",
+          "无需回滚"
+        ]
+      }
+    },
+    {
+      "id": 55,
+      "name": "calibration-uses-aar-to-update-rules",
+      "prompt": "Use $opc-delivery; 拿已上线的工单分析需求做 golden replay，看看 AI 版本为什么和人工版本差这么多。",
+      "expected_output": "应该进入校准流程，建立 golden baseline 和 replay output，分类 gap，并用 AAR 回答 what expected/what happened/why different/what changes；高影响差距要落到 SKILL/reference/scripts/evals 或项目规则，不能只写主观总结。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "golden baseline",
+          "replay output",
+          "gap",
+          "AAR",
+          "what expected",
+          "what happened",
+          "why different",
+          "what changes",
+          "evals"
+        ],
+        "must_not_include": [
+          "主观感觉",
+          "差不多就行"
+        ]
+      }
+    },
+    {
+      "id": 56,
+      "name": "professional-completion-requires-evidence",
+      "prompt": "Use $opc-delivery; PRD、设计和代码都差不多弄完了，帮我判断能不能对外说已经专业交付完成。",
+      "expected_output": "应该读取专业完成定义，对业务目标、方案合理性、UI/体验、工程实现、验证、发布、风险和校准逐项核对证据；缺证据的维度必须标成 pending/blocked/skipped with reason，不能用工作量、文件数量、命令成功或主观满意替代完成结论。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "专业完成定义",
+          "业务目标",
+          "方案合理性",
+          "UI/体验",
+          "工程实现",
+          "验证",
+          "发布",
+          "pending",
+          "blocked"
+        ],
+        "must_not_include": [
+          "差不多完成",
+          "做了很多所以完成"
+        ]
+      }
+    },
+    {
+      "id": 57,
+      "name": "full-opc-auto-advances-until-release",
+      "prompt": "Use $opc-delivery; 一个业务同学只说想做客户续费预警工具，从需求到上线都交给你，没说停就继续。",
+      "expected_output": "应该把这类请求视为完整 OPC 连续交付，Stage Card 后自动进入需求、方案、UI、实现、验证和部署链路；每阶段产物作为下一阶段输入，不把 PRD/方案/设计结束当成停点，也不反复问是否继续。只有 blocker、高风险副作用或 production gate 才暂停；未明确 production 时应推进到 preview/staging 可访问链接并保留发布证据。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "自动",
+          "继续",
+          "需求",
+          "方案",
+          "UI",
+          "实现",
+          "验证",
+          "部署",
+          "preview",
+          "blocked"
+        ],
+        "must_not_include": [
+          "等你确认后再继续",
+          "PRD 完成就结束",
+          "是否继续下一步"
+        ]
+      }
+    },
+    {
+      "id": 58,
+      "name": "skill-creator-structure-hygiene",
+      "prompt": "Use $opc-delivery; 帮我检查这个 skill 自身是否符合 skill-creator 的结构要求，并给出是否可以发布。",
+      "expected_output": "应该检查 SKILL.md frontmatter 只含 name/description 且体量受控，SKILL.md 正文保持精简并把细节放入 references，长 reference 有目录，agents/openai.yaml 的 display_name/short_description/default_prompt 与技能定位一致，scripts/evals/references 都是运行时必要资源，且没有 README、CHANGELOG、examples、__pycache__ 等非运行时杂物；发布前应运行 quick_validate、check-skill-rules、check-evals 和 check-links。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "SKILL.md",
+          "frontmatter",
+          "references",
+          "目录",
+          "agents/openai.yaml",
+          "quick_validate",
+          "check-skill-rules",
+          "check-evals",
+          "check-links"
+        ],
+        "must_not_include": [
+          "README 是必须的",
+          "不需要验证"
+        ]
+      }
+    },
+    {
+      "id": 59,
+      "name": "context-persistence-auto-resume",
+      "prompt": "Use $opc-delivery; 继续上次那个 OPC 需求，我换了一个新会话。",
+      "expected_output": "应该由代理自动读取 .opc/state/opc-task.json 或运行 opc-task-state.py resume，基于 currentPhase/recentHistory/nextAction 恢复当前阶段并继续；不能要求用户手动运行命令、复制 JSON 或重新讲完整上下文。若台账不存在，代理应先初始化状态台账，再按阶段拆分产物并记录 nextAction。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          ".opc/state/opc-task.json",
+          "resume",
+          "currentPhase",
+          "recentHistory",
+          "nextAction",
+          "继续"
+        ],
+        "must_not_include": [
+          "你先运行",
+          "请复制这个命令",
+          "重新把需求讲一遍"
+        ]
+      }
+    }
+  ],
+  "negative_evals": [
+    {
+      "id": 101,
+      "name": "figma-not-mastergo",
+      "prompt": "帮我把这个 Figma 设计稿用 Next.js 还原一下：https://www.figma.com/file/abc/Login",
+      "expected_behavior": "不应该触发 opc-delivery skill。Figma 不在本 skill 范围。可以建议用户找 figma-to-code 类工具，或者澄清是不是 mastergo URL 复制错了。",
+      "should_trigger": false
+    },
+    {
+      "id": 102,
+      "name": "pure-frontend-no-design-source",
+      "prompt": "用 Tailwind 写一个登录页，深色主题，居中卡片，输入框加圆角",
+      "expected_behavior": "纯前端实现需求，没有设计稿来源。应该走 frontend-design / web-artifacts-builder 类 skill,不该触发 opc-delivery 的 MasterGo 子流程是设计稿 ↔ 代码桥梁，纯前端开发不需要它。",
+      "should_trigger": false
+    },
+    {
+      "id": 103,
+      "name": "mastergo-link-broken-not-task",
+      "prompt": "我贴的这个 mastergo.com 链接打不开,网页一直 loading,这是什么情况",
+      "expected_behavior": "用户在排查 MasterGo 网站可访问性问题,不是要做设计/还原任务。应该建议查 MasterGo 服务状态、网络代理、浏览器缓存等通用排障思路,不应进入 opc-delivery skill 的 MCP / 还原流程。",
+      "should_trigger": false
+    },
+    {
+      "id": 104,
+      "name": "general-mcp-not-mastergo",
+      "prompt": "我想给 Claude Code 装一个 MCP 跑数据库查询,推荐几个",
+      "expected_behavior": "用户问通用 MCP 推荐,跟 MasterGo 无关。不应触发 opc-delivery skill,应建议 MCP catalog / 用户自己挑数据库类 MCP。",
+      "should_trigger": false
+    },
+    {
+      "id": 105,
+      "name": "design-system-figma-tokens",
+      "prompt": "帮我从这份 Figma 设计系统里抽 design tokens 写成 Tailwind 配置",
+      "expected_behavior": "Figma 设计系统 + design tokens 关键词命中,但来源是 Figma,不是 MasterGo,且任务是抽 token 而不是还原。不应触发 opc-delivery skill。",
+      "should_trigger": false
+    },
+    {
+      "id": 106,
+      "name": "d2c-but-not-mastergo",
+      "prompt": "我们公司内部有个 D2C 工具,叫 PixelPilot,能把设计稿转代码。怎么集成到 Claude Code?",
+      "expected_behavior": "提了 D2C,但明确不是 MasterGo,而是另一个产品 PixelPilot。不应触发 opc-delivery skill,应该走 mcp-builder / 通用集成思路。",
+      "should_trigger": false
+    },
+    {
+      "id": 107,
+      "name": "codify-name-collision",
+      "prompt": "我在做编程教育,想给学生看一个 'code'+'simplify'='codify' 的演示。",
+      "expected_behavior": "'codify' 关键词命中,但语境完全是文字游戏/教育演示,跟 MasterGo Codify MCP 无关。不应触发 opc-delivery skill。",
+      "should_trigger": false
+    },
+    {
+      "id": 108,
+      "name": "frontend-framework-pick-no-design",
+      "prompt": "我想做一个仪表盘,Next.js 还是 Nuxt 好?有没有最近的对比数据",
+      "expected_behavior": "纯框架选型问题,没有 MasterGo 设计稿来源。framework-detect 是 MasterGo 还原子流程,但用户没要还原,不应触发。",
+      "should_trigger": false
+    },
+    {
+      "id": 109,
+      "name": "general-token-config",
+      "prompt": "我刚拿到一个 GitHub personal access token,怎么配进 ~/.codex/config.toml ?",
+      "expected_behavior": "用户在配 GitHub token,跟 MasterGo token 完全无关。'~/.codex/config.toml' 命中,但不应触发 opc-delivery skill;应走通用 codex MCP / GitHub MCP 配置思路。",
+      "should_trigger": false
+    },
+    {
+      "id": 110,
+      "name": "ai-design-prompt-only",
+      "prompt": "给我写一段 prompt,让 AI 设计一个 SaaS 落地页,要专业的、不要 AI 味儿",
+      "expected_behavior": "用户要的是 prompt 工程,目标产物是 prompt 文本,不是在 MasterGo 上设计或还原代码。不应触发 opc-delivery skill,应走 prompt-writing / brainstorming 类技能。",
+      "should_trigger": false
+    }
+  ]
+}

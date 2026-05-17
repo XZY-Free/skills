@@ -42,6 +42,8 @@
 
 用户选择后立即继续当前阶段; 不要把"已收到选择"当成收尾。
 
+ConfirmCard 给用户的选择项末尾必须保留"自定义 / type something" 选项, 允许用户输入未覆盖的方案; 不要预设答案空间封闭, 也不要用开放式"你看呢"替代具体选项。
+
 ## Git 启动规则
 
 - 当前目录没有 `.git/` 且不在父级 Git 仓库内时, 完整 OPC 默认 `git init`;
@@ -91,7 +93,7 @@ DB 文件路径默认 `prisma/dev.db`(SQLite) 或 `DATABASE_URL` env 指向(Post
 - ❌ "用户没说要后端, 我先做前端 + mock" — 后端是默认全栈交付的一部分, 除非 solution 明确锁了 mock
 - ❌ "起后端太慢, 我用 in-memory store 顶一下" — 等于 mock, 不持久, 不算实现
 - ❌ "Server Component 直接 import 一个静态 JSON" — 等于 mock 的另一种写法
-- ❌ "没有 Git 仓库, 你先创建好我再继续"
+- ❌ "没有 Git 仓库，你先创建好我再继续"
 - ❌ "没有 package.json, 所以不能实现"
 - ❌ "没有部署服务器, 本轮只能结束在设计"
 - ❌ "等你决定风格后我再开始做, 当前先到这里"(ui-design ConfirmCard 该聊已聊, 没强约束就用默认)

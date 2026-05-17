@@ -11,7 +11,16 @@ from pathlib import Path
 
 
 DEFAULT_STATE = Path(".opc/state/opc-task.json")
-PHASES = ("intake", "requirements", "solution", "ui-design", "implementation", "deployment", "calibration")
+PHASES = (
+    "intake",
+    "requirements",
+    "solution",
+    "ui-design",
+    "implementation",
+    "verification",
+    "deployment",
+    "calibration",
+)
 STATUSES = ("pending", "done", "skipped", "blocked")
 
 

@@ -46,7 +46,7 @@ OPC 流程默认假设用户给的是粗糙业务需求, 真实需求要靠**多
 
 这些契约贯穿所有 reference。遇到同名契约时回到这里确认硬规则。
 
-### 阶段推进契约
+### 阶段推进契约（即自动轮转契约）
 
 OPC 流程分两种节奏:
 
@@ -76,7 +76,7 @@ AI 单方面替用户做的决定必须列在 ConfirmCard 的`[我替你默认�
 低赌注类目(小依赖、文件命名、helper 拆法、mock seed 具体值)走自治补齐, 不必列入 ConfirmCard。
 详见 [clarification-loop.md](references/clarification-loop.md) 的`默认假设暴露规则`。
 
-### 用户 framing 解析契约
+### 用户 framing 解析契约（即选择题澄清契约）
 
 用户原话用"企业级 / 完整 / 专业级 / 生产级 / production-ready / 智能 / 后台 / 小需求"这类承诺性词时, ConfirmCard 第 1 轮必须把 AI 对这些词的解读翻译成具体清单, 让用户校准。
 
@@ -84,7 +84,7 @@ AI 单方面替用户做的决定必须列在 ConfirmCard 的`[我替你默认�
 
 不允许 AI 按字面理解写完 PRD 才在 `Won't` 段交代"我没做 RBAC/SSO/审计"。误解 framing 是定义阶段最大的浪费来源。
 
-### 全栈交付默认契约
+### 全栈交付默认契约（即阶段交付物契约）
 
 OPC 默认交付的真实交付物 = **用户能访问、能登录、能操作、数据能真实持久化的全栈应用 + 部署链接**, 不是前端 + mock 的演示版。
 
@@ -147,6 +147,35 @@ HTTP 200、命令退出码 0、本地 HTML 存在、`accepted`、代码列表非
 ### 专业完成定义
 
 交付不是活动报告; 必须证明用户目标、核心流程、关键状态、风险处理和上线证据闭合。需求、方案、UI、实现、验证、部署任一阶段被跳过时, 必须写清跳过授权、风险和替代证据。对外宣称"完成 / 已上线 / 可交付"前, 读 [delivery-contract.md](references/delivery-contract.md) 的专业完成定义。无法获得真实证据时, 用 `blocked`、`pending` 或 `skipped with reason`, 不要用乐观话术补洞。
+
+### 收尾契约
+
+OPC 任务的每个 turn (定义阶段每轮 ConfirmCard、执行阶段每段汇报) 收尾必须满足五段结构, 不允许只甩"剩余风险: a / b / c" 给用户。详见 [handoff-contract.md](references/handoff-contract.md)。
+
+强制结构:
+
+1. **[已完成]** — 本轮做了什么具体事
+2. **[证据]** — 文件路径 / 命令退出 / 测试通过 / 截图 / URL (执行阶段强制)
+3. **[不确定项 + 我的处理]** — 每条必须归类: 自治处理 / 需要你拍板 / 卡住缺 X
+4. **(可选) [需要你拍板]** — 列具体 A / B / C 选项 + 标默认 + 保留"自定义 / type something"; 禁止"你看呢" 这类开放式提问
+5. **[下一步]** — 必须显式写 "我现在做 X" / "等你回 A/B/C" / "卡住, 缺 X" 之一
+
+本契约覆盖 `~/.codex/AGENTS.md` 工作约定中"最终报告必须包含...剩余风险" 的默认形态: "剩余风险" 单甩给用户是反模式 — Karpathy 第 1 条要求的是"列出选项让用户选 + 给默认 + 自动继续", 不是"列风险等用户问"。
+
+AI 在跑 `python scripts/opc-task-state.py mark <phase> done` 之前, 必须先把本轮 hand-off 文本写到 `.opc/<phase>/last-handoff.md` (或通过 stdin), 跑 `python scripts/handoff-lint.py --file .opc/<phase>/last-handoff.md --phase <phase>` 校验通过。校验失败要重写 hand-off, 不要绕过 lint 直接 mark done。
+
+### Karpathy 行为契约
+
+把 Andrej Karpathy 关于 LLM 写代码常见毛病的四原则, 落到 OPC 的具体阶段动作。详见 [karpathy-discipline.md](references/karpathy-discipline.md)。
+
+四条总览:
+
+1. **写代码之前先思考** — 在 ConfirmCard 第 1 轮暴露所有默认假设 + framing 翻译; 不要藏假设
+2. **优先简单** — 不做 PRD 范围之外的功能; 一次性代码不抽象; 200 行能 50 就重写
+3. **外科手术式修改** — 每行 diff 都能追溯到本次任务; 不顺手"美化" 邻近代码 (跟 `~/.claude/CLAUDE.md` 全局基线一致)
+4. **目标驱动执行** — Stage Card / PRD / ConfirmCard 的"验收方式" 必须可执行 (测试 / 命令 / 截图)
+
+全局基线已在 `~/.claude/CLAUDE.md` 和 `~/.codex/AGENTS.md` 的"模型行为四原则" 小节生效; 本契约是 OPC 上下文里的具体翻译, 不重复全局条款。
 
 ## OPC Stage Card
 
@@ -250,6 +279,8 @@ Stage Card 里`默认假设`字段如果有"?"或"或"假设, 不允许直接进
 | [autonomous-bootstrap.md](references/autonomous-bootstrap.md) | 执行阶段缺前置时的自治补齐范围 |
 | [mcp-setup.md](references/mcp-setup.md) | MCP 缺失、token 配置、宿主切换、Codify bridge、本地/远端 URL 排障 |
 | [delivery-contract.md](references/delivery-contract.md) | 判断真实交付物、阻塞条件、禁止替代交付 |
+| [handoff-contract.md](references/handoff-contract.md) | turn 收尾五段结构、不确定项分类、显式下一步、handoff-lint.py 联动 |
+| [karpathy-discipline.md](references/karpathy-discipline.md) | Karpathy 四原则在 OPC 阶段动作上的具体落地 |
 | [intent-routing.md](references/intent-routing.md) | MasterGo/Codify/Magic 子任务路由 |
 | [design-workflow.md](references/design-workflow.md) | Codify 画布设计、修改、查看页面 |
 | [design-scope.md](references/design-scope.md) | 覆盖 brief、任务台账、恢复继续 |
@@ -277,6 +308,7 @@ Stage Card 里`默认假设`字段如果有"?"或"或"假设, 不允许直接进
 | 脚本 | 用途 |
 |---|---|
 | `scripts/opc-task-state.py` | 初始化、标记、校验 `.opc/state/opc-task.json` |
+| `scripts/handoff-lint.py` | 校验 turn 收尾五段结构, `mark <phase> done` 前的硬门禁 |
 | `scripts/check-mcp-config.py` | 检查当前宿主 MCP 配置、token 占位、本地/远端 Codify URL |
 | `scripts/parse-mastergo-url.py` | 从 MasterGo URL 提取 fileId/layerId/contentId |
 | `scripts/mastergo-task-state.py` | 初始化、恢复、标记、校验 `.codify/state/mastergo-task.json` |

@@ -186,6 +186,8 @@ state 台账(`.opc/state/opc-task.json`)只记关键节点(第 N 轮收敛、决
 
 四条满足后 AI 自动: 写文档 → mark done → 进下一阶段。**不要求用户说"继续"**, 但要在 discussion log 的最后一轮明确写"已收敛, 进 <next>"。
 
+hand-off 文本必须按 [handoff-contract.md](handoff-contract.md) 五段结构收尾 (含显式"[下一步]"句式), 跑过 `scripts/handoff-lint.py` 校验通过才 mark done。**不允许只列"剩余风险: a / b / c" 作为收尾**, 这是被禁的反模式。
+
 判断"还要再开一轮"的信号:
 
 - 用户答时引出新问题、新约束、新角色、新模块
@@ -205,3 +207,6 @@ state 台账(`.opc/state/opc-task.json`)只记关键节点(第 N 轮收敛、决
 - ❌ 用户原话有"企业级 / 完整 / 生产级"等承诺词, AI 没在第 1 轮翻译, 直接按自己的字面理解写 PRD
 - ❌ 数据来源默认 mock, 用户没主动说 mock 也没问就 mock 化(等于交了演示版)
 - ❌ ConfirmCard 列 5 个默认假设, 其中"部署目标"用了"Vercel 或本地等价"模糊表述
+- ❌ ConfirmCard 收尾只列开放风险("剩余风险: a / b / c") 不给行动方案, 违反 [handoff-contract.md](handoff-contract.md)
+- ❌ ConfirmCard 末尾没显式写"等你回 A/B/C" 或"我现在做 X", 对话停在用户手里 (Codex 因此停止推进)
+- ❌ 把硬决策写成"你看呢 / 你定吧 / 看你的"这种开放式问句, 不给具体 A/B/C 选项 + 默认

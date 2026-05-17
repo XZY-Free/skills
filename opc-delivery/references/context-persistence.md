@@ -73,7 +73,7 @@ CI/CD 或 preview 配置。记录自动创建了什么、还缺什么凭证/授�
 | 方案 | `.opc/solution/solution-design.md` |
 | 界面 | `.opc/design/design-brief.md` 或 `.codify/state/mastergo-task.json` |
 | 实现 | `.opc/implementation/implementation-report.md` |
-| 验证 | `.opc/validation/verification.md` |
+| 验证 | `.opc/verification/verification.md` |
 | 部署 | `.opc/deployment/release.md` |
 | 校准 | `.opc/calibration/<feature>-gap-report.md` |
 

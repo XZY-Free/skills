@@ -15,7 +15,7 @@ RUNTIME_TEXTS = [
     *(ROOT / "references").glob("*.md"),
     *(ROOT / "evals").glob("*"),
 ]
-ALLOWED_ROOT_ITEMS = {"SKILL.md", "agents", "references", "scripts", "evals", "assets"}
+ALLOWED_ROOT_ITEMS = {"SKILL.md", "agents", "references", "scripts", "evals", "assets", "examples"}
 BANNED = {
     "html2text": "Use scripts/fetch-doc-snippet.py instead of optional html2text.",
     "AskUserQuestion": "Ask directly or use the host's available user-input mechanism.",
@@ -28,6 +28,9 @@ REQUIRED_EVAL_NAMES = {
     "solution-design-before-implementation",
     "empty-workspace-full-opc-enters-implementation",
     "missing-prerequisites-auto-bootstrap",
+    "verification-phase-state-ledger",
+    "handoff-five-part-turn-close",
+    "karpathy-framing-before-code",
     "implementation-does-not-skip-browser-qa",
     "deployment-preview-before-production",
     "golden-feature-calibration",
@@ -210,6 +213,9 @@ def check_scope_contract() -> list[str]:
         ROOT / "references/design-scope.md",
         ROOT / "references/copy-language.md",
         ROOT / "references/design-coverage-patterns.md",
+        ROOT / "references/handoff-contract.md",
+        ROOT / "references/karpathy-discipline.md",
+        ROOT / "scripts/handoff-lint.py",
         ROOT / "scripts/codify-html-lint.py",
         ROOT / "scripts/codify-copy-lint.py",
         ROOT / "scripts/codify-preflight.py",
@@ -249,6 +255,8 @@ def check_scope_contract() -> list[str]:
         "上下文持久化契约",
         "UI 文案语种契约",
         "专业完成定义",
+        "收尾契约",
+        "Karpathy 行为契约",
         "revoke / rotate",
     ]:
         if phrase not in skill_text:
@@ -325,6 +333,16 @@ def check_scope_contract() -> list[str]:
     for phrase in ["TDD", "regression ratchet", "systematic debugging", "gate truth", "空工作区启动规则", "git init", "缺仓库 / 缺脚手架", "不是 Git 仓库，所以本轮先停在设计包"]:
         if phrase not in implementation_text:
             errors.append(f"references/implementation-workflow.md missing phrase {phrase!r}")
+
+    state_script = read(ROOT / "scripts/opc-task-state.py")
+    for phrase in ['"verification"', "PHASES"]:
+        if phrase not in state_script:
+            errors.append(f"scripts/opc-task-state.py missing phase phrase {phrase!r}")
+
+    handoff_script = read(ROOT / "scripts/handoff-lint.py")
+    for phrase in ["check_decision_block", "自定义 / type something", "退出码 0"]:
+        if phrase not in handoff_script:
+            errors.append(f"scripts/handoff-lint.py missing handoff guard phrase {phrase!r}")
 
     deployment_text = read(ROOT / "references/deployment-workflow.md")
     for phrase in ["preview", "production", "rollback", ".opc/deployment/release.md", "release profile", "premortem", "red-team", "stop conditions", "git init", "无部署凭证/服务器"]:

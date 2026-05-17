@@ -1217,6 +1217,73 @@
           "等你决定风格后我再开始做，当前先到这里"
         ]
       }
+    },
+    {
+      "id": 62,
+      "name": "verification-phase-state-ledger",
+      "prompt": "Use $opc-delivery; 实现已经完成，进入验证并准备后续部署。",
+      "expected_output": "应该把验证作为 implementation 和 deployment 之间的独立阶段处理：在 .opc/state/opc-task.json 中 currentPhase 或 phases 里出现 verification，验证报告默认写到 .opc/verification/verification.md，必要时用 verification-state.py 归档命令、截图、浏览器或 API 证据。不能从 implementation 直接跳到 deployment，也不能把 build/typecheck 通过当作完整验证。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "verification",
+          ".opc/state/opc-task.json",
+          ".opc/verification/verification.md",
+          "verification-state.py",
+          "deployment"
+        ],
+        "must_not_include": [
+          "直接进入 deployment",
+          ".opc/validation/verification.md",
+          "build 通过就算验证完成"
+        ]
+      }
+    },
+    {
+      "id": 63,
+      "name": "handoff-five-part-turn-close",
+      "prompt": "Use $opc-delivery; 实现阶段测试过了，但部署还没做，帮我汇报当前进展。",
+      "expected_output": "应该按收尾契约输出清晰 hand-off：包含 [已完成]、[证据]、[不确定项 + 我的处理] 和 [下一步]；如果需要用户拍板，必须加 [需要你拍板] 并列 A/B/C 选项、默认推荐和自定义/type something 入口。不能只列“剩余风险”，不能用“你看呢/你定吧/看你的”这类开放式问句，不能缺少显式下一步。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "[已完成]",
+          "[证据]",
+          "[不确定项 + 我的处理]",
+          "[下一步]",
+          "我现在"
+        ],
+        "must_not_include": [
+          "剩余风险:",
+          "你看呢",
+          "你定吧",
+          "看你的"
+        ]
+      }
+    },
+    {
+      "id": 64,
+      "name": "karpathy-framing-before-code",
+      "prompt": "Use $opc-delivery; 做一个企业级用户中心，从需求到上线都交给你。",
+      "expected_output": "应该先把“企业级用户中心”翻译成可校准的具体范围，而不是直接写 PRD 或代码。第 1 轮 ConfirmCard 应暴露默认假设、列出企业级可能包含/不包含的能力，例如账号、登录、角色、RBAC/SSO/审计/多租户/计费等，并给简单默认方案与扩展方案的 A/B/C 选择、推荐默认和自定义/type something 入口；同时给每步 verify 检查，体现优先简单、外科手术式修改和目标驱动执行。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "ConfirmCard",
+          "企业级",
+          "默认假设",
+          "RBAC",
+          "SSO",
+          "审计",
+          "verify",
+          "自定义"
+        ],
+        "must_not_include": [
+          "我先直接实现",
+          "下面是完整 PRD",
+          "你看呢"
+        ]
+      }
     }
   ],
   "negative_evals": [

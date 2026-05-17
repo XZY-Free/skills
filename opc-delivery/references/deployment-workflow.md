@@ -73,6 +73,14 @@ E. 自定义 / 其它
 - 用户说"我本地已经 vercel login" → 直接用 `vercel` CLI 试一次, 失败再回到 ConfirmCard。
 - 用户说"用 D 本地就行" → 走本地 production server 路径, 在 release.md 明确"用户授权 D 路径"。
 
+deployment 阶段反模式 (不允许出现):
+
+- ❌ Stage Card 写"Vercel 或本地等价" — 必须确定其中一个
+- ❌ Vercel token 缺失就静默退回 `next start` — 凭证缺失应抛 ConfirmCard, 不自动降级
+- ❌ 没有 git remote 就停 — 默认本地 `git init` 已在 implementation 阶段完成, 部署继续走 preview; 远端 push 才需要用户授权
+- ❌ "无部署凭证/服务器" 解释成"跳过整个 deployment 阶段" — 应抛 deployment ConfirmCard 走 D 本地 production 路径作为兜底
+- ❌ 部署"完成" 但没给可访问 URL + 健康检查证据
+
 ## 部署决策
 
 ```text

@@ -70,3 +70,6 @@ venv/
 dist/
 build/
 *.egg-info/
+
+# Planning drafts stay local.
+plans/

@@ -63,7 +63,7 @@
 
 1. 进阶段时先读 `.opc/<phase>/discussion.md`(若存在), 接着上轮聊。
 2. 写 ConfirmCard 第 N 轮: framing 解析 + 默认假设 + 硬决策。详见 [clarification-loop.md](clarification-loop.md) 的`ConfirmCard 模板`。
-3. 用户回应, AI 更新理解。
+3. 需要用户拍板时, 宿主原生结构化交互可用就打开真实选择框/确认框/选择工具; 不可用才降级为文本 A/B/C。用户回应后, AI 更新理解。
 4. 引出新问题 → 第 N+1 轮 ConfirmCard, 只问新问题。
 5. 用户答复模糊("你看着办") → AI 摆推荐项 + 选不上的理由, 让用户至少不反对; 这本身也是一轮。
 6. 不确定性收敛(四条满足: 默认假设全认可或一一改、硬决策全答、上轮没引新硬决策、文档可写) → 写最终文档 → mark done → 自动进下一阶段。
@@ -125,7 +125,7 @@ python3 <skill-dir>/scripts/opc-task-state.py mark requirements done \
 ```bash
 python3 <skill-dir>/scripts/opc-task-state.py note \
   --phase deployment \
-  --text "ConfirmCard 已抛部署平台 A/B/C, 等用户选" \
+  --text "ConfirmCard 已打开部署平台选择框(或文本降级 A/B/C), 等用户选" \
   --next-action "用户选完平台后继续 build + deploy"
 ```
 
@@ -148,11 +148,11 @@ python3 <skill-dir>/scripts/opc-task-state.py validate --for-completion
 
 ## 澄清策略
 
-完整 OPC 的澄清都走 [clarification-loop.md](clarification-loop.md) 的多轮 ConfirmCard 机制, 不再单独用一两题选择题包装。轻量任务(只补一个阶段、用户给得很具体)允许简化, 但仍要在动手前用一张 ConfirmCard 列出默认假设。
+完整 OPC 的澄清都走 [clarification-loop.md](clarification-loop.md) 的多轮 ConfirmCard 机制, 不再单独用一两题选择题包装。需要用户拍板时, 优先使用当前 AI 宿主的真实结构化决策交互; 宿主原生结构化交互不可用才用文本 A/B/C。轻量任务(只补一个阶段、用户给得很具体)允许简化, 但仍要在动手前用一张 ConfirmCard 列出默认假设。
 
 如果用户说"你决定", AI 仍要写 ConfirmCard 把推荐项明示, 在用户没主动反对前不要把"你决定"理解为"我可以全程不抛卡"。
 
-硬决策选择题写法: 列 2-4 个具体选项, 末尾保留"自定义 / type something" 允许用户输入未覆盖的方案; 不要用开放式"你看呢"替代具体选项。
+硬决策选择题写法: 宿主原生结构化交互可用时每轮 1-3 题、每题 2-3 个选项, 推荐项放第一; 宿主原生结构化交互不可用时列 2-4 个文本选项, 末尾保留"自定义 / type something" 允许用户输入未覆盖的方案; 不要用开放式"你看呢"替代具体选项。
 
 ## 外部资料压缩规则
 

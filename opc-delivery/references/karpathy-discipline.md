@@ -40,7 +40,7 @@ OPC 上的具体动作:
 - **用户用承诺性词时** ("企业级 / 完整 / 智能 / 生产级"), 第 1 轮必须翻译成具体清单让用户校准。见 [clarification-loop.md](clarification-loop.md) 的"用户 framing 解析"。
 - **多种合理解释并存时全部列出**: 比如"做一个 dashboard" 可能是 (a) 业务运营后台 (b) 监控可视化 (c) 客户面板。ConfirmCard 把三种都列出来让用户选, 不要默默挑一种就写 PRD。
 - **如果有更简单的方案明说**: 用户说"做一个 AI 客服系统", 如果 ChatGPT API 嵌入就够, 不要默默上 Agent 框架 + 向量库 + 多 agent 编排。在 ConfirmCard 写"我推荐 = 直接接 ChatGPT API + 简单工单存 SQLite; 完整 Agent 框架是 overkill, 除非你有多 LLM/工具调用需求"。
-- **不清楚就停下问**: ConfirmCard 的"硬决策" 段就是这个机制。问题必须具体到"A / B / C 选一个", 不要开放式问 (跟 [handoff-contract.md](handoff-contract.md) 一致)。
+- **不清楚就停下问**: ConfirmCard 的"硬决策" 段就是这个机制。宿主原生结构化交互可用时用真实选择框/确认框/选择工具; 不可用时问题必须具体到"A / B / C 选一个", 不要开放式问 (跟 [handoff-contract.md](handoff-contract.md) 一致)。
 
 收尾要求: 进入下一阶段前 [clarification-loop.md](clarification-loop.md) 的"推进与收敛判断"四条必须全部满足。
 
@@ -139,7 +139,7 @@ OPC 已有相关机制:
 - ❌ Stage Card "验收方式" 字段写"看起来可用" 而不是具体命令 / 测试
 - ❌ 给 PRD 范围内没有的"超级管理员后台" 顺手做了一份
 - ❌ 看到现有代码"过度抽象" 不在 ConfirmCard 里跟用户聊就默默重写
-- ❌ ConfirmCard 抛硬决策时用"你看呢" 而不是"A / B / C 选一个 + 我推 A"
+- ❌ ConfirmCard 抛硬决策时用"你看呢" 而不是"宿主原生选择/确认交互, 或文本降级的 A / B / C + 我推 A"
 - ❌ 收尾时不给"[证据]" 段, 只说"完成了"
 - ❌ 写"未来可配置 / 灵活扩展" 的抽象层, 但当前 PRD 根本不需要
 - ❌ 内部函数加 try/catch + zod parse 三层防御, 输入根本不会越界

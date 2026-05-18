@@ -33,7 +33,7 @@
 
 **已锁定**(solution ConfirmCard 里有明确平台 + 用户认可) → 直接执行对应路径。
 
-**未锁定 或 锁定的平台缺凭证 / 缺前置条件** → 必须抛一轮 ConfirmCard:
+**未锁定 或 锁定的平台缺凭证 / 缺前置条件** → 必须抛一轮 ConfirmCard。宿主原生结构化交互可用时打开真实选择框/确认框/选择工具; 不可用时才使用下面的文本降级格式:
 
 ```text
 OPC ConfirmCard · deployment · 部署目标确认
@@ -65,7 +65,7 @@ E. 自定义 / 其它
 [你回答这条之前, 我不会去 build/push/deploy]
 ```
 
-用户明确选了某项, 才进入对应路径。**不允许 ConfirmCard 没回应就 build, 也不允许凭证缺失时悄悄降级**。
+用户通过选择框提交或明确选了文本某项, 才进入对应路径。**不允许 ConfirmCard 没回应就 build, 也不允许凭证缺失时悄悄降级**。
 
 凭证还可以这样给:
 
@@ -175,7 +175,7 @@ production gate 前必须做 premortem; 高风险或涉及权限、数据、secr
 # Release Evidence
 
 ## 部署目标(已 ConfirmCard 锁定)
-- 用户选择: A / B / C / D / E
+- 用户选择: <宿主原生结构化交互提交结果, 或文本降级 A / B / C / D / E>
 - 选择理由(摘自 discussion):
 - 凭证位置:
 

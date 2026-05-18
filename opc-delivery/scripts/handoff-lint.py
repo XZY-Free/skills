@@ -3,6 +3,7 @@
 
 读 hand-off 文本 (stdin 或 --file), 检查它符合 references/handoff-contract.md
 要求的五段结构: [已完成] + [证据] + [不确定项归类] + 显式下一步.
+需要用户拍板时, 允许当前 AI 宿主的原生结构化选择/确认交互说明; 文本 A/B/C 只是降级格式.
 
 退出码:
   0  通过
@@ -36,12 +37,12 @@ REQUIRED_SECTIONS: dict[str, tuple[str, str]] = {
         "缺少 [证据] 段 — 给文件路径 / 命令退出码 / 测试通过 / 截图 / URL",
     ),
     "uncertainty_or_done": (
-        r"\[不确定项|\[需要你拍板|\[卡住|\[硬阻塞|\[等你|不确定项 \+ 我的处理|没有未决项",
-        "缺少不确定项归类段 ([不确定项 + 我的处理] / [需要你拍板] / [卡住]); 若本轮真的全部收敛, 显式写 '没有未决项'",
+        r"\[不确定项|\[需要你拍板|\[结构化输入|\[选择框|\[卡住|\[硬阻塞|\[等你|不确定项 \+ 我的处理|没有未决项",
+        "缺少不确定项归类段 ([不确定项 + 我的处理] / [需要你拍板] / [结构化输入] / [卡住]); 若本轮真的全部收敛, 显式写 '没有未决项'",
     ),
     "next_step": (
-        r"我现在做|我现在进入|我下一步|等你回|等你选|等你补|卡住[,，]\s*缺|下一步[:：]",
-        "缺少显式下一步 — 必须写 '我现在做 X' / '我现在进入 X' / '等你回 A/B/C' / '卡住, 缺 X' 之一",
+        r"我现在做|我现在进入|我下一步|等你在选择框|等你提交选择框|等你在原生交互|等你提交原生交互|等你通过结构化输入|等你回|等你选|等你补|卡住[,，]\s*缺|下一步[:：]",
+        "缺少显式下一步 — 必须写 '我现在做 X' / '我现在进入 X' / '等你在原生交互提交' / '等你回 A/B/C' / '卡住, 缺 X' 之一",
     ),
 }
 
@@ -52,6 +53,11 @@ ACTION_TOKENS = (
     "我已默认",
     "我已 mitigation",
     "我会立即",
+    "等你在选择框",
+    "等你提交选择框",
+    "等你在原生交互",
+    "等你提交原生交互",
+    "等你通过结构化输入",
     "等你回",
     "等你选",
     "等你补",
@@ -64,6 +70,25 @@ OPEN_ENDED_TOKENS = (
     r"看你的\s*$",
     r"看情况\s*$",
     r"自己决定\s*$",
+)
+
+STRUCTURED_DECISION_TOKENS = (
+    "结构化输入",
+    "选择框",
+    "request_user_input",
+    "Claude Code",
+    "confirm/select",
+    "confirm-select",
+    "prompt 工具",
+    "宿主原生",
+    "原生结构化",
+    "原生选择",
+    "原生确认",
+    "OMX question",
+    "question bridge",
+    "真实选择框",
+    "native structured input",
+    "native decision UI",
 )
 
 
@@ -93,7 +118,7 @@ def check_open_ended(text: str) -> list[str]:
     for pattern in OPEN_ENDED_TOKENS:
         if re.search(pattern, text, re.MULTILINE):
             errors.append(
-                f"[anti] 出现开放式问句 (匹配 /{pattern}/) — 必须替换成 'A/B/C 选一个 + 默认' 的具体选项"
+                f"[anti] 出现开放式问句 (匹配 /{pattern}/) — 必须替换成宿主原生结构化选择/确认交互, 或文本降级的 'A/B/C 选一个 + 默认'"
             )
     return errors
 
@@ -127,14 +152,22 @@ def check_phase_specific(text: str, phase: str) -> list[str]:
 
 
 def check_decision_block(text: str) -> list[str]:
-    if "[需要你拍板]" not in text:
+    if not any(marker in text for marker in ("[需要你拍板]", "[结构化输入]", "[选择框]")):
         return []
 
-    match = re.search(r"\[需要你拍板\](.*?)(?:\n\[|$)", text, re.DOTALL)
+    match = re.search(r"\[(?:需要你拍板|结构化输入|选择框)\](.*?)(?:\n\[|$)", text, re.DOTALL)
     section = match.group(1) if match else text
     errors: list[str] = []
+
+    if any(token in section for token in STRUCTURED_DECISION_TOKENS) or any(marker in text for marker in ("[结构化输入]", "[选择框]")):
+        if not re.search(r"默认|推荐", section):
+            errors.append("[decision] 宿主原生结构化交互仍必须说明默认或推荐选项")
+        if not re.search(r"自定义|Other|type something", section):
+            errors.append("[decision] 宿主原生结构化交互必须说明含自定义 / Other 入口, 或降级文本里保留 type something")
+        return errors
+
     if not re.search(r"(^|\n)\s*[-*]?\s*A[.．、:：]", section):
-        errors.append("[decision] [需要你拍板] 段必须给 A/B/C 这类具体选项, 不能只描述问题")
+        errors.append("[decision] [需要你拍板] 段必须使用宿主原生结构化选择/确认交互, 或在降级文本里给 A/B/C 这类具体选项")
     if not re.search(r"默认|推荐", section):
         errors.append("[decision] [需要你拍板] 段必须标明默认或推荐选项")
     if "自定义" not in section and "type something" not in section:

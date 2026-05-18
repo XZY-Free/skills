@@ -2,7 +2,7 @@
 
 目标: 把已确认的 PRD/方案/UI 变成可运行、可测试、可部署的**全栈应用**——前端 + Node 后端 + DB + 真实 API。不要把 D2C、截图、静态 mock、纯前端 + typed mock 当成实现完成。
 
-**节奏 = 执行式自动推进**。进入实现阶段时, 数据来源、后端栈、DB、部署目标都已经在 solution 阶段的 ConfirmCard 里锁定。除非遇到 token/凭证/付费/破坏性写入等硬阻塞, 不打断。
+**节奏 = 执行式自动推进**。进入实现阶段时, 数据来源、后端栈、DB、部署目标应来自方案、现有项目或安全默认值。若仍存在高影响不确定, 先用宿主原生选择/确认交互处理; 低风险细节直接自治。除非遇到 token/凭证/付费/破坏性写入等硬阻塞, 不打断。
 
 ## 目录
 
@@ -21,7 +21,7 @@
 ## 进入条件
 
 - 有 PRD + 方案 + 设计 brief(或对应 discussion.md 收敛证据);
-- solution 阶段 ConfirmCard 已锁定: 后端栈、DB、部署目标、数据来源(真实 / mock);
+- 方案或现有项目已明确后端栈、DB、部署目标、数据来源; 若未明确, 已按 [clarification-loop.md](clarification-loop.md) 处理高影响疑点;
 - 若来自 MasterGo, 还原路径已经完成 DSL/D2C 拉取和模式选择;
 - 若无 MasterGo 来源, 已明确 UI 策略、页面、状态和验收标准。
 
@@ -38,7 +38,7 @@ OPC 默认交付**用户能登录能用的全栈应用**, 不是前端 + mock �
 5. **种子数据** — 用 `prisma db seed` 或独立 seed 脚本灌入开发数据, 让首次启动就有可看的内容。
 6. **`.env` + `.env.example`** — `.env.example` 进版本控制; `.env` 进 `.gitignore`。真实 secret 走宿主 user-scope 配置。
 
-**只有当 solution 阶段 ConfirmCard 已经明确锁定"用户接受 mock / 我就要 demo"时, 才允许跳过后端 + DB, 用前端 + typed mock 替代。**
+**只有当用户明确选择“演示版 / 不要真后端 / 只做展示”时, 才允许跳过后端 + DB, 用前端 + typed mock 替代。**
 
 不允许的退化路径:
 
@@ -55,7 +55,7 @@ OPC 默认交付**用户能登录能用的全栈应用**, 不是前端 + mock �
 2. 复用现有框架、组件库、图标库、数据层和 lint/typecheck/test 配置。
 3. 未经明确需要, 不新增依赖。
 
-无现有仓库时, 按 solution 阶段 ConfirmCard 锁定的栈起脚手架。默认推荐(若 solution 没另写):
+无现有仓库时, 按方案或默认栈起脚手架。默认推荐(若 solution 没另写):
 
 - 前端: Next.js 15 (App Router) + TS + Tailwind + shadcn/ui;
 - 后端: Next.js API routes(同仓库); 单独服务时用 Hono / Fastify;

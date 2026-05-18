@@ -2,7 +2,7 @@
 """Lint a turn's hand-off message against OPC 收尾契约.
 
 读 hand-off 文本 (stdin 或 --file), 检查它符合 references/handoff-contract.md
-要求的五段结构: [已完成] + [证据] + [不确定项归类] + 显式下一步.
+要求的结构化收尾: [已完成] + [证据] + [不确定项归类] + 显式下一步.
 需要用户拍板时, 允许当前 AI 宿主的原生结构化选择/确认交互说明; 文本 A/B/C 只是降级格式.
 
 退出码:

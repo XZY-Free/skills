@@ -28,7 +28,7 @@ OPC 流程的失败模式跟 Karpathy 观察到的 LLM 毛病高度重合:
 | 弱目标 → 没法 loop | 用"让登录能用"当成功标准, 没写"哪个测试通过 = 完成" |
 
 这四个毛病在 OPC 默认的"自动推进 + 大范围执行"模式下成本特别高: 一旦走偏, 下游 4-5 个阶段都跟着错。
-因此 OPC 把这四条原则**前置到定义阶段**, 不到执行阶段才发现。
+因此 OPC 把这四条原则前置到需求和方案判断里, 不到执行阶段才发现。
 
 ## 原则 1: 写代码之前先思考
 
@@ -36,11 +36,11 @@ OPC 流程的失败模式跟 Karpathy 观察到的 LLM 毛病高度重合:
 
 OPC 上的具体动作:
 
-- **每个定义阶段第 1 轮 ConfirmCard 必须列默认假设**, 标"反对就说"。不允许写完 158 行 PRD 才在 Won't 段交代。这条在 [clarification-loop.md](clarification-loop.md) 的"默认假设暴露规则" 已强制。
-- **用户用承诺性词时** ("企业级 / 完整 / 智能 / 生产级"), 第 1 轮必须翻译成具体清单让用户校准。见 [clarification-loop.md](clarification-loop.md) 的"用户 framing 解析"。
-- **多种合理解释并存时全部列出**: 比如"做一个 dashboard" 可能是 (a) 业务运营后台 (b) 监控可视化 (c) 客户面板。ConfirmCard 把三种都列出来让用户选, 不要默默挑一种就写 PRD。
-- **如果有更简单的方案明说**: 用户说"做一个 AI 客服系统", 如果 ChatGPT API 嵌入就够, 不要默默上 Agent 框架 + 向量库 + 多 agent 编排。在 ConfirmCard 写"我推荐 = 直接接 ChatGPT API + 简单工单存 SQLite; 完整 Agent 框架是 overkill, 除非你有多 LLM/工具调用需求"。
-- **不清楚就停下问**: ConfirmCard 的"硬决策" 段就是这个机制。宿主原生结构化交互可用时用真实选择框/确认框/选择工具; 不可用时问题必须具体到"A / B / C 选一个", 不要开放式问 (跟 [handoff-contract.md](handoff-contract.md) 一致)。
+- **会改变成品的默认假设必须暴露**。不允许写完 158 行 PRD 才在 Won't 段交代。低风险默认可以自治记录, 高影响默认用原生选择交互确认。
+- **用户用承诺性词时** ("企业级 / 完整 / 智能 / 生产级"), 必须翻译成具体清单。若清单影响范围、成本或安全, 用宿主原生选择/确认交互让用户校准。
+- **多种合理解释并存时全部列出**: 比如"做一个 dashboard" 可能是 (a) 业务运营后台 (b) 监控可视化 (c) 客户面板。高影响解释差异用选择框让用户选; 低风险差异由代理给默认并继续。
+- **如果有更简单的方案明说**: 用户说"做一个 AI 客服系统", 如果 ChatGPT API 嵌入就够, 不要默默上 Agent 框架 + 向量库 + 多 agent 编排。给出推荐默认和不选复杂方案的理由。
+- **不清楚就停下问**: 这里指高影响不确定。宿主原生结构化交互可用时用真实选择框/确认框/选择工具; 不可用时问题必须具体到"A / B / C 选一个", 不要开放式问 (跟 [handoff-contract.md](handoff-contract.md) 一致)。
 
 收尾要求: 进入下一阶段前 [clarification-loop.md](clarification-loop.md) 的"推进与收敛判断"四条必须全部满足。
 
@@ -50,7 +50,7 @@ OPC 上的具体动作:
 
 OPC 上的具体动作:
 
-- **不做 PRD 范围之外的功能**。PRD 没写"管理员后台" 就不要顺手做。Stage Card 的"主要范围裁剪" 字段就是给这个用的。
+- **不做 PRD 范围之外的功能**。PRD 没写"管理员后台" 就不要顺手做。内部阶段卡的"主要范围裁剪" 字段就是给这个用的。
 - **一次性代码不抽象**: 一个 page 只用一次的辅助函数, 直接写在 page 文件里, 不要拉到 `lib/utils`。三个相似 page 再考虑共享。
 - **不写"未来可配置"**: 用户说"默认 SQLite", DB 配置就硬编码 SQLite, 不要默默搭一层 `DatabaseAdapter` interface "以后切 Postgres 容易"。要切的时候再切。
 - **不为不可能场景写错误处理**: 内部函数被自己调用、输入已经 typed, 不需要 try/catch + zod parse + null check 三层。只在系统边界 (用户输入、外部 API、文件 IO) 做 validation。
@@ -79,7 +79,7 @@ OPC 上的具体动作:
 
 - 用户明确说"顺便清一下这个目录" / "重构这个模块"
 - 不动它就改不了本次任务 (例: 要改 schema 必须同步迁移文件)
-- Stage Card 或 PRD 写了"重构 X" 作为目标
+- 内部阶段卡或 PRD 写了"重构 X" 作为目标
 
 **全局基线**: `~/.claude/CLAUDE.md` 和 `~/.codex/AGENTS.md` 的"编辑哲学" 已经覆盖了这条; OPC skill 内部不重复条款, 但要在执行阶段的 turn 收尾里检查"diff 是否扩散到无关代码"。
 
@@ -89,13 +89,13 @@ OPC 上的具体动作:
 
 OPC 上的具体动作:
 
-- **Stage Card 的"验收方式"字段必须可执行**: 不要写"看起来对就行" / "用户满意", 写"pnpm test auth.spec.ts 通过" / "浏览器登录主链路截图存在" / "vercel preview URL 返回 200"。
+- **阶段记录的"验收方式"字段必须可执行**: 不要写"看起来对就行" / "用户满意", 写"pnpm test auth.spec.ts 通过" / "浏览器登录主链路截图存在" / "vercel preview URL 返回 200"。
 - **PRD 的"验收标准"段必须可执行**: 同上。
 - **修 bug 先写复现测试**: bug 修复任务的成功标准 = "复现 bug 的测试从红变绿 + 其它测试不变红"。先写测试, 再修。
 - **加功能先写期望测试**: 新功能任务的成功标准 = "新写的测试通过 + 既有测试不变红"。
 - **重构成功 = 测试不变红**: 重构任务的成功标准 = "覆盖目标代码的测试在重构前后都通过"。
 
-多步任务的计划格式 (Stage Card 和 ConfirmCard 都适用):
+多步任务的计划格式 (内部阶段卡、确认卡和执行计划都适用):
 
 ```text
 1. [步骤] → verify: [可执行检查]
@@ -124,7 +124,7 @@ OPC 已有相关机制:
 
 | Karpathy 原则 | 在 OPC 既有契约里的体现 |
 |---|---|
-| 1. 写代码之前先思考 | [clarification-loop.md](clarification-loop.md) 的"默认假设暴露规则" + "用户 framing 解析" + ConfirmCard 多轮讨论 |
+| 1. 写代码之前先思考 | [clarification-loop.md](clarification-loop.md) 的高影响疑点判断 + 用户 framing 翻译 + 原生选择交互 |
 | 2. 优先简单 | [solution-design.md](solution-design.md) 的"2-3 方案默认推最简" + [autonomous-bootstrap.md](autonomous-bootstrap.md) 的"只补缺的前置不无中生有" |
 | 3. 外科手术式修改 | 主要靠 `~/.claude/CLAUDE.md` 和 `~/.codex/AGENTS.md` 全局基线 + [handoff-contract.md](handoff-contract.md) 的 turn 收尾检查 |
 | 4. 目标驱动执行 | [open-source-patterns.md](open-source-patterns.md) 的 evidence-before-completion + [verification.md](verification.md) 的 3A/3B + [handoff-contract.md](handoff-contract.md) 的"[证据]" 段强制 |
@@ -133,13 +133,13 @@ OPC 已有相关机制:
 
 在 OPC 上看到下面这些做法, 就是违反 Karpathy 行为契约:
 
-- ❌ 用户说"做一个企业级用户中心", AI 不写 ConfirmCard 翻译 framing, 直接默认含 RBAC + SSO + 审计 + 多租户 + 计费
+- ❌ 用户说"做一个企业级用户中心", AI 不翻译 framing, 直接默认含 RBAC + SSO + 审计 + 多租户 + 计费
 - ❌ 实现单个 API route 时为"以后好扩展" 抽出 `BaseRouteHandler` 基类
 - ❌ 修一行 typo 时顺手把整个文件的命名风格改成自己喜欢的
-- ❌ Stage Card "验收方式" 字段写"看起来可用" 而不是具体命令 / 测试
+- ❌ 阶段记录的"验收方式"字段写"看起来可用" 而不是具体命令 / 测试
 - ❌ 给 PRD 范围内没有的"超级管理员后台" 顺手做了一份
-- ❌ 看到现有代码"过度抽象" 不在 ConfirmCard 里跟用户聊就默默重写
-- ❌ ConfirmCard 抛硬决策时用"你看呢" 而不是"宿主原生选择/确认交互, 或文本降级的 A / B / C + 我推 A"
+- ❌ 看到现有代码"过度抽象" 就默默重写无关代码
+- ❌ 抛高影响决策时用"你看呢" 而不是"宿主原生选择/确认交互, 或文本降级的 A / B / C + 我推 A"
 - ❌ 收尾时不给"[证据]" 段, 只说"完成了"
 - ❌ 写"未来可配置 / 灵活扩展" 的抽象层, 但当前 PRD 根本不需要
 - ❌ 内部函数加 try/catch + zod parse 三层防御, 输入根本不会越界

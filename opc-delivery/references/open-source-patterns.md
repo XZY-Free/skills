@@ -16,8 +16,8 @@
 
 ## OPC Pattern Card
 
-完整 OPC 任务在 Stage Card 后补一张轻量 Pattern Card，写入 `.opc/state/opc-task.json`
-或阶段文档的“决策记录”:
+完整 OPC 任务在内部阶段卡之后补一张轻量 Pattern Card，写入 `.opc/state/opc-task.json`
+或阶段文档的“决策记录”。Pattern Card 是内部执行纪律, 不是用户侧固定流程:
 
 ```text
 OPC Pattern Card

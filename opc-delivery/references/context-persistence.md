@@ -26,14 +26,14 @@ OPC 需求”或重新触发 `$opc-delivery`，代理必须自己读取台账并
    ```
 
 2. 按 `resumePhase`、`nextAction` 和 `recentHistory` 恢复当前阶段，不要求用户重讲上下文。
-3. 如果台账不存在，代理先输出最小 Stage Card，再初始化:
+3. 如果台账不存在，代理先写最小内部 OPC Stage Card，再初始化:
 
    ```bash
    python3 <skill-dir>/scripts/opc-task-state.py init \
      --goal "<原始用户目标>" \
      --delivery "<真实交付物>" \
      --acceptance "<验收方式>" \
-     --artifact "<Stage Card 或入口文档路径>" \
+     --artifact "<内部 Stage Card 或入口文档路径>" \
      --evidence "<入口判断依据>" \
      --next-action "<下一阶段第一步>"
    ```

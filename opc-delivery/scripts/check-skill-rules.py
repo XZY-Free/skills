@@ -23,13 +23,13 @@ BANNED = {
     "ui-ux-pro-max": "Reference only currently discoverable design skills.",
 }
 REQUIRED_EVAL_NAMES = {
-    "opc-intake-produces-stage-card",
+    "opc-intake-records-internal-stage-state",
     "requirements-prd-before-ui",
     "solution-design-before-implementation",
     "empty-workspace-full-opc-enters-implementation",
     "missing-prerequisites-auto-bootstrap",
     "verification-phase-state-ledger",
-    "handoff-five-part-turn-close",
+    "handoff-structured-turn-close",
     "karpathy-framing-before-code",
     "implementation-does-not-skip-browser-qa",
     "deployment-preview-before-production",
@@ -85,6 +85,9 @@ REQUIRED_EVAL_NAMES = {
     "codify-bridge-local-url",
     "magic-restoration-state-and-language",
     "update-flow-language-risk-applied",
+    "native-decision-interaction-required",
+    "clear-requirement-proceeds-without-card-ceremony",
+    "low-risk-details-do-not-interrupt-user",
 }
 REQUIRED_NEGATIVE_EVAL_NAMES = {
     "figma-not-mastergo",
@@ -249,7 +252,7 @@ def check_scope_contract() -> list[str]:
         "开源交付门禁契约",
         "Gate Card",
         "需求覆盖契约",
-        "选择题澄清契约",
+        "选择交互澄清契约",
         "自动轮转契约",
         "自治补齐契约",
         "上下文持久化契约",
@@ -345,7 +348,7 @@ def check_scope_contract() -> list[str]:
             errors.append(f"scripts/handoff-lint.py missing handoff guard phrase {phrase!r}")
 
     deployment_text = read(ROOT / "references/deployment-workflow.md")
-    for phrase in ["preview", "production", "rollback", ".opc/deployment/release.md", "release profile", "premortem", "red-team", "stop conditions", "git init", "无部署凭证/服务器"]:
+    for phrase in ["preview", "production", "rollback", ".opc/deployment/release.md", "release profile", "premortem", "red-team", "stop conditions", "初始化", "无凭证就跳过整个 deployment"]:
         if phrase not in deployment_text:
             errors.append(f"references/deployment-workflow.md missing phrase {phrase!r}")
 

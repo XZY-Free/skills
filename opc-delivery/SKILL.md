@@ -5,27 +5,23 @@ description: OPC 一人公司式产品交付工作流，把粗糙业务需求推
 
 # OPC 产品交付技能
 
-定位: 把"一个啥也不懂的业务员给一个需求"推进成**用户能登录能用的真实产品**, 并完成验证、部署和复盘。MasterGo/Codify/Magic 是 OPC 全流程里的设计与还原能力模块, 不是这个 skill 的全部。
+定位: 把一句粗糙业务目标推进成**能登录、能操作、数据能持久化、验证和部署有证据**的产品增量。MasterGo、Codify、Magic、Node、数据库和持续集成只是能力模块, 主线永远是成品交付。
 
-OPC 流程默认假设用户给的是粗糙业务需求, 真实需求要靠**多轮 ConfirmCard 对话**聊清楚, 不是 AI 替用户脑补完一份 158 行 PRD 就 mark done。
-
-每个新任务先读 [opc-flow.md](references/opc-flow.md) 路由阶段。完整 OPC 任务在 intake 之后立即进入 [clarification-loop.md](references/clarification-loop.md) 定义的对话循环, 直到不确定性收敛才进执行阶段。
+每个新任务先读 [opc-flow.md](references/opc-flow.md) 路由。若进入完整 OPC, 默认连续推进到验证和部署证据; 只有高影响不确定、硬阻塞或用户明确暂停才停。
 
 ## 运行要求
 
 | 类型 | 要求 |
 |---|---|
-| 必需运行时 | `node>=18`(前后端), `python>=3.11`(skill 脚本) |
-| 默认后端栈 | Next.js API routes / Hono / Fastify / Express(Node 系); **不默认 Java/Python/Go 后端,太重** |
-| 默认数据持久层 | SQLite(本地开发) / Postgres(部署), 配 Prisma 或 Drizzle ORM |
-| 设计 MCP | `mcp__codify__*` 用于 MasterGo 画布设计 |
-| 还原 MCP | `mcp__mastergo-magic-mcp__*` 用于 MasterGo D2C/DSL |
-| 常用验证 | Browser / Playwright、lint、typecheck、unit/e2e、构建、部署状态 |
+| 必需运行时 | `node>=18`, `python>=3.11` |
+| 默认后端栈 | Next.js API routes / Hono / Fastify / Express(Node 系) |
+| 默认数据层 | SQLite(本地开发) / Postgres(部署), 配 Prisma 或 Drizzle |
+| 设计工具 | `mcp__codify__*` 用于 MasterGo 画布设计 |
+| 还原工具 | `mcp__mastergo-magic-mcp__*` 用于 MasterGo D2C/DSL |
+| 常用验证 | Browser / Playwright、lint、typecheck、unit/e2e、build、部署状态 |
 | 可选工具 | `git`, `gh`, `vercel`, `jq` |
 
-缺 MCP、token、当前宿主配置或本会话工具时, 先走 [mcp-setup.md](references/mcp-setup.md)。
-不要把本地 HTML、Markdown、prompt、截图、DSL 或 D2C 包装成真实完成。
-不要把 typed mock 包装成"真实可用产品"——除非用户明确说"我就要 demo/演示"。
+缺 MCP、token、当前宿主配置或本会话工具时, 读 [mcp-setup.md](references/mcp-setup.md)。不要把本地 HTML、Markdown、prompt、截图、DSL 或 D2C 包装成真实完成。不要把 typed mock 包装成真实可用产品, 除非用户明确选择演示版。
 
 ## 触发边界
 
@@ -34,115 +30,88 @@ OPC 流程默认假设用户给的是粗糙业务需求, 真实需求要靠**多
 | OPC 全流程 | OPC、一人公司、从需求到上线、业务员给需求、需求分析、PRD、UI 设计、前端实现、部署 |
 | 阶段交付 | 需求文档、方案文档、设计稿、前端项目、验收报告、部署链接、回滚方案 |
 | MasterGo | MasterGo, Codify, Magic MCP, D2C, C2D, DSL, `mastergo://`, `mastergo.com`, `layerId`, `contentId` |
-| Codify 设计 | 在画布上设计/创建/修改/优化页面，调整布局/颜色/字号/间距，替换节点，同步组件 |
+| Codify 设计 | 在画布上设计/创建/修改/优化页面, 调整布局/颜色/字号/间距, 替换节点, 同步组件 |
 | Magic 还原 | 还原、转代码、复刻、实现成前端、跑起来、高保真、像素级 |
 | CI/CD 上线 | preview deployment、production、GitHub Actions、Vercel、服务器、环境变量、回滚 |
 | 校准沉淀 | 已上线需求重放、AI 与人工结果对比、沉淀宪法/规约/规则 |
 
-不要为 Figma、通用 D2C、通用 MCP、纯前端页面、通用 token 配置或普通英文单词
-`codify` 触发本 skill，除非用户明确把它放进 OPC 全流程。
+不要为 Figma、通用 D2C、通用 MCP、纯前端页面、通用 token 配置或普通英文单词 `codify` 触发本 Skill, 除非用户明确把它放进 OPC 全流程。
 
 ## 核心契约
 
-这些契约贯穿所有 reference。遇到同名契约时回到这里确认硬规则。
+这些契约是硬规则。细节放在 `references/`, 确定性校验放在 `scripts/` 和 `evals/`。
 
-### 阶段推进契约（即自动轮转契约）
+### 用户侧交互模型
 
-OPC 流程分两种节奏:
+OPC 是**成品驱动 / 疑点触发确认 / 证据驱动完成**。
 
-- **定义阶段 (intake / requirements / solution / ui-design) = 对话式推进**: 目的是把"用户要什么"聊清楚, 不是写完一份长文档就 mark done。AI 写 ConfirmCard、暴露默认假设、问硬决策、跟用户多轮 Q&A, 直到不确定性收敛才写最终文档并 mark done。每阶段问几轮不预设, 像几次需求会议; 详细机制见 [clarification-loop.md](references/clarification-loop.md)。
-- **执行阶段 (implementation / verification / deployment / calibration) = 自动推进**: 定义阶段已经聊清楚的需求, 一旦进入执行阶段就连续推进, 除非遇到 token/凭证/生产部署/远端推送/付费资源/破坏性写入等硬阻塞。
+- 阶段卡和确认卡是内部工具, 用来记录推理、默认假设和阶段状态; 不作为用户默认可见流程。
+- 用户默认只需要看到: 目标理解、正在交付什么、必要选择框、完成证据和下一步。
+- 不要求每个阶段都至少一轮用户确认。需求已经足够明确时, 直接进入产物、实现、验证和部署。
+- 不懂且会改变最终成品时不要假设; 用宿主原生选择/确认交互让用户拍板。
 
-阶段间自动衔接, 不要求用户每步说"继续"。但内部讨论没收敛前不要 mark done。
-**只有"用户明确说停 / 暂停 / 不做了"才算阶段间硬停。**
+### 自动轮转契约
 
-### 定义阶段对话契约
+定义阶段(intake / requirements / solution / ui-design)的目标是把交付物做对, 不是让用户看流程卡。执行阶段(implementation / verification / deployment / calibration)默认连续推进。
 
-完整 OPC 任务在 intake 之后, 立即按 [clarification-loop.md](references/clarification-loop.md) 进入对话循环:
+- 阶段产物是下一阶段输入, 不是自然停点。
+- 用户说“从需求到上线 / 后面都做完 / 你负责”时, 视为完整链路授权。
+- 只有用户明确说停、硬阻塞或高影响副作用确认门禁才暂停。
+- 内部讨论没收敛时不要标记阶段完成; 无高影响疑点时不要为了流程感打断用户。
 
-1. 每个定义阶段开始时先读 `.opc/<phase>/discussion.md`(若存在)接着上轮聊。
-2. 写 ConfirmCard 第 N 轮: 列出 framing 解析 + 默认假设 + 硬决策。
-3. 用户回应 → AI 更新理解, 必要时开第 N+1 轮。
-4. 收敛后才写本阶段最终文档(PRD / 方案 / UI Brief), mark done, 进下一阶段。
+### 选择交互澄清契约
 
-ConfirmCard 是讨论媒介, 不是 gate。但每个定义阶段必须至少产出一轮 ConfirmCard, 不允许跳过对话直接写文档。
+只有高影响不确定才问用户:
 
-### 用户拍板交互契约
+- 真实数据还是演示数据;
+- 权限深度、审计、合规、品牌硬约束;
+- 部署目标、production 发布、远端 push;
+- API key、token、secret、账号权限、私有 URL、服务器地址;
+- 付费资源、外部服务开通、破坏性写入或迁移;
+- 会改变交付范围的用户 framing, 例如“企业级 / 完整 / 生产级 / 智能 / 后台”。
 
-需要用户拍板时, **优先使用当前 AI 宿主提供的真实结构化决策交互**。这包括但不限于 Codex App 当前工具集中可用且允许调用的 `request_user_input`、Claude Code / 其它 agent runner 暴露的真实 confirm/select/prompt 工具、OMX question bridge 或等价 native UI。不要在普通 assistant 文本里伪造"选择框"; 文本 A/B/C/D 只是宿主没有可用结构化交互时的降级方案。
+低风险工程细节直接自治: 文件名、目录、小依赖、helper 拆法、内部路由、mock seed、可逆默认值、本地脚手架。
 
-使用结构化输入时:
+需要用户拍板时, 优先使用当前宿主真实结构化交互: Codex App 的 `request_user_input`、Claude Code / 其它 runner 暴露的 confirm/select/prompt、OMX question bridge 或等价 native UI。真实选择放工具里, 推荐项放第一并标推荐, 保留自定义入口。工具不可用时才文本降级为 A/B/C/D + 默认 + 自定义 / type something。
 
-- ConfirmCard 正文只保留 framing、默认假设、证据和"已打开宿主原生交互/等你在原生交互提交"的交接说明;
-- 真实选项放进宿主原生结构化交互工具, 推荐项放第一项并标 `(Recommended)` 或该宿主等价推荐标记;
-- 每轮最多问 1-3 个关键问题; 如果硬决策超过 3 个, 拆成多轮 ConfirmCard, 不要一次把 5 个问题塞进文本长问卷;
-- 依赖宿主自动提供的 Other / 自定义入口, 或在降级文本选项里显式保留"自定义 / type something";
-- 只有当宿主原生结构化交互不可用、当前模式不允许调用、或运行面是 API/终端/tmux 且没有 question bridge 时, 才降级为文本 A/B/C/D。
+### 阶段交付物契约
 
-### 默认假设暴露契约
+OPC 默认交付真实全栈产品:
 
-AI 单方面替用户做的决定必须列在 ConfirmCard 的`[我替你默认了什么]`段, 一行一条, 末尾标"反对就说"。不允许把单方面决策埋进 PRD/方案文档的`Won't / 风险 / 缺口`段, 等用户回头才发现。
+- 前端能访问, 用户能登录和操作;
+- 数据默认真实持久化, 本地 SQLite、部署 Postgres, 配 Prisma 或 Drizzle;
+- 后端默认 Node 系: Next.js API routes、Hono、Fastify、Express;
+- 没有接口文档时, 代理按需求设计真实 API 和数据模型;
+- `.env.example` 自动生成, 真实 secret 只进用户级配置或部署平台安全变量;
+- 只有用户明确说“演示版 / 不要真后端 / 只做展示”时, 才允许 mock 成为交付目标。
 
-必须列出来的高赌注类目: 数据来源、部署目标、后端栈、DB 选型、用户 framing 的字面解析、测试策略、主要范围裁剪、视觉/品牌(无参考稿时)。
-
-低赌注类目(小依赖、文件命名、helper 拆法、mock seed 具体值)走自治补齐, 不必列入 ConfirmCard。
-详见 [clarification-loop.md](references/clarification-loop.md) 的`默认假设暴露规则`。
-
-### 用户 framing 解析契约（即选择题澄清契约）
-
-用户原话用"企业级 / 完整 / 专业级 / 生产级 / production-ready / 智能 / 后台 / 小需求"这类承诺性词时, ConfirmCard 第 1 轮必须把 AI 对这些词的解读翻译成具体清单, 让用户校准。
-
-例: "企业级大模型管理平台" → AI 要列"含 = 多模型接入 + Key 管理 + 应用编排 + 知识库 + Playground + 日志; 不含 = RBAC/SSO/审计/AgentOps/计费(?)", 然后让用户改清单。
-
-不允许 AI 按字面理解写完 PRD 才在 `Won't` 段交代"我没做 RBAC/SSO/审计"。误解 framing 是定义阶段最大的浪费来源。
-
-### 全栈交付默认契约（即阶段交付物契约）
-
-OPC 默认交付的真实交付物 = **用户能访问、能登录、能操作、数据能真实持久化的全栈应用 + 部署链接**, 不是前端 + mock 的演示版。
-
-- 数据来源默认 = 真实接入 + AI 自建后端 + DB; mock 只在用户明确说"我就要 demo / 演示给客户看 / 不要真后端"时才用。
-- 后端栈默认走 Node 系: Next.js API routes、Hono、Fastify、Express。**不默认 Java/Spring/Python/Django/FastAPI/Go**, 这些太重、起势慢、跟前端联调成本高。用户明确指定才用。
-- DB 默认 SQLite(本地开发零配置) / Postgres(部署可持久化), 配 Prisma 或 Drizzle ORM, schema 写入 `.opc/runtime/` 或项目 `prisma/`。
-- `.env` 模板自动生成, 不写真实 secret; 真实 key/凭证走宿主 user-scope 配置, 不进版本控制。
-
-`真实交付物`字段不允许写"或"假设(如"Vercel preview 或本地等价")。要确定其中一个; 不确定就在 ConfirmCard 里先问。
+`真实交付物`不写“或”假设。部署目标、数据来源或权限范围不明确且会改变成品时, 走选择交互。
 
 ### 自治补齐契约
 
-定义阶段聊清楚之后, 实现期缺 Git 仓库、前端脚手架、Node 后端项目、API 路由、DB schema、`.env` 模板、mock 数据(用户已选 mock 时)、测试命令、CI/CD 或本地预览配置时, 默认由代理补齐。
+实现期缺 Git 仓库、前端脚手架、Node 后端、API 路由、DB schema、`.env.example`、测试命令、CI/CD 或预览配置时, 默认补齐。详见 [autonomous-bootstrap.md](references/autonomous-bootstrap.md)。
 
-只有以下情况作为暂停确认门:
-
-- API key/token/secret、私有 URL、服务器地址、账号权限
-- production 部署、远端 push、覆盖 MasterGo 画布、覆盖已有服务器/数据库、破坏性迁移
-- 付费资源、采购、外部服务开通
-- 法务/合规/客户数据范围/真实 SLA
-
-详见 [autonomous-bootstrap.md](references/autonomous-bootstrap.md)。
-
-### 讨论日志契约
-
-每个定义阶段维护 `.opc/<phase>/discussion.md`(追加模式), 记录每一轮 ConfirmCard 和用户回应。会话断了下次 `resume` 时先读 discussion log, 不要求用户重讲上下文。
-
-state 台账(`.opc/state/opc-task.json`)只记关键节点摘要 + discussion.md 路径; 不存原始对话。
-最终交付文档(PRD / 方案 / UI Brief)只放收敛后的结论 + discussion log 路径; 不把讨论纪要塞进正文。
-
-详见 [clarification-loop.md](references/clarification-loop.md) 的`讨论日志规约`。
+暂停确认门只包含: secret/账号/私有 URL、production、远端 push、覆盖画布或服务器、破坏性迁移、付费资源、真实 SLA、法务合规或客户数据边界。
 
 ### 上下文持久化契约
 
-每次进入完整 OPC、阶段交付或"继续上次"任务时, 代理自己读 [context-persistence.md](references/context-persistence.md), 自动恢复或初始化 `.opc/state/opc-task.json` 和当前阶段的 `discussion.md`。
+每次进入完整 OPC、阶段交付或“继续上次”时, 自动读 [context-persistence.md](references/context-persistence.md)。有 `.opc/state/opc-task.json` 就恢复, 没有就初始化。
 
-`opc-task-state.py resume/init/mark/note` 是代理命令, 不让用户手动执行; 用户只需要说"继续上次"。
-大产物主动拆到 `.opc/<phase>/` 多文件; 状态台账只存摘要和路径。
+内部记录:
 
-### 开源交付门禁契约
+- `.opc/state/opc-task.json`: 当前阶段、产物路径、证据摘要、nextAction;
+- `.opc/<phase>/discussion.md`: 仅记录必要决策、默认假设、用户提交和内部阶段卡/确认卡摘要;
+- `.opc/<phase>/last-handoff.md`: 阶段完成前的结构化收尾文本。
 
-这个 skill 融合开源优秀 skill 的工作法: discovery-before-build、JTBD、MoSCoW、2-3 个方案对比、planning packet、TDD/regression ratchet、systematic debugging、evidence-before-completion、release packet、premortem、red-team 和 AAR。完整 OPC 任务在 Stage Card 后补 Pattern Card; 这些模式必须落成阶段产物或检查项, 不要把开源 skill 名单当成交付物。
+不要让用户手动执行状态脚本; 这些是代理命令。
 
 ### 需求覆盖契约
 
-交付范围由业务目标、角色、核心流程、数据、边界、非功能要求和验收口径决定; 不靠"企业级/平台/后台"等关键词机械判断。从零设计、大范围改版、配置恢复后继续时, 必须先形成覆盖 brief、PRD 或 Gate Card; 不得把完整需求擅自缩成首页或单页 dashboard。
+交付范围由业务目标、角色、核心流程、数据、边界、非功能要求和验收口径决定, 不靠“企业级/平台/后台”等关键词机械判断。从零设计、大范围改版、配置恢复后继续时, 必须先形成覆盖 brief、PRD 或 Gate Card; 不得把完整需求擅自缩成首页或单页 dashboard。
+
+### 开源交付门禁契约
+
+完整 OPC 使用这些工作法, 但不把方法名当交付物: discovery-before-build、JTBD、MoSCoW、2-3 个方案对比、Planning Packet、TDD/regression ratchet、systematic debugging、evidence-before-completion、release packet、premortem、red-team 和 AAR。需要时写内部 Pattern Card, 并把它落成阶段产物或检查项。
 
 ### UI 文案语种契约
 
@@ -150,7 +119,7 @@ state 台账(`.opc/state/opc-task.json`)只记关键节点摘要 + discussion.md
 
 ### token 安全契约
 
-token/key 每用户每机器索取一次, 绝不复用、硬编码或复制其它会话的值; 只写当前宿主 user-scope 本地配置或目标平台安全变量, 不进版本控制。收到 token 后只脱敏回显(前缀 + 末 4 位)。用户把完整 token 贴进聊天时, 提醒它已进入会话记录, 配置成功后建议 revoke / rotate。`tool_search` 暴露工具、其它宿主已配置、demo token 看似可用, 都不是当前宿主已配置证据。
+token/key 每用户每机器索取一次, 绝不复用、硬编码或复制其它会话的值; 只写当前宿主 user-scope 本地配置或目标平台安全变量, 不进版本控制。收到 token 后只脱敏回显(前缀 + 末 4 位)。用户把完整 token 贴进聊天时, 提醒它已进入会话记录, 配置成功后建议 revoke / rotate。
 
 ### 证据与状态契约
 
@@ -158,91 +127,55 @@ HTTP 200、命令退出码 0、本地 HTML 存在、`accepted`、代码列表非
 
 ### 专业完成定义
 
-交付不是活动报告; 必须证明用户目标、核心流程、关键状态、风险处理和上线证据闭合。需求、方案、UI、实现、验证、部署任一阶段被跳过时, 必须写清跳过授权、风险和替代证据。对外宣称"完成 / 已上线 / 可交付"前, 读 [delivery-contract.md](references/delivery-contract.md) 的专业完成定义。无法获得真实证据时, 用 `blocked`、`pending` 或 `skipped with reason`, 不要用乐观话术补洞。
+交付不是活动报告; 必须证明用户目标、核心流程、关键状态、风险处理和上线证据闭合。需求、方案、UI、实现、验证、部署任一阶段被跳过时, 必须写清跳过授权、风险和替代证据。对外宣称“完成 / 已上线 / 可交付”前, 读 [delivery-contract.md](references/delivery-contract.md)。
 
 ### 收尾契约
 
-OPC 任务的每个 turn (定义阶段每轮 ConfirmCard、执行阶段每段汇报) 收尾必须满足五段结构, 不允许只甩"剩余风险: a / b / c" 给用户。详见 [handoff-contract.md](references/handoff-contract.md)。
+每个 turn 必须使用结构化收尾。无需用户决策时, 收尾要写清“没有未决项”并继续推进; 需要决策时, 优先打开原生选择交互。详见 [handoff-contract.md](references/handoff-contract.md)。
 
 强制结构:
 
-1. **[已完成]** — 本轮做了什么具体事
-2. **[证据]** — 文件路径 / 命令退出 / 测试通过 / 截图 / URL (执行阶段强制)
-3. **[不确定项 + 我的处理]** — 每条必须归类: 自治处理 / 需要你拍板 / 卡住缺 X
-4. **(可选) [需要你拍板]** — 宿主原生结构化交互可用时必须打开真实选择/确认交互; 不可用时才列具体 A / B / C 选项 + 标默认 + 保留"自定义 / type something"; 禁止"你看呢" 这类开放式提问
-5. **[下一步]** — 必须显式写 "我现在做 X" / "等你在原生交互提交" / "等你回 A/B/C" / "卡住, 缺 X" 之一
+1. **[已完成]** — 本轮具体产物;
+2. **[证据]** — 路径、命令、测试、截图、URL 或验证输出;
+3. **[不确定项 + 我的处理]** — 每条归类为自治处理 / 需要拍板 / 卡住缺 X; 没有就写“没有未决项”;
+4. **[需要你拍板]** — 仅需要时出现; 原生交互优先, 文本 A/B/C 只作降级;
+5. **[下一步]** — “我现在做 X” / “等你在原生交互提交” / “等你回 A/B/C” / “卡住, 缺 X”之一。
 
-本契约覆盖 `~/.codex/AGENTS.md` 工作约定中"最终报告必须包含...剩余风险" 的默认形态: "剩余风险" 单甩给用户是反模式 — Karpathy 第 1 条要求的是"列出选项让用户选 + 给默认 + 自动继续", 不是"列风险等用户问"。
-
-AI 在跑 `python scripts/opc-task-state.py mark <phase> done` 之前, 必须先把本轮 hand-off 文本写到 `.opc/<phase>/last-handoff.md` (或通过 stdin), 跑 `python scripts/handoff-lint.py --file .opc/<phase>/last-handoff.md --phase <phase>` 校验通过。校验失败要重写 hand-off, 不要绕过 lint 直接 mark done。
+跑 `python scripts/opc-task-state.py mark <phase> done` 前, 必须把本轮 hand-off 写到 `.opc/<phase>/last-handoff.md`, 再跑 `python scripts/handoff-lint.py --file .opc/<phase>/last-handoff.md --phase <phase>`。失败就重写, 不绕过。
 
 ### Karpathy 行为契约
 
-把 Andrej Karpathy 关于 LLM 写代码常见毛病的四原则, 落到 OPC 的具体阶段动作。详见 [karpathy-discipline.md](references/karpathy-discipline.md)。
+详见 [karpathy-discipline.md](references/karpathy-discipline.md)。
 
-四条总览:
-
-1. **写代码之前先思考** — 在 ConfirmCard 第 1 轮暴露所有默认假设 + framing 翻译; 不要藏假设
-2. **优先简单** — 不做 PRD 范围之外的功能; 一次性代码不抽象; 200 行能 50 就重写
-3. **外科手术式修改** — 每行 diff 都能追溯到本次任务; 不顺手"美化" 邻近代码 (跟 `~/.claude/CLAUDE.md` 全局基线一致)
-4. **目标驱动执行** — Stage Card / PRD / ConfirmCard 的"验收方式" 必须可执行 (测试 / 命令 / 截图)
-
-全局基线已在 `~/.claude/CLAUDE.md` 和 `~/.codex/AGENTS.md` 的"模型行为四原则" 小节生效; 本契约是 OPC 上下文里的具体翻译, 不重复全局条款。
-
-## OPC Stage Card
-
-完整 OPC 任务在 intake 阶段输出 Stage Card; 这张卡是后续 ConfirmCard 讨论的起点, 不是替代品。Stage Card 锁定真实交付物的形状, ConfirmCard 在每个定义阶段把内部细节聊清楚。
-
-```text
-OPC Stage Card
-
-- 真实交付物: 默认 = 用户能登录能用的全栈 Web 应用 + 真实持久化数据 + 可访问 URL
-              (用户明确说 demo/演示才退回前端 + mock 形态)
-- 当前阶段: 需求 / 方案 / UI 设计 / 实现 / 验证 / 部署 / 校准
-- 业务目标: <用户要解决的问题和成功标准>
-- 用户 framing 解析: <用户用了"企业级 / 完整 / 智能"等承诺词时, 翻译成具体清单>
-- 覆盖范围: <角色、流程、页面、状态、数据、权限、接口 — 收敛后才填具体>
-- 默认假设(一句话可改):
-  • 数据来源 = ?(默认: 真实接入 + 我自建 Node 后端 + DB)
-  • 后端栈 = ?(默认推荐: Next.js API routes / Hono / Fastify 三选一)
-  • DB = ?(默认: SQLite 开发, Postgres 部署; 含 Prisma)
-  • 部署目标 = ?(必须明确, 不允许"或"假设)
-  • 视觉/品牌 = ?(默认: shadcn/Tailwind; 用户给参考则跟参考)
-  • 测试策略 = ?(默认: lint + typecheck + build + 浏览器主链路)
-  • 主要范围裁剪(如有) = ?
-- 阶段交付物: <本阶段要产出的文件、画布结果、代码或链接>
-- 验收方式: <测试、截图、diff、API 溯源、部署检查; 用户确认只作补充证据>
-- 风险 / 缺口: <待澄清项、能力缺失、环境缺失、付费工具>
-- 停止条件: <只有哪些 blocker 或高风险副作用会暂停>
-- 下一步: <进入 clarification-loop 的第一轮 ConfirmCard, 还是直接进具体阶段 reference>
-```
-
-Stage Card 里`默认假设`字段如果有"?"或"或"假设, 不允许直接进 requirements; 必须先在 ConfirmCard 第 1 轮把它聊明确。
+1. **写代码之前先思考** — 暴露会改变成品的默认假设; 不藏困惑。
+2. **优先简单** — 不做 PRD 范围之外的功能; 一次性代码不抽象。
+3. **外科手术式修改** — 每行 diff 都能追溯到本次任务。
+4. **目标驱动执行** — PRD、方案、内部阶段卡/确认卡的验收方式必须可执行。
 
 ## 工作流总览
 
 ```text
-0. OPC intake / route / Stage Card
+0. OPC intake / route
    -> references/opc-flow.md
 
-0.5 定义阶段对话循环(贯穿 intake -> requirements -> solution -> ui-design)
-   ConfirmCard -> 多轮 Q&A -> dialogue log -> 收敛 -> 落最终文档
+0.5 高影响疑点澄清(按需, 不是每阶段固定仪式)
+   internal Stage Card / internal ConfirmCard -> native choice if needed -> discussion log
    -> references/clarification-loop.md
 
 0.7 开源交付模式门禁
    Pattern Card -> JTBD/MoSCoW -> 方案对比 -> 验证/发布/校准门禁
    -> references/open-source-patterns.md
 
-0.8 自治补齐门禁(执行阶段缺前置时)
+0.8 自治补齐门禁
    missing repo/scaffold/backend/DB/test/CI/deploy defaults
    -> references/autonomous-bootstrap.md
 
-1. 需求阶段(对话式)
-   ConfirmCard 几轮 -> PRD + 验收标准 + open questions
+1. 需求阶段
+   enough facts -> PRD; high-impact ambiguity -> native choice; then PRD
    -> references/requirements-workflow.md
 
-2. 方案阶段(对话式)
-   ConfirmCard 关于栈/DB/部署 -> 信息架构 + 技术方案 + 测试/部署计划
+2. 方案阶段
+   architecture/data/deploy decisions -> solution design
    -> references/solution-design.md
 
 3A. MasterGo/Codify UI 设计
@@ -253,21 +186,24 @@ Stage Card 里`默认假设`字段如果有"?"或"或"假设, 不允许直接进
    URL parse -> DSL/D2C -> enterprise/quick mode -> implementation -> 3B verify
    -> references/restoration-workflow.md
 
-4. 前端 + Node 后端实现(执行式)
-   repo/framework detect -> 前端组件 + API routes + DB schema + 真实接口 -> browser QA
+4. 前端 + Node 后端实现
+   repo/framework detect -> components + API routes + DB schema + real data -> browser QA
    -> references/implementation-workflow.md
 
-5. CI/CD 和部署(执行式, 但部署目标必须先在 ConfirmCard 锁定)
-   build/test -> 部署目标确认 -> env/secrets -> preview -> production gate -> rollback evidence
+5. 验证
+   lint/typecheck/test/build/browser/data persistence -> evidence
+   -> references/verification-implementation.md
+
+6. CI/CD 和部署
+   deploy target decision if needed -> preview -> production gate -> rollback evidence
    -> references/deployment-workflow.md
 
-6. 已上线需求回放校准
+7. 已上线需求回放校准
    golden input -> AI replay -> gap analysis -> rule update
    -> references/regression-calibration.md
 ```
 
-完整 OPC 任务按上面顺序推进: 0-3 阶段以对话为主, 4-6 阶段自动推进。
-阶段产物是交接输入, 不是自然停点; 只有用户要求暂停、硬阻塞或高风险副作用确认门禁才暂停。
+完整 OPC 任务按上面顺序推进。内部阶段卡和确认卡服务状态恢复与推理纪律, 不把它们变成用户必须消费的流程。
 
 ## MasterGo 子流程最低要求
 
@@ -279,24 +215,24 @@ Stage Card 里`默认假设`字段如果有"?"或"或"假设, 不允许直接进
 
 | 文件 | 何时读 |
 |---|---|
-| [opc-flow.md](references/opc-flow.md) | 每个新任务入口、阶段路由、OPC Stage Card、交付物链路 |
-| [clarification-loop.md](references/clarification-loop.md) | 进入定义阶段(intake/requirements/solution/ui-design)的对话循环, 写 ConfirmCard, 维护 dialogue log |
+| [opc-flow.md](references/opc-flow.md) | 每个新任务入口、阶段路由、OPC Stage Card 内部记录、交付物链路 |
+| [clarification-loop.md](references/clarification-loop.md) | 需要澄清高影响不确定、写内部确认卡、维护 discussion log |
 | [context-persistence.md](references/context-persistence.md) | 新会话恢复、状态台账、nextAction、阶段产物主动拆分 |
 | [open-source-patterns.md](references/open-source-patterns.md) | 完整 OPC 交付、skill 优化、需求到上线闭环、上线回放校准 |
-| [requirements-workflow.md](references/requirements-workflow.md) | 需求阶段对话(PRD、用户故事、验收标准、open questions) |
-| [solution-design.md](references/solution-design.md) | 需求收敛后做方案(信息架构、技术栈、接口/数据/权限/测试计划) |
+| [requirements-workflow.md](references/requirements-workflow.md) | 需求阶段、PRD、用户故事、验收标准、Open Questions |
+| [solution-design.md](references/solution-design.md) | 需求收敛后做方案, 包含信息架构、技术栈、接口/数据/权限/测试计划 |
 | [implementation-workflow.md](references/implementation-workflow.md) | 全栈实现(Node 后端 + DB + 前端 + 真实接口) |
-| [deployment-workflow.md](references/deployment-workflow.md) | 部署目标 ConfirmCard、CI/CD、环境变量、回滚 |
-| [regression-calibration.md](references/regression-calibration.md) | 用已上线需求回放校准 skill、沉淀宪法/规约 |
+| [deployment-workflow.md](references/deployment-workflow.md) | 部署目标确认、CI/CD、环境变量、回滚 |
+| [regression-calibration.md](references/regression-calibration.md) | 用已上线需求回放校准 Skill、沉淀规则 |
 | [autonomous-bootstrap.md](references/autonomous-bootstrap.md) | 执行阶段缺前置时的自治补齐范围 |
 | [mcp-setup.md](references/mcp-setup.md) | MCP 缺失、token 配置、宿主切换、Codify bridge、本地/远端 URL 排障 |
 | [delivery-contract.md](references/delivery-contract.md) | 判断真实交付物、阻塞条件、禁止替代交付 |
-| [handoff-contract.md](references/handoff-contract.md) | turn 收尾五段结构、不确定项分类、显式下一步、handoff-lint.py 联动 |
+| [handoff-contract.md](references/handoff-contract.md) | turn 收尾结构、不确定项分类、显式下一步、handoff-lint.py 联动 |
 | [karpathy-discipline.md](references/karpathy-discipline.md) | Karpathy 四原则在 OPC 阶段动作上的具体落地 |
 | [intent-routing.md](references/intent-routing.md) | MasterGo/Codify/Magic 子任务路由 |
 | [design-workflow.md](references/design-workflow.md) | Codify 画布设计、修改、查看页面 |
 | [design-scope.md](references/design-scope.md) | 覆盖 brief、任务台账、恢复继续 |
-| [design-coverage-patterns.md](references/design-coverage-patterns.md) | 复杂平台覆盖模板, 尤其企业级/AgentOps/客服运营类产品 |
+| [design-coverage-patterns.md](references/design-coverage-patterns.md) | 复杂平台覆盖模板 |
 | [copy-language.md](references/copy-language.md) | UI 文案语种判断、requirement 注入、copy lint |
 | [codify-push-protocol.md](references/codify-push-protocol.md) | Codify 写入前规范、用户信息、preflight、accepted pending |
 | [restoration-workflow.md](references/restoration-workflow.md) | Magic 还原双模式入口 |
@@ -320,7 +256,7 @@ Stage Card 里`默认假设`字段如果有"?"或"或"假设, 不允许直接进
 | 脚本 | 用途 |
 |---|---|
 | `scripts/opc-task-state.py` | 初始化、标记、校验 `.opc/state/opc-task.json` |
-| `scripts/handoff-lint.py` | 校验 turn 收尾五段结构, `mark <phase> done` 前的硬门禁 |
+| `scripts/handoff-lint.py` | 校验 turn 结构化收尾, `mark <phase> done` 前的硬门禁 |
 | `scripts/check-mcp-config.py` | 检查当前宿主 MCP 配置、token 占位、本地/远端 Codify URL |
 | `scripts/parse-mastergo-url.py` | 从 MasterGo URL 提取 fileId/layerId/contentId |
 | `scripts/mastergo-task-state.py` | 初始化、恢复、标记、校验 `.codify/state/mastergo-task.json` |
@@ -344,6 +280,6 @@ Stage Card 里`默认假设`字段如果有"?"或"或"假设, 不允许直接进
 
 简短、直接、给证据。中文回复, 技术名词如 `layerId`、`DSL`、`D2C`、`contentId`、`useComponentLibrary`、`buildStrategy`、`preview deployment`、`rollback`、`Hono`、`Prisma`、`API routes` 保留原文。
 
-**定义阶段以对话为主, 不要先输出 158 行 PRD 再让用户回头改。** 第一反应是写 ConfirmCard, 不是写文档。
+第一反应不是把流程卡抛给用户, 而是判断是否有高影响疑点。没有就继续做成品; 有就打开原生选择交互。
 
-用户问"好了吗"时, 回答当前阶段、已完成交付物和证据。没有证据就说"待验证", 不要只回"完成"。
+用户问“好了吗”时, 回答当前交付物、证据和下一步。没有证据就说“待验证”, 不要只回“完成”。

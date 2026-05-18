@@ -849,13 +849,13 @@
     },
     {
       "id": 45,
-      "name": "opc-intake-produces-stage-card",
+      "name": "opc-intake-records-internal-stage-state",
       "prompt": "Use $opc-delivery; 一个业务同学说想做一个客户工单分析工具，从需求到上线都交给你。",
-      "expected_output": "应该进入 OPC 全流程入口，先输出 OPC Stage Card，明确真实交付物、当前阶段、业务目标、覆盖范围、阶段交付物、验收方式、风险缺口和下一步；初始化或计划初始化 .opc/state/opc-task.json；不能直接跳到 UI 或代码。",
+      "expected_output": "应该进入 OPC 全流程入口，内部记录 OPC Stage Card 或等价阶段状态，明确真实交付物、当前阶段、业务目标、覆盖范围、验收方式和下一步；用户侧只需要看到目标理解、交付方向、必要选择交互和继续动作；初始化或计划初始化 .opc/state/opc-task.json；不能直接跳到 UI 或代码。",
       "files": [],
       "checks": {
         "must_include": [
-          "OPC Stage Card",
+          "内部",
           "真实交付物",
           "需求",
           "验收",
@@ -1103,7 +1103,7 @@
       "id": 57,
       "name": "full-opc-auto-advances-until-release",
       "prompt": "Use $opc-delivery; 一个业务同学只说想做客户续费预警工具，从需求到上线都交给你，没说停就继续。",
-      "expected_output": "应该把这类请求视为完整 OPC 连续交付，Stage Card 后自动进入需求、方案、UI、实现、验证和部署链路；每阶段产物作为下一阶段输入，不把 PRD/方案/设计结束当成停点，也不反复问是否继续。只有 blocker、高风险副作用或 production gate 才暂停；未明确 production 时应推进到 preview/staging 可访问链接并保留发布证据。",
+      "expected_output": "应该把这类请求视为完整 OPC 连续交付，内部阶段记录后自动进入需求、方案、UI、实现、验证和部署链路；每阶段产物作为下一阶段输入，不把 PRD/方案/设计结束当成停点，也不反复问是否继续。只有 blocker、高风险副作用或 production gate 才暂停；未明确 production 时应推进到 preview/staging 可访问链接并保留发布证据。",
       "files": [],
       "checks": {
         "must_include": [
@@ -1175,7 +1175,7 @@
       "id": 60,
       "name": "empty-workspace-full-opc-enters-implementation",
       "prompt": "Use $opc-delivery; 帮我设计一个企业级的模型管理平台，从需求到上线都交给你。当前目录是空的，没有现成代码仓库。",
-      "expected_output": "应该把这类请求视为完整 OPC 连续交付：Stage Card、需求、方案和 UI 之后默认继续进入 implementation，而不是把空工作区收缩成产品设计包。若当前目录没有现成仓库或 package.json，代理应基于选定框架自动新建项目脚手架，说明实现目录、默认框架和初始命令，并继续推进到验证/部署门前；只有高风险副作用、权限缺失或真正 blocker 才暂停。",
+      "expected_output": "应该把这类请求视为完整 OPC 连续交付：内部阶段记录、需求、方案和 UI 之后默认继续进入 implementation，而不是把空工作区收缩成产品设计包。若当前目录没有现成仓库或 package.json，代理应基于选定框架自动新建项目脚手架，说明实现目录、默认框架和初始命令，并继续推进到验证/部署门前；只有高风险副作用、权限缺失或真正 blocker 才暂停。",
       "files": [],
       "checks": {
         "must_include": [
@@ -1241,7 +1241,7 @@
     },
     {
       "id": 63,
-      "name": "handoff-five-part-turn-close",
+      "name": "handoff-structured-turn-close",
       "prompt": "Use $opc-delivery; 实现阶段测试过了，但部署还没做，帮我汇报当前进展。",
       "expected_output": "应该按收尾契约输出清晰 hand-off：包含 [已完成]、[证据]、[不确定项 + 我的处理] 和 [下一步]；如果需要用户拍板，当前 AI 宿主（Codex、Claude Code、OMX 或其它 runner）有真实结构化选择/确认交互时必须使用原生交互并说明推荐默认和自定义入口，只有不可用时才降级为 A/B/C 文本选项。不能只列“剩余风险”，不能用“你看呢/你定吧/看你的”这类开放式问句，不能缺少显式下一步。",
       "files": [],
@@ -1265,11 +1265,11 @@
       "id": 64,
       "name": "karpathy-framing-before-code",
       "prompt": "Use $opc-delivery; 做一个企业级用户中心，从需求到上线都交给你。",
-      "expected_output": "应该先把“企业级用户中心”翻译成可校准的具体范围，而不是直接写 PRD 或代码。第 1 轮 ConfirmCard 应暴露默认假设、列出企业级可能包含/不包含的能力，例如账号、登录、角色、RBAC/SSO/审计/多租户/计费等；需要拍板时优先使用当前 AI 宿主的真实结构化选择/确认交互收集 1-3 个高影响决策，推荐默认放第一并保留自定义入口，宿主原生结构化交互不可用时才降级为 A/B/C 文本选择；同时给每步 verify 检查，体现优先简单、外科手术式修改和目标驱动执行。",
+      "expected_output": "应该先把“企业级用户中心”翻译成可校准的具体范围，而不是直接写 PRD 或代码。应暴露会影响成品的默认假设，列出企业级可能包含/不包含的能力，例如账号、登录、角色、RBAC/SSO/审计/多租户/计费等；需要拍板时优先使用当前 AI 宿主的真实结构化选择/确认交互收集 1-3 个高影响决策，推荐默认放第一并保留自定义入口，宿主原生结构化交互不可用时才降级为 A/B/C 文本选择；低风险细节直接自治；同时给每步 verify 检查，体现优先简单、外科手术式修改和目标驱动执行。",
       "files": [],
       "checks": {
         "must_include": [
-          "ConfirmCard",
+          "高影响",
           "企业级",
           "默认假设",
           "RBAC",
@@ -1282,6 +1282,68 @@
           "我先直接实现",
           "下面是完整 PRD",
           "你看呢"
+        ]
+      }
+    },
+    {
+      "id": 65,
+      "name": "native-decision-interaction-required",
+      "prompt": "Use $opc-delivery; 部署前需要我选 Vercel、服务器还是只保留本地预览，你准备怎么收尾？",
+      "expected_output": "应该把部署目标识别为需要用户拍板的高影响决策。若当前宿主有 request_user_input、confirm/select/prompt、OMX question bridge 或等价原生结构化交互，应优先打开真实选择框或确认框，推荐默认项放第一并标推荐，确认存在自定义入口；收尾文本只说明已打开宿主原生交互、默认推荐和下一步“等你在原生交互提交”。只有宿主原生结构化交互不可用时，才降级为文本 A/B/C 选项，并标默认、保留“自定义 / type something”。不能只问“你看呢”，不能只列剩余风险。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "request_user_input",
+          "选择框",
+          "推荐",
+          "自定义",
+          "等你在原生交互提交"
+        ],
+        "must_not_include": [
+          "你看呢",
+          "你定吧",
+          "剩余风险:"
+        ]
+      }
+    },
+    {
+      "id": 66,
+      "name": "clear-requirement-proceeds-without-card-ceremony",
+      "prompt": "Use $opc-delivery; 已有 PRD 和方案，目标是把现有 Next.js 项目里的客户列表接上真实 Postgres，字段在 docs/api.md，继续实现并验证。",
+      "expected_output": "应该识别为需求和方案已经足够明确，直接读取现有项目、接口文档和数据层，进入实现与验证；内部可记录阶段状态，但不应为了流程强行向用户展示阶段卡或确认卡，不应要求用户再确认“是否继续”。若发现高影响缺口才使用原生选择/确认交互。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "实现",
+          "验证",
+          "Postgres",
+          "docs/api.md",
+          "继续"
+        ],
+        "must_not_include": [
+          "先确认是否继续",
+          "每个阶段都需要确认",
+          "必须先给你一张确认卡"
+        ]
+      }
+    },
+    {
+      "id": 67,
+      "name": "low-risk-details-do-not-interrupt-user",
+      "prompt": "Use $opc-delivery; 方案已定，做实现时文件名、目录、helper 拆法你自己看着办。",
+      "expected_output": "应该把文件名、目录、helper 拆法识别为低风险工程细节并自治处理，记录默认处理即可继续实现；不应该打开选择框或要求用户拍板。只有密钥、生产发布、远端 push、付费资源、破坏性写入、合规或品牌硬约束等高影响事项才暂停。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "自治",
+          "低风险",
+          "实现",
+          "继续"
+        ],
+        "must_not_include": [
+          "文件名需要你拍板",
+          "helper 拆法需要你确认",
+          "等你选择目录"
         ]
       }
     }

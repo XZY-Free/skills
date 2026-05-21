@@ -44,6 +44,8 @@ REQUIRED_EVAL_NAMES = {
     "implementation-reads-current-slice-not-all-docs",
     "implementation-plan-uses-value-slices-not-layer-splits",
     "adr-records-high-impact-decisions",
+    "implementation-plan-records-context-budget",
+    "implementation-plan-identifies-parallel-lanes",
     "empty-workspace-full-opc-enters-implementation",
     "missing-prerequisites-auto-bootstrap",
     "verification-phase-state-ledger",
@@ -60,6 +62,7 @@ REQUIRED_EVAL_NAMES = {
     "professional-completion-requires-evidence",
     "full-opc-auto-advances-until-release",
     "skill-creator-structure-hygiene",
+    "frontend-design-quality-in-opc-ui",
     "context-persistence-auto-resume",
     "mcp-setup-codex",
     "single-page-restoration",
@@ -292,6 +295,7 @@ def check_scope_contract() -> list[str]:
         ROOT / "references/open-source-patterns.md",
         ROOT / "references/requirements-workflow.md",
         ROOT / "references/solution-design.md",
+        ROOT / "references/frontend-design-quality.md",
         ROOT / "references/implementation-planning.md",
         ROOT / "references/implementation-workflow.md",
         ROOT / "references/deployment-workflow.md",
@@ -340,7 +344,9 @@ def check_scope_contract() -> list[str]:
         "自治补齐契约",
         "上下文持久化契约",
         "UI 文案语种契约",
+        "UI 设计质量契约",
         "实现规划契约",
+        "上下文持久化契约",
         "专业完成定义",
         "收尾契约",
         "Karpathy 行为契约",
@@ -383,7 +389,7 @@ def check_scope_contract() -> list[str]:
             errors.append(f"references/autonomous-bootstrap.md missing phrase {phrase!r}")
 
     context_text = read(ROOT / "references/context-persistence.md")
-    for phrase in ["代理自动执行", "不是让用户手动运行", "nextAction", "主动拆分", "只存摘要", "自治补齐动作", "implementation-plan", "Read Set"]:
+    for phrase in ["代理自动执行", "不是让用户手动运行", "nextAction", "主动拆分", "只存摘要", "自治补齐动作", "implementation-plan", "Read Set", "上下文预算", "checkpoint", "continuation.md"]:
         if phrase not in context_text:
             errors.append(f"references/context-persistence.md missing phrase {phrase!r}")
 
@@ -414,9 +420,14 @@ def check_scope_contract() -> list[str]:
             errors.append(f"references/delivery-contract.md missing phrase {phrase!r}")
 
     solution_text = read(ROOT / "references/solution-design.md")
-    for phrase in ["2-3 个方案", "Planning Packet", "自我审查", "推荐方案", "自动初始化 Git", "implementation-plan"]:
+    for phrase in ["2-3 个方案", "Planning Packet", "自我审查", "推荐方案", "自动初始化 Git", "implementation-plan", "frontend-design-quality.md", "记忆点"]:
         if phrase not in solution_text:
             errors.append(f"references/solution-design.md missing phrase {phrase!r}")
+
+    frontend_quality_text = read(ROOT / "references/frontend-design-quality.md")
+    for phrase in ["Design Quality Brief", "generic AI aesthetics", "MasterGo / Codify", "Verification Checklist", "copy-language.md"]:
+        if phrase not in frontend_quality_text:
+            errors.append(f"references/frontend-design-quality.md missing phrase {phrase!r}")
 
     planning_text = read(ROOT / "references/implementation-planning.md")
     for phrase in [
@@ -434,17 +445,23 @@ def check_scope_contract() -> list[str]:
         "backend.md",
         "database.md",
         "12KB",
+        "frontend-design-quality.md",
+        "generic AI aesthetics",
+        "parallelization.md",
+        "Context Budget",
+        "Write Set",
+        "checkpoint",
     ]:
         if phrase not in planning_text:
             errors.append(f"references/implementation-planning.md missing phrase {phrase!r}")
 
     implementation_text = read(ROOT / "references/implementation-workflow.md")
-    for phrase in ["TDD", "regression ratchet", "systematic debugging", "gate truth", "空工作区启动规则", "git init", "缺仓库 / 缺脚手架", "不是 Git 仓库，所以本轮先停在设计包", "implementation-plan", "Read Set"]:
+    for phrase in ["TDD", "regression ratchet", "systematic debugging", "gate truth", "空工作区启动规则", "git init", "缺仓库 / 缺脚手架", "不是 Git 仓库，所以本轮先停在设计包", "implementation-plan", "Read Set", "frontend-design-quality.md", "generic AI aesthetics", "上下文预算执行", "并行 lane", "continuation.md", "Eligible For Subagent"]:
         if phrase not in implementation_text:
             errors.append(f"references/implementation-workflow.md missing phrase {phrase!r}")
 
     state_script = read(ROOT / "scripts/opc-task-state.py")
-    for phrase in ['"verification"', '"implementation-plan"', "PHASES", "normalize_phases", "cmd_brief", "implementation cannot be marked done"]:
+    for phrase in ['"verification"', '"implementation-plan"', "PHASES", "normalize_phases", "cmd_brief", "cmd_checkpoint", "continuation.md", "implementation cannot be marked done"]:
         if phrase not in state_script:
             errors.append(f"scripts/opc-task-state.py missing phase phrase {phrase!r}")
 
@@ -469,7 +486,7 @@ def check_scope_contract() -> list[str]:
             errors.append(f"references/copy-language.md missing phrase {phrase!r}")
 
     design_workflow = read(ROOT / "references/design-workflow.md")
-    for phrase in ["MasterGo 设计 Gate Card", "mastergo-task-state.py", "library-snapshot.py", "codify-preflight.py"]:
+    for phrase in ["MasterGo 设计 Gate Card", "mastergo-task-state.py", "library-snapshot.py", "codify-preflight.py", "frontend-design-quality.md", "体验质量门禁"]:
         if phrase not in design_workflow:
             errors.append(f"references/design-workflow.md missing phrase {phrase!r}")
 

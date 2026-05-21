@@ -11,6 +11,7 @@ from pathlib import Path
 
 
 DEFAULT_STATE = Path(".opc/state/opc-task.json")
+DEFAULT_CONTINUATION = Path(".opc/implementation/continuation.md")
 PHASES = (
     "intake",
     "requirements",
@@ -338,6 +339,72 @@ def cmd_note(args: argparse.Namespace) -> int:
     return 0
 
 
+def render_bullets(items: list[str]) -> list[str]:
+    if not items:
+        return ["- none"]
+    return [f"- {item}" for item in items]
+
+
+def cmd_checkpoint(args: argparse.Namespace) -> int:
+    data = load(args.path)
+    checkpoint_path = args.file
+    checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+    timestamp = now()
+    lines = [
+        "# OPC Continuation Checkpoint",
+        "",
+        f"- updatedAt: {timestamp}",
+        f"- taskId: {data.get('taskId', '')}",
+        f"- goal: {data.get('goal', '')}",
+        f"- phase: {args.phase}",
+        f"- slice: {args.slice or 'none'}",
+        f"- parallelLane: {args.lane or 'none'}",
+        "",
+        "## Summary",
+        args.summary,
+        "",
+        "## Files Touched",
+        *render_bullets(args.touched or []),
+        "",
+        "## Verification Run",
+        *render_bullets(args.test or []),
+        "",
+        "## Blockers",
+        *render_bullets(args.blocker or []),
+        "",
+        "## Next Action",
+        args.next_action,
+        "",
+    ]
+    checkpoint_path.write_text("\n".join(lines), encoding="utf-8")
+
+    phases = data.setdefault("phases", {})
+    record = phases.get(args.phase, phase_record())
+    record["artifact"] = str(checkpoint_path)
+    record["evidence"] = args.summary
+    record["nextAction"] = args.next_action
+    record.setdefault("notes", []).append({"at": timestamp, "text": f"context checkpoint: {args.summary}"})
+    record["updatedAt"] = timestamp
+    phases[args.phase] = record
+    if args.phase in PHASES:
+        data["currentPhase"] = args.phase
+    data["nextAction"] = args.next_action
+    data.setdefault("history", []).append(
+        {
+            "at": timestamp,
+            "phase": args.phase,
+            "status": record.get("status", "pending"),
+            "artifact": str(checkpoint_path),
+            "evidence": args.summary,
+            "note": "context checkpoint",
+            "nextAction": args.next_action,
+        }
+    )
+    save(args.path, data)
+    print(f"checkpoint: {checkpoint_path}")
+    return 0
+
+
 def validate_completion(data: dict) -> list[str]:
     errors: list[str] = []
     phases = data.get("phases", {})
@@ -407,6 +474,18 @@ def build_parser() -> argparse.ArgumentParser:
     p_note.add_argument("--evidence", default="")
     p_note.add_argument("--next-action", default="")
     p_note.set_defaults(func=cmd_note)
+
+    p_checkpoint = sub.add_parser("checkpoint", help="Write a resumable implementation checkpoint.")
+    p_checkpoint.add_argument("--phase", default="implementation")
+    p_checkpoint.add_argument("--slice", default="")
+    p_checkpoint.add_argument("--lane", default="")
+    p_checkpoint.add_argument("--summary", required=True)
+    p_checkpoint.add_argument("--touched", action="append", default=[])
+    p_checkpoint.add_argument("--test", action="append", default=[])
+    p_checkpoint.add_argument("--blocker", action="append", default=[])
+    p_checkpoint.add_argument("--next-action", required=True)
+    p_checkpoint.add_argument("--file", type=Path, default=DEFAULT_CONTINUATION)
+    p_checkpoint.set_defaults(func=cmd_checkpoint)
 
     p_validate = sub.add_parser("validate", help="Validate the ledger.")
     p_validate.add_argument("--for-completion", action="store_true")

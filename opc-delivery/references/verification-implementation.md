@@ -106,7 +106,8 @@ node scripts/screenshot.mjs --base http://localhost:3000 --routes /,/v2,/portal,
 ## 3B-2 企业级实现验证(组件化 + 接 API 模式,默认)
 
 模式特点:正常 React 组件 + Tailwind + 真 API 数据。
-**像素精度允许 95-98%**(可维护性 >> 强迫症)。
+**像素精度允许 95-98%**(可维护性 >> 强迫症)。若当前实现不是严格 MasterGo 来源,
+同时按 [frontend-design-quality.md](frontend-design-quality.md) 检查设计质量 brief 是否落到 UI。
 
 ### 3B-2.1 启动 dev + 接真后端
 
@@ -135,6 +136,8 @@ curl -sI http://localhost:3000  # HTTP 200 仅是开始
 
 **不需要像素级 100%**,但**主要观感 / 信息密度 / 层次结构必须对**。
 如果整体观感跟 MasterGo 原稿差异太大(色彩偏移、布局错位、字号梯度不对),回去改。
+如果没有 MasterGo 原稿, 就按设计质量 brief 检查 purpose、tone、differentiation、
+state coverage、桌面/移动无重叠和反 generic AI aesthetics guardrails; 不要只用构建通过代替视觉验收。
 
 ### 3B-2.3 数据接入正确性(必做)
 

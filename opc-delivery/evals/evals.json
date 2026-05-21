@@ -1520,6 +1520,74 @@
           "先编码再补决策"
         ]
       }
+    },
+    {
+      "id": 75,
+      "name": "frontend-design-quality-in-opc-ui",
+      "prompt": "Use $opc-delivery; 这个客户运营平台要从需求到上线，UI 需要重新设计，不能有模板化 AI 味。",
+      "expected_output": "应该在 OPC 流程内读取 frontend-design-quality.md，把 purpose、audience、tone、differentiation、constraints 和反 generic AI aesthetics guardrails 写进 solution、Codify requirement 或 implementation-plan slice；实现和验证阶段要检查桌面/移动截图、状态覆盖、UI 文案语种和真实数据。不能因为提到 UI 设计就把普通前端页面需求扩大成 opc-delivery 触发面。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "frontend-design-quality.md",
+          "purpose",
+          "tone",
+          "differentiation",
+          "generic AI aesthetics",
+          "截图",
+          "状态覆盖"
+        ],
+        "must_not_include": [
+          "普通前端页面也触发 opc-delivery",
+          "只要构建通过就算 UI 完成",
+          "模板化 dashboard"
+        ]
+      }
+    },
+    {
+      "id": 76,
+      "name": "implementation-plan-records-context-budget",
+      "prompt": "Use $opc-delivery; 这个全栈项目很大，开发过程中之前多次因为会话上下文满了停掉。请写实现计划时避免这个问题。",
+      "expected_output": "应该在 implementation-plan 里为每个 slice 写 Context Budget、Checkpoint Trigger、Resume 和 Stop Before，并使用 .opc/implementation/continuation.md + opc-task-state.py checkpoint 作为压缩或重开会话后的恢复入口。执行时只领取当前上下文能完成并验证的 slice/lane；上下文预算 red 时不能开始新实现，要先 checkpoint。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "Context Budget",
+          "Checkpoint Trigger",
+          "continuation.md",
+          "opc-task-state.py checkpoint",
+          "Resume",
+          "Stop Before"
+        ],
+        "must_not_include": [
+          "依赖聊天历史继续",
+          "等上下文满了再说",
+          "一次性实现所有 slice"
+        ]
+      }
+    },
+    {
+      "id": 77,
+      "name": "implementation-plan-identifies-parallel-lanes",
+      "prompt": "Use $opc-delivery; 这个项目有多个独立页面、API resource 和测试补强，开发计划要考虑哪些可以并行给子代理做。",
+      "expected_output": "应该生成或更新 .opc/implementation-plan/parallelization.md，列出 dependency graph、可并行 lane、主代理保留项、Eligible For Subagent、Read Set、Write Set、验证命令、merge order 和 handoff contract。只有依赖清楚、写入范围不重叠、验证责任明确且宿主/上层指令允许时才派发子代理；不适合并行的部分要写原因。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "parallelization.md",
+          "dependency graph",
+          "Eligible For Subagent",
+          "Read Set",
+          "Write Set",
+          "merge order",
+          "handoff"
+        ],
+        "must_not_include": [
+          "所有任务都并行",
+          "共享 schema 还没定就派发",
+          "写入范围随便改"
+        ]
+      }
     }
   ],
   "negative_evals": [

@@ -91,7 +91,7 @@ OPC 默认交付真实全栈产品:
 
 ### 实现规划契约
 
-完整 OPC 在实现前必须读 [implementation-planning.md](references/implementation-planning.md)。技术实现总方案和开发计划不得塞进单个巨大文档, 也不得机械拆成 frontend/backend/database/tests。默认写 `.opc/implementation-plan/index.md`、`architecture.md`、`contracts.md`、`work-breakdown.md`、`verification.md`、`slices/*.md` 和必要 ADR。实现任何 slice 前只读 `index + architecture + contracts + verification + 当前 slice + ADR`, 不默认读取整个目录。
+完整 OPC 在实现前必须读 [implementation-planning.md](references/implementation-planning.md)。技术实现总方案和开发计划不得塞进单个巨大文档, 也不得机械拆成 frontend/backend/database/tests。默认写 `.opc/implementation-plan/index.md`、`architecture.md`、`contracts.md`、`work-breakdown.md`、`parallelization.md`、`verification.md`、`slices/*.md` 和必要 ADR。实现任何 slice 前只读 `index + architecture + contracts + verification + 当前 slice + ADR`, 不默认读取整个目录。非平凡项目必须写并行分配: 哪些 slice/lane 可并行、依赖、Write Set、验证责任和是否适合子代理; 不适合并行也要写原因。
 
 ### 自治补齐契约
 
@@ -109,6 +109,8 @@ OPC 默认交付真实全栈产品:
 - `.opc/<phase>/discussion.md`: 仅记录必要决策、默认假设、用户提交和内部阶段卡/确认卡摘要;
 - `.opc/<phase>/last-handoff.md`: 阶段完成前的结构化收尾文本。
 
+实现阶段必须评估当前会话上下文预算, 只领取能在当前上下文内完成并验证的 slice/lane。开始长实现、切换 slice、完成一组文件修改、运行长验证前, 或感觉接近上下文压缩前, 写 `.opc/implementation/continuation.md` 并用 `opc-task-state.py checkpoint` 更新台账, 让自动压缩或新会话能直接恢复。
+
 不要让用户手动执行状态脚本; 这些是代理命令。
 
 ### 需求覆盖契约
@@ -122,6 +124,10 @@ OPC 默认交付真实全栈产品:
 ### UI 文案语种契约
 
 页面导航、标题、按钮、表格、状态、空态、错误、审批、审计、监控和日志文案跟随用户指定、素材语言和聊天主语言。中文聊天或中文素材默认简体中文 UI; 不要把企业后台默认生成英文 Dashboard。MasterGo、Codify、AI、Agent、API、MCP、D2C、SLA、SSO、RBAC、AgentOps、CI/CD 等技术词可保留原文。语种规则必须写进 PRD、Codify requirement、HTML 或实现说明, 并在推送前和验证中检查。
+
+### UI 设计质量契约
+
+完整 OPC 涉及新 UI、重设计、Codify 画布设计或非像素级还原实现时, 必须读 [frontend-design-quality.md](references/frontend-design-quality.md)。把目的、受众、设计调性、记忆点、约束和反 generic AI aesthetics guardrails 写进 PRD、solution、Codify requirement 或当前 slice。设计质量不改变触发边界: 普通前端页面或独立组件仍不触发本 Skill, 除非它属于 OPC 全流程或 MasterGo-backed delivery。
 
 ### token 安全契约
 
@@ -181,11 +187,11 @@ HTTP 200、命令退出码 0、本地 HTML 存在、`accepted`、代码列表非
    -> references/requirements-workflow.md
 
 2. 方案阶段
-   architecture/data/deploy decisions -> solution design
+   architecture/data/deploy decisions -> solution design + UI quality brief
    -> references/solution-design.md
 
 3A. MasterGo/Codify UI 设计
-   MasterGo 设计 Gate Card -> task state -> preflight -> write -> 3A verify
+   MasterGo 设计 Gate Card + design quality brief -> task state -> preflight -> write -> 3A verify
    -> references/design-workflow.md
 
 3B. MasterGo Magic 还原
@@ -193,11 +199,11 @@ HTTP 200、命令退出码 0、本地 HTML 存在、`accepted`、代码列表非
    -> references/restoration-workflow.md
 
 4. 实现前技术规划
-   implementation-plan index -> architecture/contracts/work-breakdown/verification -> value slices + ADR
+   implementation-plan index -> architecture/contracts/work-breakdown/parallelization/verification -> context-budgeted value slices + ADR
    -> references/implementation-planning.md
 
 5. 前端 + Node 后端实现
-   repo/framework detect -> components + API routes + DB schema + real data -> browser QA
+   context checkpoint -> repo/framework detect -> design quality brief -> components + API routes + DB schema + real data -> browser QA
    -> references/implementation-workflow.md
 
 6. 验证
@@ -231,6 +237,7 @@ HTTP 200、命令退出码 0、本地 HTML 存在、`accepted`、代码列表非
 | [open-source-patterns.md](references/open-source-patterns.md) | 完整 OPC 交付、skill 优化、需求到上线闭环、上线回放校准 |
 | [requirements-workflow.md](references/requirements-workflow.md) | 需求阶段、PRD、用户故事、验收标准、Open Questions |
 | [solution-design.md](references/solution-design.md) | 需求收敛后做方案, 包含信息架构、技术栈、接口/数据/权限/测试计划 |
+| [frontend-design-quality.md](references/frontend-design-quality.md) | OPC 内部涉及新 UI、重设计、Codify requirement、非像素级还原实现或视觉验收时 |
 | [implementation-planning.md](references/implementation-planning.md) | 实现前技术总方案、开发计划、上下文拆分、slice 读取、ADR |
 | [implementation-workflow.md](references/implementation-workflow.md) | 全栈实现(Node 后端 + DB + 前端 + 真实接口) |
 | [deployment-workflow.md](references/deployment-workflow.md) | 部署目标确认、CI/CD、环境变量、回滚 |
@@ -266,7 +273,7 @@ HTTP 200、命令退出码 0、本地 HTML 存在、`accepted`、代码列表非
 
 | 脚本 | 用途 |
 |---|---|
-| `scripts/opc-task-state.py` | 初始化、标记、校验 `.opc/state/opc-task.json`, `brief` 输出普通用户结果摘要 |
+| `scripts/opc-task-state.py` | 初始化、标记、checkpoint、校验 `.opc/state/opc-task.json`, `brief` 输出普通用户结果摘要 |
 | `scripts/handoff-lint.py` | 校验 turn 结构化收尾, `mark <phase> done` 前的硬门禁 |
 | `scripts/check-mcp-config.py` | 检查当前宿主 MCP 配置、token 占位、本地/远端 Codify URL |
 | `scripts/parse-mastergo-url.py` | 从 MasterGo URL 提取 fileId/layerId/contentId |

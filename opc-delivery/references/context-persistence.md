@@ -11,6 +11,7 @@ OPC 需求”或重新触发 `$opc-delivery`，代理必须自己读取台账并
 
 - [恢复优先](#恢复优先)
 - [每阶段必须记录](#每阶段必须记录)
+- [上下文预算和检查点](#上下文预算和检查点)
 - [主动拆分](#主动拆分)
 - [实现计划上下文](#实现计划上下文)
 - [台账只存摘要](#台账只存摘要)
@@ -63,6 +64,35 @@ python3 <skill-dir>/scripts/opc-task-state.py note \
 自治补齐动作也要记录: 例如 `git init`、创建 `.gitignore`、脚手架、mock 数据、测试命令、
 CI/CD 或 preview 配置。记录自动创建了什么、还缺什么凭证/授权、恢复后第一步继续做什么。
 
+## 上下文预算和检查点
+
+实现阶段不得默认把整条开发计划一次性吃进当前会话。每次开始实现、切换 slice、派发并行 lane、
+完成一组文件修改或准备运行长验证前, 先做上下文预算判断:
+
+- `green`: 当前上下文足够完成当前 slice/lane 的实现、验证和收尾;
+- `yellow`: 只领取最小可验证子任务, 完成后立即 checkpoint;
+- `red`: 不再开始新实现; 先写 checkpoint, 再等待自动压缩或新会话恢复。
+
+上下文预算不是精确 token 数, 而是执行纪律: 当前会话只做能在上下文内闭合的工作。若已经读了大量
+源码、长日志、设计稿、D2C/DSL 或测试输出, 默认降一级预算。
+
+实现中用固定恢复文件承接压缩:
+
+```bash
+python3 <skill-dir>/scripts/opc-task-state.py checkpoint \
+  --phase implementation \
+  --slice "<current-slice-id>" \
+  --lane "<parallel-lane-or-none>" \
+  --summary "<当前已经完成什么, 还没完成什么>" \
+  --touched "<path/to/file>" \
+  --test "<命令或验证结果摘要>" \
+  --next-action "<压缩后或新会话第一步>"
+```
+
+该命令会写 `.opc/implementation/continuation.md`, 并把路径和 nextAction 写进
+`.opc/state/opc-task.json`。恢复时先读 `opc-task-state.py resume`, 再读
+`.opc/implementation/continuation.md`, 然后只读取当前 slice 的 `Read Set`。
+
 ## 主动拆分
 
 不要把 PRD、方案、设计说明、实现报告、验证报告、发布证据、校准报告塞进一个大文件。
@@ -100,6 +130,7 @@ CI/CD 或 preview 配置。记录自动创建了什么、还缺什么凭证/授�
 ├── architecture.md
 ├── contracts.md
 ├── work-breakdown.md
+├── parallelization.md
 ├── verification.md
 ├── decisions/
 │   └── ADR-0001-*.md
@@ -117,6 +148,7 @@ index.md -> architecture.md -> contracts.md -> verification.md -> slices/<curren
 先回 [implementation-planning.md](implementation-planning.md) 补齐, 再实现。
 不要把实现计划简单拆成 `frontend.md`、`backend.md`、`database.md`、`tests.md`;
 每个 slice 必须是一条可验证用户价值链, 同时包含 UI/API/DB/测试上下文。
+`parallelization.md` 只记录可并行 lane、依赖和 Write Set, 不替代 value slice。
 
 ## 台账只存摘要
 

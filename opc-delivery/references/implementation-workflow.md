@@ -13,7 +13,10 @@
 - [Git / 工程初始化](#git--工程初始化)
 - [后端 + DB 初始化](#后端--db-初始化)
 - [TDD / regression ratchet](#tdd--regression-ratchet)
+- [上下文预算执行](#上下文预算执行)
+- [并行 lane 执行](#并行-lane-执行)
 - [实现步骤](#实现步骤)
+- [前端设计质量执行](#前端设计质量执行)
 - [新项目脚手架补充](#新项目脚手架补充)
 - [MasterGo 来源实现](#mastergo-来源实现)
 - [完成门槛](#完成门槛)
@@ -23,9 +26,12 @@
 - 有 PRD + 方案 + 设计 brief(或对应 discussion.md 收敛证据);
 - 有 `.opc/implementation-plan/index.md` 和当前 `slices/<slice-id>.md`;
 - 当前 slice 的 `Read Set` 已读取: `index.md`、`architecture.md`、`contracts.md`、`verification.md`、当前 slice 和相关 ADR;
+- 已读取 `.opc/implementation-plan/parallelization.md` 或确认本任务轻量到无需并行;
+- 当前 slice 的 Context Budget、Parallelization 和 Checkpoint 字段已明确;
 - 方案或现有项目已明确后端栈、DB、部署目标、数据来源; 若未明确, 已按 [clarification-loop.md](clarification-loop.md) 处理高影响疑点;
 - 若来自 MasterGo, 还原路径已经完成 DSL/D2C 拉取和模式选择;
 - 若无 MasterGo 来源, 已明确 UI 策略、页面、状态和验收标准。
+- 涉及新 UI、重设计或非像素级还原时, 已读取 [frontend-design-quality.md](frontend-design-quality.md), 并知道当前 slice 的目的、调性、记忆点和反 generic AI aesthetics guardrails。
 
 缺 implementation-plan 时, 立即回 [implementation-planning.md](implementation-planning.md) 补齐。不要直接写代码, 也不要一次性读取整个 `.opc/implementation-plan/`。
 
@@ -158,6 +164,53 @@ NEXTAUTH_URL="http://localhost:3000"
 
 遇到红测、构建失败、运行时报错或视觉异常时, 先走 systematic debugging: 复现 → 读错误 → 查最近变化 → 提一个单一假设 → 最小验证 → 修根因。不要靠猜测连打补丁。
 
+## 上下文预算执行
+
+实现前先判断当前会话上下文能否闭合当前 slice/lane:
+
+- `green`: 继续实现当前 slice, 完成后 checkpoint;
+- `yellow`: 只做当前 lane 的最小闭环, 先不开始新 lane;
+- `red`: 不再开始新代码修改, 立即写 checkpoint。
+
+调用:
+
+```bash
+python3 <skill-dir>/scripts/opc-task-state.py checkpoint \
+  --phase implementation \
+  --slice "<current-slice-id>" \
+  --lane "<lane-or-none>" \
+  --summary "<已完成/未完成摘要>" \
+  --touched "<path>" \
+  --test "<command/result>" \
+  --next-action "<恢复后第一步>"
+```
+
+触发 checkpoint 的时机:
+
+- 已修改一组相关文件, 但还没进入下一组;
+- 准备运行长测试、build、浏览器验证或部署;
+- 准备切换 slice/lane;
+- 读入长日志、长 DSL/D2C、长设计文档后;
+- 感觉上下文接近压缩或回答开始依赖大量聊天历史时。
+
+压缩或重开后, 先 `opc-task-state.py resume`, 再读 `.opc/implementation/continuation.md`
+和当前 slice 的 `Read Set`, 不要求用户复述。
+
+## 并行 lane 执行
+
+先读 `.opc/implementation-plan/parallelization.md`。当宿主和上层指令允许子代理时, 对
+`Eligible For Subagent: yes` 的 lane 可并行派发; 否则主代理按 lane 顺序执行。
+
+派发前检查:
+
+- 该 lane 的 Read Set 足够小;
+- Write Set 与其它 lane 不重叠, 或已有明确协调点;
+- shared contracts/schema/API 已稳定;
+- lane 有独立验证命令;
+- 子代理返回要求包含 changed paths、tests、risks、next action。
+
+主代理保留职责: 共享契约、数据库迁移顺序、跨 lane 冲突、最终验证、部署和用户汇报。
+
 ## 实现步骤
 
 1. **建立实现 inventory**:
@@ -166,6 +219,9 @@ NEXTAUTH_URL="http://localhost:3000"
    - DB schema 表、字段、关系、索引;
    - API endpoint 列表(method + path + input/output schema);
    - UI 文案语种和技术词保留;
+   - 设计质量 brief: purpose / audience / tone / differentiation / constraints;
+   - Context Budget 和 checkpoint 触发点;
+   - 并行 lane、Write Set、是否适合子代理;
    - 测试和部署命令;
    - TDD/regression ratchet 选择: 要先补哪些测试、哪些只能人工/浏览器验证;
    - 如果没有现成项目: 脚手架目录、栈、路由和初始依赖怎么落地。
@@ -202,6 +258,21 @@ NEXTAUTH_URL="http://localhost:3000"
    - 检查桌面和一个移动尺寸;
    - 截图或 DOM/console 证据要能证明非空、无框架 overlay、无相关 console error、DB 数据真实持久(刷新后还在)。
 
+## 前端设计质量执行
+
+实现新 UI 或非像素级还原时, 把 [frontend-design-quality.md](frontend-design-quality.md)
+落到代码里:
+
+- 全局样式或 design tokens 表达当前 tone: 字体、色彩、空间、radius、shadow、motion;
+- 组件变体覆盖 default / loading / empty / error / success / disabled / permission;
+- 页面信息密度匹配业务场景, 企业后台优先可扫描、可比较、可重复操作;
+- 保留一个有意图的记忆点, 但不破坏可用性、性能和可访问性;
+- 避免模板化 SaaS 卡片堆、随意紫色渐变、无意义 glow、文案溢出和卡片套卡片;
+- 桌面和移动视口都要确认无重叠、无裁切、无空白假完成。
+
+若项目已有设计系统, 先复用现有 tokens、组件和图标库。只有在 PRD 或方案明确需要新视觉方向时,
+才新增样式层或设计 primitives。
+
 ## 新项目脚手架补充
 
 从零起项目时, 先把"能继续交付的最小工程"搭起来:
@@ -228,8 +299,10 @@ NEXTAUTH_URL="http://localhost:3000"
 
 - 代码覆盖方案里的 must-have;
 - 已按 `implementation-plan` 当前 slice 实现, 若计划和现实冲突已先更新 slice 或 ADR;
+- 当前 slice/lane 已按 Context Budget 写 checkpoint, 或实现报告说明无需 checkpoint;
 - **前端 + 后端 + DB 三层都已落地, 不是前端 + mock 假装完整**(除非 solution 明确锁定 mock);
 - 关键 UI 状态和核心流程可交互, 数据经 API 真实读写, 刷新后状态还在;
+- 设计质量 brief 已落到可见 UI, 并通过桌面/移动截图或 Browser/Playwright 检查;
 - 可测试行为已有失败测试/回归用例, 或记录了替代验证理由;
 - lint/typecheck/test/build 中能运行的都已运行并读过输出;
 - 浏览器验证已完成, 含截图或等价证据;

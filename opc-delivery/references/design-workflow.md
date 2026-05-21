@@ -7,6 +7,7 @@
 - [步骤 0: MasterGo 设计 Gate Card](#步骤-0-mastergo-设计-gate-card)
 - [步骤 1: 初始化任务台账](#步骤-1-初始化任务台账)
 - [步骤 2: 设计方向选择卡](#步骤-2-设计方向选择卡)
+- [步骤 2.5: 体验质量门禁](#步骤-25-体验质量门禁)
 - [步骤 3: 组件库策略](#步骤-3-组件库策略)
 - [步骤 4: 写入前 preflight](#步骤-4-写入前-preflight)
 - [步骤 5: 选择写入工具并推送](#步骤-5-选择写入工具并推送)
@@ -60,6 +61,7 @@ MasterGo 设计 Gate Card
 - 设计单元: <页面、状态、弹窗、抽屉、组件变体清单>
 - UI 文案语种: Simplified Chinese / English / 自定义
 - 设计方向: <用户选择或“用户授权我决定”的依据>
+- 体验质量门禁: <purpose / tone / differentiation / constraints / anti-generic guardrails>
 - 用户结果句: 这帮助 <用户> 通过 <机制> 达成 <结果>
 - 组件库策略: 本地库快照 / 远端查库 / 用户拒绝 / 无库自绘
 - 写入方式: design / agent_create_page / agent_update_node / agent_sync_design
@@ -140,8 +142,8 @@ C. 高管演示型: 信息更少、对比更强，适合路演和评审。
 D. 自定义 / type something: 你直接写风格偏好。
 ```
 
-专业设计 skill 可用于产出视觉决策描述，但不要把它的本地页面当最终交付。将视觉决策、
-覆盖 brief 和 UI 文案语种合并成 Codify requirement。
+读 [frontend-design-quality.md](frontend-design-quality.md), 用它产出视觉决策描述，但不要把本地页面、
+截图或 prompt 当最终交付。将设计质量 brief、覆盖 brief 和 UI 文案语种合并成 Codify requirement。
 
 设计方向不只写视觉形容词，还要写设计 led check:
 
@@ -150,6 +152,19 @@ D. 自定义 / type something: 你直接写风格偏好。
 - 键盘焦点、对比度、目标尺寸和 reduced motion 有约束；
 - 核心操作有反馈和可恢复路径；
 - 性能预算不被动效、图片或复杂效果破坏。
+
+## 步骤 2.5: 体验质量门禁
+
+Codify requirement 或 HTML 写入前, 必须包含:
+
+- purpose: 当前设计服务的用户任务;
+- tone: 一个明确调性, 且符合产品领域;
+- differentiation: 一个可记住的视觉或交互点;
+- constraints: 组件库、品牌、可访问性、性能和设备约束;
+- anti-generic guardrails: 避免模板化 dashboard、随意紫色渐变、重复卡片堆叠、无意义装饰;
+- state coverage: default / loading / empty / error / success / permission。
+
+如果已有团队组件库或品牌系统, 体验质量门禁应强化现有系统, 不要用无关美术风格覆盖它。
 
 ## 步骤 3: 组件库策略
 

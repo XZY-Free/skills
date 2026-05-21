@@ -21,6 +21,7 @@
 - 本轮设计单元已推送到 MasterGo 画布。
 - `get_design_diff` 与预期一致，没有意外新增/删除。
 - 截图视觉验证通过。
+- 设计质量 brief 已按 [frontend-design-quality.md](frontend-design-quality.md) 检查, 没有 generic AI aesthetics blocker。
 - UI 文案语种符合 [copy-language.md](copy-language.md)。
 - 使用组件库时组件映射率达标。
 - 用户主观反馈无 blocker。
@@ -114,7 +115,8 @@ python3 <skill-dir>/scripts/mastergo-task-state.py request \
 2. 关键间距、对齐、层级和对比度。
 3. 组件库是否真的应用。
 4. UI 文案语种是否正确。
-5. 是否存在“AI 味儿”问题，如渐变混乱、饱和度过高、字号跳变。
+5. 目的、调性和记忆点是否能从界面看出来。
+6. 是否存在“AI 味儿”问题，如渐变混乱、饱和度过高、字号跳变、模板化卡片堆或无意义装饰。
 
 用户说“不错 / 可以 / 没问题”只代表当前轮无 blocker。若 task state 还有未闭合单元，
 继续下一单元。

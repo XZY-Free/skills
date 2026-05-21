@@ -12,6 +12,7 @@
 - [全栈技术默认](#全栈技术默认)
 - [方案文档结构](#方案文档结构)
 - [UI 方案门禁](#ui-方案门禁)
+- [体验设计质量门禁](#体验设计质量门禁)
 - [实现规划门禁](#实现规划门禁)
 - [收敛与完成判断](#收敛与完成判断)
 
@@ -111,8 +112,12 @@ OPC 默认全栈交付, 推荐 Node 系轻量栈:
 ## UI 策略
 - 文案语种:
 - 设计方向:
+- 目的 / 受众:
+- 记忆点:
+- 反 generic AI aesthetics guardrails:
 - 组件库策略:
 - 可访问性约束:
+- 动效 / 性能约束:
 - MasterGo/Codify 是否需要:
 
 ## 技术方案
@@ -160,10 +165,26 @@ OPC 默认全栈交付, 推荐 Node 系轻量栈:
 - 覆盖范围: 页面、状态、弹窗、抽屉、错误/空态、权限态;
 - UI 文案语种;
 - 设计方向, 或用户已通过原生选择交互确认的风格;
+- 目的、受众、记忆点和反 generic AI aesthetics guardrails;
 - 组件库策略;
 - 验证方式。
 
 这些字段要映射进 [design-workflow.md](design-workflow.md) 的 MasterGo 设计 Gate Card。
+
+## 体验设计质量门禁
+
+涉及新 UI、重设计、Codify requirement 或非像素级还原实现时, 读
+[frontend-design-quality.md](frontend-design-quality.md), 并在 `.opc/solution/solution-design.md`
+写短设计质量 brief:
+
+- Purpose: 界面解决的用户任务;
+- Audience: 高频使用者、压力场景和信息密度;
+- Tone: 一个清晰调性, 不堆多个互相冲突的风格词;
+- Differentiation: 一个能被记住的视觉或交互点;
+- Constraints: 组件库、可访问性、性能、品牌、设备范围;
+- Verification: 截图视口、状态覆盖、文案语种和真实数据检查。
+
+如果任务只是普通前端页面、独立组件或不属于 OPC/MasterGo 交付, 不要因为这份设计质量门禁而触发 `opc-delivery`; 仍应让更合适的前端设计技能处理。
 
 ## 实现规划门禁
 
@@ -177,6 +198,7 @@ OPC 默认全栈交付, 推荐 Node 系轻量栈:
 - DB schema 概要和关键关系;
 - 数据来源(真实接入路径或演示标识);
 - 交互状态和错误处理;
+- 设计质量 brief 如何进入当前 slice 和浏览器验证;
 - 测试命令、浏览器验证目标和部署目标;
 - 哪些高影响技术决策需要 ADR。
 

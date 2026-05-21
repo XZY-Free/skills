@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import json
 import sys
+import argparse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -46,15 +47,33 @@ REQUIRED_PER_EVAL = {"id", "name", "prompt", "expected_output", "files"}
 REQUIRED_PER_NEGATIVE = {"id", "name", "prompt", "expected_behavior", "should_trigger"}
 
 
-def iter_eval_files() -> list[Path]:
+def resolve_eval_file(root: Path, value: str) -> Path:
+    candidate = Path(value).expanduser()
+    if not candidate.is_absolute():
+        direct = root / candidate
+        if direct.exists():
+            candidate = direct
+        else:
+            candidate = root / value / "evals" / "evals.json"
+    if candidate.is_dir():
+        candidate = candidate / "evals" / "evals.json"
+    return candidate.resolve()
+
+
+def iter_eval_files(root: Path, skills: list[str] | None = None) -> tuple[list[Path], list[str]]:
+    if skills:
+        files = [resolve_eval_file(root, skill) for skill in skills]
+        missing = [str(file) for file in files if not file.is_file()]
+        return [file for file in files if file.is_file()], [f"evals.json not found: {path}" for path in missing]
+
     files: list[Path] = []
-    for child in sorted(ROOT.iterdir()):
+    for child in sorted(root.iterdir()):
         if not child.is_dir() or child.name.startswith(".") or child.name in EXCLUDE_DIRS:
             continue
         candidate = child / "evals" / "evals.json"
         if candidate.is_file():
             files.append(candidate)
-    return files
+    return files, []
 
 
 def check(file: Path) -> list[str]:
@@ -147,15 +166,41 @@ def check(file: Path) -> list[str]:
     return errs
 
 
+def relative_to_root(path: Path, root: Path) -> Path:
+    try:
+        return path.relative_to(root)
+    except ValueError:
+        return path
+
+
 def main() -> int:
-    files = iter_eval_files()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--root",
+        default=str(ROOT),
+        help="Repository root containing skill directories (default: this repository).",
+    )
+    parser.add_argument(
+        "--skill",
+        action="append",
+        default=None,
+        help="Skill name, skill directory, or evals.json path to validate. Repeatable.",
+    )
+    args = parser.parse_args()
+
+    root = Path(args.root).expanduser().resolve()
+    files, setup_errors = iter_eval_files(root, args.skill)
+    if setup_errors:
+        for error in setup_errors:
+            print(f"✗ {error}")
+        return 1
     if not files:
         print("no evals.json files found (skip)")
         return 0
 
     failed = 0
     for f in files:
-        rel = f.relative_to(ROOT)
+        rel = relative_to_root(f, root)
         errs = check(f)
         if errs:
             failed += 1

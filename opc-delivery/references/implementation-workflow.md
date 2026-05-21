@@ -1,6 +1,6 @@
 # 全栈实现工作流
 
-目标: 把已确认的 PRD/方案/UI 变成可运行、可测试、可部署的**全栈应用**——前端 + Node 后端 + DB + 真实 API。不要把 D2C、截图、静态 mock、纯前端 + typed mock 当成实现完成。
+目标: 按已确认的 PRD、方案、UI 和 implementation-plan, 把当前 slice 变成可运行、可测试、可部署的**全栈应用**——前端 + Node 后端 + DB + 真实 API。不要把 D2C、截图、静态 mock、纯前端 + typed mock 当成实现完成。
 
 **节奏 = 执行式自动推进**。进入实现阶段时, 数据来源、后端栈、DB、部署目标应来自方案、现有项目或安全默认值。若仍存在高影响不确定, 先用宿主原生选择/确认交互处理; 低风险细节直接自治。除非遇到 token/凭证/付费/破坏性写入等硬阻塞, 不打断。
 
@@ -21,9 +21,13 @@
 ## 进入条件
 
 - 有 PRD + 方案 + 设计 brief(或对应 discussion.md 收敛证据);
+- 有 `.opc/implementation-plan/index.md` 和当前 `slices/<slice-id>.md`;
+- 当前 slice 的 `Read Set` 已读取: `index.md`、`architecture.md`、`contracts.md`、`verification.md`、当前 slice 和相关 ADR;
 - 方案或现有项目已明确后端栈、DB、部署目标、数据来源; 若未明确, 已按 [clarification-loop.md](clarification-loop.md) 处理高影响疑点;
 - 若来自 MasterGo, 还原路径已经完成 DSL/D2C 拉取和模式选择;
 - 若无 MasterGo 来源, 已明确 UI 策略、页面、状态和验收标准。
+
+缺 implementation-plan 时, 立即回 [implementation-planning.md](implementation-planning.md) 补齐。不要直接写代码, 也不要一次性读取整个 `.opc/implementation-plan/`。
 
 ## 全栈实现默认
 
@@ -67,9 +71,10 @@ OPC 默认交付**用户能登录能用的全栈应用**, 不是前端 + mock �
 如果当前工作区没有现成仓库, 不要把完整 OPC 收缩成"先交设计包"。应直接继续:
 
 1. 读取 `.opc/requirements/prd.md`、`.opc/solution/solution-design.md`、`.opc/ui/design-brief.md` 或同目录 `discussion.md`;
-2. 确认方案里写的是"新建项目"还是"复用现有项目";
-3. 没有现成项目时, 按方案里的目标栈自动起**全栈**脚手架(前端 + 后端 + DB + ORM);
-4. 脚手架完成后立即继续组件、API、DB、验证和部署链路。
+2. 读取 `.opc/implementation-plan/index.md` 和当前 slice 的 `Read Set`;
+3. 确认方案里写的是"新建项目"还是"复用现有项目";
+4. 没有现成项目时, 按 implementation-plan 锁定的目标栈自动起**全栈**脚手架(前端 + 后端 + DB + ORM);
+5. 脚手架完成后立即继续当前 slice 的组件、API、DB、验证和部署链路。
 
 默认目录策略:
 
@@ -156,6 +161,7 @@ NEXTAUTH_URL="http://localhost:3000"
 ## 实现步骤
 
 1. **建立实现 inventory**:
+   - 以当前 slice 为边界, 不把其它 slice 的功能顺手实现;
    - 路由(前端 page + 后端 endpoint)、组件、状态、表单、表格、弹窗、权限、空态/错误态;
    - DB schema 表、字段、关系、索引;
    - API endpoint 列表(method + path + input/output schema);
@@ -221,6 +227,7 @@ NEXTAUTH_URL="http://localhost:3000"
 实现阶段完成必须满足:
 
 - 代码覆盖方案里的 must-have;
+- 已按 `implementation-plan` 当前 slice 实现, 若计划和现实冲突已先更新 slice 或 ADR;
 - **前端 + 后端 + DB 三层都已落地, 不是前端 + mock 假装完整**(除非 solution 明确锁定 mock);
 - 关键 UI 状态和核心流程可交互, 数据经 API 真实读写, 刷新后状态还在;
 - 可测试行为已有失败测试/回归用例, 或记录了替代验证理由;

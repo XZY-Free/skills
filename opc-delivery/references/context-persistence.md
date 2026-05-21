@@ -12,6 +12,7 @@ OPC 需求”或重新触发 `$opc-delivery`，代理必须自己读取台账并
 - [恢复优先](#恢复优先)
 - [每阶段必须记录](#每阶段必须记录)
 - [主动拆分](#主动拆分)
+- [实现计划上下文](#实现计划上下文)
 - [台账只存摘要](#台账只存摘要)
 - [新会话交接](#新会话交接)
 
@@ -72,6 +73,7 @@ CI/CD 或 preview 配置。记录自动创建了什么、还缺什么凭证/授�
 | 需求 | `.opc/requirements/prd.md` |
 | 方案 | `.opc/solution/solution-design.md` |
 | 界面 | `.opc/design/design-brief.md` 或 `.codify/state/mastergo-task.json` |
+| 实现计划 | `.opc/implementation-plan/index.md` |
 | 实现 | `.opc/implementation/implementation-report.md` |
 | 验证 | `.opc/verification/verification.md` |
 | 部署 | `.opc/deployment/release.md` |
@@ -81,10 +83,40 @@ CI/CD 或 preview 配置。记录自动创建了什么、还缺什么凭证/授�
 
 - `prd.md` 拆成 `scope.md`、`flows.md`、`acceptance.md`；
 - `solution-design.md` 拆成 `options.md`、`architecture.md`、`test-deploy-plan.md`；
+- `implementation-plan/index.md` 保持入口摘要, 细节拆到 `architecture.md`、`contracts.md`、`work-breakdown.md`、`verification.md`、`slices/*.md` 和 `decisions/ADR-*.md`；
 - `verification.md` 拆成 `commands.md`、`screenshots.md`、`issues.md`；
 - `release.md` 拆成 `environment.md`、`healthcheck.md`、`rollback.md`。
 
 父文件只保留摘要、目录和子文件路径。
+
+## 实现计划上下文
+
+`implementation-plan` 阶段专门解决大项目上下文过大和拆分后丢信息的问题。它不是一个长文档,
+而是一组按需读取的上下文文件:
+
+```text
+.opc/implementation-plan/
+├── index.md
+├── architecture.md
+├── contracts.md
+├── work-breakdown.md
+├── verification.md
+├── decisions/
+│   └── ADR-0001-*.md
+└── slices/
+    └── 01-*.md
+```
+
+恢复或继续实现时, 先读 `index.md`, 再按当前 slice 的 `Read Set` 读取:
+
+```text
+index.md -> architecture.md -> contracts.md -> verification.md -> slices/<current>.md -> ADR
+```
+
+禁止默认读取整个 `.opc/implementation-plan/`。如果某个 slice 缺 `Read Set`,
+先回 [implementation-planning.md](implementation-planning.md) 补齐, 再实现。
+不要把实现计划简单拆成 `frontend.md`、`backend.md`、`database.md`、`tests.md`;
+每个 slice 必须是一条可验证用户价值链, 同时包含 UI/API/DB/测试上下文。
 
 ## 台账只存摘要
 
@@ -103,13 +135,18 @@ CI/CD 或 preview 配置。记录自动创建了什么、还缺什么凭证/授�
 ## 新会话交接
 
 向用户汇报“当前阶段”时，代理先自动运行 `opc-task-state.py resume`。回答格式:
+`resume` 是内部恢复输出。普通用户默认看 `brief`:
 
 ```text
-当前阶段: <resumePhase>
-已完成: <done/skipped 阶段 + 产物路径>
-待处理: <pending/blocked 阶段 + next-action>
-恢复依据: .opc/state/opc-task.json
+目标: <goal>
+已交付: <普通话术摘要>
+正在推进: <普通话术摘要>
+需要你做什么: <无需操作 / 等选择 / 卡住缺 X>
+接下来: <下一步动作>
 ```
+
+只有用户明确要求内部状态、审计 trail 或 JSON 恢复信息时, 才展示 `resume` / `summary`
+里的 raw phase、artifact、evidence、nextAction。
 
 不要要求用户复制命令、读 JSON 或手动选择阶段。用户要做的只有提供被阻塞的外部信息，
 例如 token、权限、服务器地址、截图或生产发布授权。

@@ -29,7 +29,7 @@ replay，调到 AI 产物接近或超过人工产物，再推广到新需求。
    - 记录人工版本的需求、设计、代码、部署和验收证据；
    - 不把人工实现细节提前泄漏给生成阶段，避免污染。
 2. 用 OPC 正常流程重跑:
-   - requirements -> solution -> UI -> implementation -> deployment/check；
+   - requirements -> solution -> UI -> implementation-plan -> implementation -> verification -> deployment/check；
    - 每阶段产物独立落盘。
 3. 对比差距:
    - 需求覆盖: 少了哪些角色、流程、状态、异常；

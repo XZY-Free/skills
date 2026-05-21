@@ -1,6 +1,6 @@
 # 方案阶段工作流
 
-目标: 在 PRD 之后、UI/代码之前, 定义“怎么做”。方案要给 UI 设计、前端实现、API wiring、测试和部署提供可执行输入。
+目标: 在 PRD 之后、UI/实现规划之前, 定义“怎么做”。方案要锁定产品路径、架构方向、技术路线、数据和部署约束; 完整开发切片和上下文拆分交给 [implementation-planning.md](implementation-planning.md)。
 
 方案阶段不固定要求用户看确认卡。先基于 PRD、现有项目和默认栈形成方案; 只有后端栈、DB、部署目标、权限/合规等高影响项不明确时, 才使用原生选择交互。
 
@@ -12,7 +12,7 @@
 - [全栈技术默认](#全栈技术默认)
 - [方案文档结构](#方案文档结构)
 - [UI 方案门禁](#ui-方案门禁)
-- [实现方案门禁](#实现方案门禁)
+- [实现规划门禁](#实现规划门禁)
 - [收敛与完成判断](#收敛与完成判断)
 
 ## 进入条件
@@ -165,21 +165,24 @@ OPC 默认全栈交付, 推荐 Node 系轻量栈:
 
 这些字段要映射进 [design-workflow.md](design-workflow.md) 的 MasterGo 设计 Gate Card。
 
-## 实现方案门禁
+## 实现规划门禁
 
-进入代码实现前, 方案必须给出:
+进入 `implementation-plan` 前, 方案必须给出:
 
 - 使用现有项目栈还是新建项目;
 - 如果是新建项目, 实现目录、脚手架、默认框架;
 - 是否需要自动初始化 Git、`.gitignore`、测试命令、最小 CI/CD;
-- 目标路由和组件边界;
-- API endpoint 列表(name + method + 简述);
-- DB schema 概要;
+- 目标路由和主要组件边界;
+- API endpoint 概要(name + method + 简述);
+- DB schema 概要和关键关系;
 - 数据来源(真实接入路径或演示标识);
 - 交互状态和错误处理;
-- 测试命令、浏览器验证目标和部署目标。
+- 测试命令、浏览器验证目标和部署目标;
+- 哪些高影响技术决策需要 ADR。
 
 如果这些信息缺失但可由现有项目或默认规则安全推断, 直接补齐并记录。只有高影响不确定才回到选择交互。
+
+不要在 `solution-design.md` 里写完整开发计划或把所有实现细节堆成一个大文档。方案完成后必须进入 `implementation-plan`, 由 `index.md`、全局契约文件、用户价值 slices 和 ADR 承接实现上下文。
 
 ## 收敛与完成判断
 
@@ -199,5 +202,5 @@ OPC 默认全栈交付, 推荐 Node 系轻量栈:
 2. 更新 `.opc/solution/discussion.md`;
 3. 写 `.opc/solution/last-handoff.md`;
 4. 跑 `scripts/handoff-lint.py --phase solution`;
-5. `opc-task-state.py mark solution done --artifact .opc/solution/solution-design.md --evidence "方案覆盖 PRD、技术栈、数据、测试和部署计划" --next-action "进入 ui-design 或 implementation"`;
+5. `opc-task-state.py mark solution done --artifact .opc/solution/solution-design.md --evidence "方案覆盖 PRD、技术栈、数据、测试和部署计划" --next-action "进入 ui-design; UI 已收敛后进入 implementation-plan"`;
 6. 自动进入下一阶段。

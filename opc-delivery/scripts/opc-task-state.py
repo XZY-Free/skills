@@ -16,12 +16,29 @@ PHASES = (
     "requirements",
     "solution",
     "ui-design",
+    "implementation-plan",
     "implementation",
     "verification",
     "deployment",
     "calibration",
 )
 STATUSES = ("pending", "done", "skipped", "blocked")
+PHASE_LABELS = {
+    "intake": "理解目标",
+    "requirements": "整理需求",
+    "solution": "确定做法",
+    "ui-design": "设计界面",
+    "implementation-plan": "拆开发计划",
+    "implementation": "做出可用版本",
+    "verification": "检查能不能用",
+    "deployment": "提供访问方式",
+    "calibration": "复盘校准",
+    "complete": "交付完成",
+}
+
+
+def phase_label(phase: str) -> str:
+    return PHASE_LABELS.get(phase, phase.replace("-", " "))
 
 
 def now() -> str:
@@ -58,18 +75,54 @@ def next_phase(phases: dict) -> str:
 
 def default_next_action(phase: str, status: str, resume_phase: str) -> str:
     if status == "blocked":
-        return f"Resolve blocker in {phase}, then continue the OPC chain."
+        return f"先处理{phase_label(phase)}里的阻塞，再继续交付链路。"
     if status == "pending":
-        return f"Continue {phase}."
+        return f"继续推进{phase_label(phase)}。"
     if resume_phase == "complete":
-        return "Run completion validation and report final evidence."
-    return f"Continue with {resume_phase}."
+        return "运行完成校验并汇报最终证据。"
+    return f"继续推进{phase_label(resume_phase)}。"
 
 
 def load(path: Path) -> dict:
     if not path.exists():
         raise SystemExit(f"state not found: {path}")
-    return json.loads(path.read_text(encoding="utf-8"))
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if normalize_phases(data):
+        save(path, data)
+    return data
+
+
+def normalize_phases(data: dict) -> bool:
+    """Normalize older ledgers that predate the implementation-plan phase."""
+    phases = data.setdefault("phases", {})
+    had_implementation_plan = "implementation-plan" in phases
+    changed = False
+    ordered: dict[str, dict] = {}
+    for phase in PHASES:
+        if phase in phases:
+            ordered[phase] = phases[phase]
+        elif phase == "implementation-plan" and "implementation" in phases and not had_implementation_plan:
+            changed = True
+            ordered[phase] = phase_record(
+                status="skipped",
+                evidence="legacy state before implementation-plan phase",
+                note="Inserted for compatibility with ledgers created before implementation-plan existed.",
+                next_action="继续按旧台账状态推进。",
+            )
+        else:
+            changed = True
+            ordered[phase] = phase_record()
+    for phase, record in phases.items():
+        if phase not in ordered:
+            ordered[phase] = record
+    if list(phases) != list(ordered):
+        changed = True
+    if phases is not ordered:
+        data["phases"] = ordered
+    if not data.get("currentPhase") or data.get("currentPhase") not in ordered:
+        data["currentPhase"] = next_phase(ordered)
+        changed = True
+    return changed
 
 
 def save(path: Path, data: dict) -> None:
@@ -92,7 +145,7 @@ def cmd_init(args: argparse.Namespace) -> int:
         "delivery": args.delivery,
         "acceptance": args.acceptance,
         "currentPhase": next_phase(phases),
-        "nextAction": args.next_action or "Continue with requirements.",
+        "nextAction": args.next_action or "继续整理需求。",
         "createdAt": now(),
         "updatedAt": now(),
         "history": [
@@ -102,7 +155,7 @@ def cmd_init(args: argparse.Namespace) -> int:
                 "status": "done",
                 "artifact": phases["intake"]["artifact"],
                 "evidence": phases["intake"]["evidence"],
-                "nextAction": args.next_action or "Continue with requirements.",
+                "nextAction": args.next_action or "继续整理需求。",
             }
         ],
         "phases": phases,
@@ -115,6 +168,16 @@ def cmd_init(args: argparse.Namespace) -> int:
 def cmd_mark(args: argparse.Namespace) -> int:
     data = load(args.path)
     phases = data.setdefault("phases", {})
+    if args.phase == "implementation" and args.status == "done":
+        planning = phases.get("implementation-plan", {})
+        planning_status = planning.get("status", "pending")
+        has_skip_reason = bool(planning.get("evidence") or planning.get("notes"))
+        if planning_status != "done" and not (planning_status == "skipped" and has_skip_reason):
+            print(
+                "ERROR: implementation cannot be marked done before implementation-plan is done or explicitly skipped with a reason",
+                file=sys.stderr,
+            )
+            return 1
     record = phases.get(args.phase, phase_record())
     record["status"] = args.status
     if args.artifact:
@@ -160,6 +223,59 @@ def cmd_summary(args: argparse.Namespace) -> int:
             f"- {phase}: {record.get('status', 'pending')} | artifact={artifact} "
             f"| evidence={evidence} | next={next_action}"
         )
+    return 0
+
+
+def collect_done_labels(phases: dict) -> list[str]:
+    labels: list[str] = []
+    for phase, record in phases.items():
+        status = record.get("status", "pending")
+        if status == "done":
+            labels.append(phase_label(phase))
+        elif status == "skipped":
+            labels.append(f"{phase_label(phase)}(已跳过)")
+    return labels
+
+
+def user_action_for(data: dict, phase: str) -> str:
+    phases = data.get("phases", {})
+    record = phases.get(phase, {})
+    status = record.get("status", "pending")
+    notes = "；".join(note.get("text", "") for note in record.get("notes", [])[-2:] if note.get("text"))
+    next_action = record.get("nextAction") or data.get("nextAction") or ""
+    combined = f"{notes} {next_action}".strip()
+    blocker_tokens = (
+        "token",
+        "secret",
+        "API key",
+        "账号",
+        "凭证",
+        "权限",
+        "服务器",
+        "DATABASE_URL",
+        "付费",
+        "production",
+        "选择框",
+        "拍板",
+    )
+    if status == "blocked":
+        return combined or "卡住了，需要补齐外部信息或权限后才能继续。"
+    if any(token in combined for token in blocker_tokens):
+        return combined
+    return "暂时不需要你操作；我会按已确认的信息继续推进。"
+
+
+def cmd_brief(args: argparse.Namespace) -> int:
+    data = load(args.path)
+    phases = data.get("phases", {})
+    current = data.get("currentPhase") or next_phase(phases)
+    done = collect_done_labels(phases)
+    doing = "全部阶段已完成。" if current == "complete" else f"{phase_label(current)}。"
+    print(f"目标: {data.get('goal', '') or '-'}")
+    print(f"已交付: {'、'.join(done) if done else '还没有完成的可交付项。'}")
+    print(f"正在推进: {doing}")
+    print(f"需要你做什么: {user_action_for(data, current)}")
+    print(f"接下来: {data.get('nextAction') or '继续推进当前交付链路。'}")
     return 0
 
 
@@ -277,6 +393,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_summary = sub.add_parser("summary", help="Print a compact phase summary.")
     p_summary.set_defaults(func=cmd_summary)
+
+    p_brief = sub.add_parser("brief", help="Print a user-facing result brief.")
+    p_brief.set_defaults(func=cmd_brief)
 
     p_resume = sub.add_parser("resume", help="Print the next resumable phase and recent history.")
     p_resume.set_defaults(func=cmd_resume)

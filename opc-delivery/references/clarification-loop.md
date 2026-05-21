@@ -7,9 +7,9 @@ OPC 的澄清模型是**成品驱动 + 疑点触发确认**:
 - 需求足够明确时, 直接产出 PRD、方案、代码、验证和部署证据;
 - 低风险工程细节由代理自治处理;
 - 只有会改变最终成品、成本、安全或发布路径的不确定项才打断用户;
-- 阶段卡和确认卡只作为内部记录写入 `.opc/`, 不作为每阶段固定展示。
+- 阶段卡、确认卡、8 阶段表、raw `summary` / `resume` 只作为内部记录写入 `.opc/`, 不作为每阶段固定展示。
 
-执行阶段(implementation / verification / deployment / calibration)默认自治推进, 见各自 reference。
+执行阶段(implementation / verification / deployment / calibration)默认自治推进, 见各自 reference。`implementation-plan` 是实现前规划门禁, 默认自动产出上下文索引和用户价值切片。
 
 ## 目录
 
@@ -142,6 +142,16 @@ OPC Internal ConfirmCard · <phase> · <yyyy-MM-dd HH:mm>
 
 ## 用户可见输出
 
+进度类问题默认输出结果摘要, 不展示内部阶段表:
+
+```text
+目标: <用户目标>
+已交付: <普通话术摘要>
+正在推进: <普通话术摘要>
+需要你做什么: <无需操作 / 等选择 / 卡住缺 X>
+接下来: <下一步动作>
+```
+
 有高影响疑点时, 用户可见输出保持短:
 
 ```text
@@ -236,6 +246,7 @@ AI 自动执行:
 ## 反模式
 
 - 把阶段卡或确认卡当成用户侧固定流程。
+- 默认展示“阶段进度(OPC 8 阶段)”表、box-drawing 表格、raw phase IDs 或 artifact/evidence/nextAction。
 - 每个定义阶段都强制至少一轮用户确认。
 - 需求清楚时仍停下问“是否继续”。
 - 低风险工程细节让用户拍板。

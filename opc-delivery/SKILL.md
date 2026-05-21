@@ -1,6 +1,6 @@
 ---
 name: opc-delivery
-description: OPC 一人公司式产品交付工作流，把粗糙业务需求推进成已验证、可部署、可回放校准的产品增量。Use whenever Codex must drive requirement discovery, PRD, solution/UI design, MasterGo/Codify canvas work, MasterGo Magic D2C/C2D restoration, frontend implementation, API wiring, validation, CI/CD, preview/production deployment, release evidence, rollback planning, or shipped-feature replay. Also use for MasterGo URLs, mastergo://, Codify MCP, Magic MCP, D2C/DSL, layerId/contentId, and MasterGo component libraries. Do not use for unrelated Figma, generic MCP/token setup, casual codify wording, or ordinary frontend-only work not framed as OPC/full-cycle delivery.
+description: "OPC 一人公司式产品交付工作流，把粗糙业务需求推进成已验证、可部署、可回放校准的产品增量。Use when Codex must run OPC/full-cycle delivery: requirements discovery, PRD, solution/UI design, implementation planning, full-stack implementation, validation, CI/CD, preview/production release evidence, rollback planning, or shipped-feature replay. Also use for MasterGo-backed delivery involving MasterGo URLs, mastergo://, Codify MCP, Magic MCP, D2C/DSL, layerId/contentId, or MasterGo component libraries. Do not use for unrelated Figma, generic MCP/token setup, casual codify wording, framework selection, ordinary frontend-only work, or standalone page implementation not framed as OPC/full-cycle or MasterGo-backed delivery."
 ---
 
 # OPC 产品交付技能
@@ -28,7 +28,7 @@ description: OPC 一人公司式产品交付工作流，把粗糙业务需求推
 | 场景 | 关键词 / 信号 |
 |---|---|
 | OPC 全流程 | OPC、一人公司、从需求到上线、业务员给需求、需求分析、PRD、UI 设计、前端实现、部署 |
-| 阶段交付 | 需求文档、方案文档、设计稿、前端项目、验收报告、部署链接、回滚方案 |
+| 阶段交付 | 需求文档、方案文档、设计稿、实现计划、全栈项目、验收报告、部署链接、回滚方案 |
 | MasterGo | MasterGo, Codify, Magic MCP, D2C, C2D, DSL, `mastergo://`, `mastergo.com`, `layerId`, `contentId` |
 | Codify 设计 | 在画布上设计/创建/修改/优化页面, 调整布局/颜色/字号/间距, 替换节点, 同步组件 |
 | Magic 还原 | 还原、转代码、复刻、实现成前端、跑起来、高保真、像素级 |
@@ -46,18 +46,20 @@ description: OPC 一人公司式产品交付工作流，把粗糙业务需求推
 OPC 是**成品驱动 / 疑点触发确认 / 证据驱动完成**。
 
 - 阶段卡和确认卡是内部工具, 用来记录推理、默认假设和阶段状态; 不作为用户默认可见流程。
-- 用户默认只需要看到: 目标理解、正在交付什么、必要选择框、完成证据和下一步。
+- 用户默认只需要看到结果摘要: 目标、已交付、正在推进、需要用户提供什么、接下来。
+- 用户询问进度时, 先用 `opc-task-state.py brief` 或等价摘要回答; `summary` / `resume` 的 raw phase、artifact、evidence、nextAction 只给代理恢复用, 不默认贴给普通用户。
 - 不要求每个阶段都至少一轮用户确认。需求已经足够明确时, 直接进入产物、实现、验证和部署。
 - 不懂且会改变最终成品时不要假设; 用宿主原生选择/确认交互让用户拍板。
 
 ### 自动轮转契约
 
-定义阶段(intake / requirements / solution / ui-design)的目标是把交付物做对, 不是让用户看流程卡。执行阶段(implementation / verification / deployment / calibration)默认连续推进。
+定义阶段(intake / requirements / solution / ui-design / implementation-plan)的目标是把交付物做对, 不是让用户看流程卡。执行阶段(implementation / verification / deployment / calibration)默认连续推进。
 
 - 阶段产物是下一阶段输入, 不是自然停点。
 - 用户说“从需求到上线 / 后面都做完 / 你负责”时, 视为完整链路授权。
 - 只有用户明确说停、硬阻塞或高影响副作用确认门禁才暂停。
 - 内部讨论没收敛时不要标记阶段完成; 无高影响疑点时不要为了流程感打断用户。
+- `ui-design` 后必须先进入 `implementation-plan`, 写出可分片读取的技术实现总方案和开发计划; 没有该阶段产物不得直接进入代码实现。
 
 ### 选择交互澄清契约
 
@@ -86,6 +88,10 @@ OPC 默认交付真实全栈产品:
 - 只有用户明确说“演示版 / 不要真后端 / 只做展示”时, 才允许 mock 成为交付目标。
 
 `真实交付物`不写“或”假设。部署目标、数据来源或权限范围不明确且会改变成品时, 走选择交互。
+
+### 实现规划契约
+
+完整 OPC 在实现前必须读 [implementation-planning.md](references/implementation-planning.md)。技术实现总方案和开发计划不得塞进单个巨大文档, 也不得机械拆成 frontend/backend/database/tests。默认写 `.opc/implementation-plan/index.md`、`architecture.md`、`contracts.md`、`work-breakdown.md`、`verification.md`、`slices/*.md` 和必要 ADR。实现任何 slice 前只读 `index + architecture + contracts + verification + 当前 slice + ADR`, 不默认读取整个目录。
 
 ### 自治补齐契约
 
@@ -141,7 +147,7 @@ HTTP 200、命令退出码 0、本地 HTML 存在、`accepted`、代码列表非
 4. **[需要你拍板]** — 仅需要时出现; 原生交互优先, 文本 A/B/C 只作降级;
 5. **[下一步]** — “我现在做 X” / “等你在原生交互提交” / “等你回 A/B/C” / “卡住, 缺 X”之一。
 
-跑 `python scripts/opc-task-state.py mark <phase> done` 前, 必须把本轮 hand-off 写到 `.opc/<phase>/last-handoff.md`, 再跑 `python scripts/handoff-lint.py --file .opc/<phase>/last-handoff.md --phase <phase>`。失败就重写, 不绕过。
+跑 `python3 scripts/opc-task-state.py mark <phase> done` 前, 必须把本轮 hand-off 写到 `.opc/<phase>/last-handoff.md`, 再跑 `python3 scripts/handoff-lint.py --file .opc/<phase>/last-handoff.md --phase <phase>`。失败就重写, 不绕过。
 
 ### Karpathy 行为契约
 
@@ -183,22 +189,26 @@ HTTP 200、命令退出码 0、本地 HTML 存在、`accepted`、代码列表非
    -> references/design-workflow.md
 
 3B. MasterGo Magic 还原
-   URL parse -> DSL/D2C -> enterprise/quick mode -> implementation -> 3B verify
+   URL parse -> DSL/D2C -> enterprise/quick mode -> implementation-plan -> implementation -> 3B verify
    -> references/restoration-workflow.md
 
-4. 前端 + Node 后端实现
+4. 实现前技术规划
+   implementation-plan index -> architecture/contracts/work-breakdown/verification -> value slices + ADR
+   -> references/implementation-planning.md
+
+5. 前端 + Node 后端实现
    repo/framework detect -> components + API routes + DB schema + real data -> browser QA
    -> references/implementation-workflow.md
 
-5. 验证
+6. 验证
    lint/typecheck/test/build/browser/data persistence -> evidence
    -> references/verification-implementation.md
 
-6. CI/CD 和部署
+7. CI/CD 和部署
    deploy target decision if needed -> preview -> production gate -> rollback evidence
    -> references/deployment-workflow.md
 
-7. 已上线需求回放校准
+8. 已上线需求回放校准
    golden input -> AI replay -> gap analysis -> rule update
    -> references/regression-calibration.md
 ```
@@ -221,6 +231,7 @@ HTTP 200、命令退出码 0、本地 HTML 存在、`accepted`、代码列表非
 | [open-source-patterns.md](references/open-source-patterns.md) | 完整 OPC 交付、skill 优化、需求到上线闭环、上线回放校准 |
 | [requirements-workflow.md](references/requirements-workflow.md) | 需求阶段、PRD、用户故事、验收标准、Open Questions |
 | [solution-design.md](references/solution-design.md) | 需求收敛后做方案, 包含信息架构、技术栈、接口/数据/权限/测试计划 |
+| [implementation-planning.md](references/implementation-planning.md) | 实现前技术总方案、开发计划、上下文拆分、slice 读取、ADR |
 | [implementation-workflow.md](references/implementation-workflow.md) | 全栈实现(Node 后端 + DB + 前端 + 真实接口) |
 | [deployment-workflow.md](references/deployment-workflow.md) | 部署目标确认、CI/CD、环境变量、回滚 |
 | [regression-calibration.md](references/regression-calibration.md) | 用已上线需求回放校准 Skill、沉淀规则 |
@@ -255,7 +266,7 @@ HTTP 200、命令退出码 0、本地 HTML 存在、`accepted`、代码列表非
 
 | 脚本 | 用途 |
 |---|---|
-| `scripts/opc-task-state.py` | 初始化、标记、校验 `.opc/state/opc-task.json` |
+| `scripts/opc-task-state.py` | 初始化、标记、校验 `.opc/state/opc-task.json`, `brief` 输出普通用户结果摘要 |
 | `scripts/handoff-lint.py` | 校验 turn 结构化收尾, `mark <phase> done` 前的硬门禁 |
 | `scripts/check-mcp-config.py` | 检查当前宿主 MCP 配置、token 占位、本地/远端 Codify URL |
 | `scripts/parse-mastergo-url.py` | 从 MasterGo URL 提取 fileId/layerId/contentId |

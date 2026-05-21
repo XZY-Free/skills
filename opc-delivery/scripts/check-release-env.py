@@ -20,14 +20,13 @@ def command_version(cmd: list[str]) -> str | None:
 def main() -> int:
     checks = {
         "python": sys.version.split()[0],
-        "yaml": bool(importlib.util.find_spec("yaml")),
-        "uv": command_version(["uv", "--version"]),
+        "python_ok": sys.version_info >= (3, 11),
         "node": command_version(["node", "--version"]),
         "playwright_optional": bool(importlib.util.find_spec("playwright")),
     }
     errors = []
-    if not checks["yaml"] and not checks["uv"]:
-        errors.append("PyYAML is missing and uv is unavailable; skill-creator quick_validate.py cannot run")
+    if not checks["python_ok"]:
+        errors.append("python>=3.11 is required for OPC release validation")
     if not checks["node"]:
         errors.append("node is missing; screenshot.mjs syntax check cannot run")
     result = {"ok": not errors, "checks": checks, "errors": errors}

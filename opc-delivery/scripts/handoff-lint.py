@@ -29,19 +29,19 @@ from pathlib import Path
 
 REQUIRED_SECTIONS: dict[str, tuple[str, str]] = {
     "completed": (
-        r"\[已完成\]|^已完成[:：]|^✅\s*已完成",
+        r"\[已完成\]|^已完成[:：]|^✅\s*已完成|^已交付[:：]|^这轮交付[:：]|^目标[:：]",
         "缺少 [已完成] 段 — 列出本轮做了哪些具体事 (产物路径 / commit / 截图)",
     ),
     "evidence": (
-        r"\[证据\]|^证据[:：]",
+        r"\[证据\]|^证据[:：]|^怎么检查[:：]|^检查方式[:：]|^正在推进[:：]",
         "缺少 [证据] 段 — 给文件路径 / 命令退出码 / 测试通过 / 截图 / URL",
     ),
     "uncertainty_or_done": (
-        r"\[不确定项|\[需要你拍板|\[结构化输入|\[选择框|\[卡住|\[硬阻塞|\[等你|不确定项 \+ 我的处理|没有未决项",
+        r"\[不确定项|\[需要你拍板|\[结构化输入|\[选择框|\[卡住|\[硬阻塞|\[等你|不确定项 \+ 我的处理|没有未决项|^需要你做什么[:：]",
         "缺少不确定项归类段 ([不确定项 + 我的处理] / [需要你拍板] / [结构化输入] / [卡住]); 若本轮真的全部收敛, 显式写 '没有未决项'",
     ),
     "next_step": (
-        r"我现在做|我现在进入|我下一步|等你在选择框|等你提交选择框|等你在原生交互|等你提交原生交互|等你通过结构化输入|等你回|等你选|等你补|卡住[,，]\s*缺|下一步[:：]",
+        r"我现在做|我现在进入|我下一步|等你在选择框|等你提交选择框|等你在原生交互|等你提交原生交互|等你通过结构化输入|等你回|等你选|等你补|卡住[,，]\s*缺|下一步[:：]|^接下来[:：]",
         "缺少显式下一步 — 必须写 '我现在做 X' / '我现在进入 X' / '等你在原生交互提交' / '等你回 A/B/C' / '卡住, 缺 X' 之一",
     ),
 }
@@ -91,6 +91,20 @@ STRUCTURED_DECISION_TOKENS = (
     "native decision UI",
 )
 
+PHASE_IDS = (
+    "intake",
+    "requirements",
+    "solution",
+    "ui-design",
+    "implementation-plan",
+    "implementation",
+    "verification",
+    "deployment",
+    "calibration",
+)
+
+INTERNAL_FIELD_TOKENS = ("artifact", "evidence", "nextAction", "currentPhase", "resumePhase")
+
 
 def check_required(text: str) -> list[str]:
     errors: list[str] = []
@@ -120,6 +134,17 @@ def check_open_ended(text: str) -> list[str]:
             errors.append(
                 f"[anti] 出现开放式问句 (匹配 /{pattern}/) — 必须替换成宿主原生结构化选择/确认交互, 或文本降级的 'A/B/C 选一个 + 默认'"
             )
+    return errors
+
+
+def check_internal_progress_table(text: str) -> list[str]:
+    errors: list[str] = []
+    if re.search(r"OPC\s*[89]\s*阶段|阶段进度", text):
+        errors.append("[progress] 普通用户输出禁止默认展示 OPC 阶段进度表; 改用 目标/已交付/正在推进/需要你做什么/接下来")
+    if any(ch in text for ch in ("┌", "┬", "┐", "├", "┼", "┤", "└", "┴", "┘")) and sum(phase in text for phase in PHASE_IDS) >= 2:
+        errors.append("[progress] 普通用户输出禁止展示包含内部 phase id 的 box-drawing 阶段表")
+    if sum(phase in text for phase in PHASE_IDS) >= 3 and any(token in text for token in INTERNAL_FIELD_TOKENS):
+        errors.append("[progress] 普通用户输出禁止混合 raw phase ids 和 artifact/evidence/nextAction; summary/resume 只用于内部恢复")
     return errors
 
 
@@ -178,6 +203,7 @@ def check_decision_block(text: str) -> list[str]:
 def lint(text: str, phase: str = "") -> list[str]:
     errors: list[str] = []
     errors.extend(check_required(text))
+    errors.extend(check_internal_progress_table(text))
     errors.extend(check_residual_risk_anti_pattern(text))
     errors.extend(check_open_ended(text))
     errors.extend(check_decision_block(text))
@@ -192,7 +218,7 @@ def main() -> int:
     parser.add_argument(
         "--phase",
         default="",
-        choices=("", "intake", "requirements", "solution", "ui-design", "implementation", "verification", "deployment", "calibration"),
+        choices=("", "intake", "requirements", "solution", "ui-design", "implementation-plan", "implementation", "verification", "deployment", "calibration"),
         help="可选: 当前阶段名, 用于阶段特定检查",
     )
     args = parser.parse_args()

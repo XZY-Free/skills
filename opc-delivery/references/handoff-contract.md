@@ -44,7 +44,7 @@ Karpathy 第 1 条“不要藏起困惑, 主动暴露 tradeoff”的意思是: �
 
 ## 正模式: 结构化收尾
 
-每个 turn 收尾必须满足下面结构。不是每段都强制有大量内容, 但边界要清楚, 用户能快速识别“我需不需要动作”。
+每个 turn 收尾必须满足下面结构。不是每段都强制有大量内容, 但边界要清楚, 用户能快速识别“我需不需要动作”。普通用户问进度时默认用结果摘要, 不贴内部阶段表。
 
 ```text
 [已完成]
@@ -74,6 +74,21 @@ Karpathy 第 1 条“不要藏起困惑, 主动暴露 tradeoff”的意思是: �
 | `[下一步]` | 是 | “我现在做 X” / “等你在原生交互提交” / “等你回 A/B/C” / “卡住, 缺 X”之一 |
 
 内部阶段卡或确认卡也遵守这个收尾结构, 但不要求把完整卡片贴给用户。若本轮没有需要用户决策的事, 就写“没有未决项”并继续推进。
+
+普通用户进度摘要也可用下面段名, 与上面结构等价:
+
+```text
+目标: <用户目标>
+已交付: <普通话术摘要>
+正在推进: <普通话术摘要>
+需要你做什么: <无需操作 / 等选择 / 卡住缺 X>
+接下来: <下一步动作>
+```
+
+禁止默认展示 `阶段进度(OPC 8 阶段)`、box-drawing 表格、raw phase IDs
+(`intake`, `requirements`, `solution`, `ui-design`, `implementation-plan`,
+`implementation`, `verification`, `deployment`, `calibration`) 或
+`artifact/evidence/nextAction`。这些只用于内部恢复和审计, 用户明确要求内部状态时才展示。
 
 ## 宿主原生交互优先
 
@@ -149,13 +164,13 @@ Karpathy 第 1 条“不要藏起困惑, 主动暴露 tradeoff”的意思是: �
 
 ## 跟 opc-task-state.py mark 的联动
 
-AI 在跑 `python scripts/opc-task-state.py mark <phase> done` 之前, 必须先把本轮 hand-off 文本跑过 `scripts/handoff-lint.py`:
+AI 在跑 `python3 scripts/opc-task-state.py mark <phase> done` 之前, 必须先把本轮 hand-off 文本跑过 `scripts/handoff-lint.py`:
 
 ```bash
 printf "%s" "<本轮回答>" > .opc/<phase>/last-handoff.md
-python scripts/handoff-lint.py --file .opc/<phase>/last-handoff.md --phase <phase>
+python3 scripts/handoff-lint.py --file .opc/<phase>/last-handoff.md --phase <phase>
 
-python scripts/opc-task-state.py mark <phase> done --evidence "..." --artifact "..."
+python3 scripts/opc-task-state.py mark <phase> done --evidence "..." --artifact "..."
 ```
 
 lint 失败意味着这轮收尾不合格, 必须重写。不要用“我下次改”绕过。

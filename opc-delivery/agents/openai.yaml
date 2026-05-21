@@ -1,4 +1,4 @@
 interface:
   display_name: "OPC Delivery"
-  short_description: "粗需求到需求、设计、实现、验证、预览上线证据的OPC闭环"
-  default_prompt: "Use $opc-delivery to take a rough business request through requirements, solution, UI, frontend implementation, validation, preview release evidence, and calibration without stopping unless blocked."
+  short_description: "OPC全流程或MasterGo交付的需求、实现规划、验证上线闭环"
+  default_prompt: "Use $opc-delivery for OPC/full-cycle or MasterGo-backed work: implementation planning, validation; continue unless blocked."

@@ -891,7 +891,7 @@
       "id": 47,
       "name": "solution-design-before-implementation",
       "prompt": "Use $opc-delivery; PRD 已经确认了，现在开始实现。",
-      "expected_output": "应该先确认或生成方案文档，覆盖信息架构、UI 策略、技术方案、API/数据、测试策略和部署计划，再进入实现；如果用户明确跳过，也要保留轻量方案和风险记录。",
+      "expected_output": "应该先确认或生成方案文档，覆盖信息架构、UI 策略、技术方案、API/数据、测试策略和部署计划，然后进入 implementation-plan 生成可分片读取的技术实现计划，再进入实现；如果用户明确跳过，也要保留轻量方案和风险记录。",
       "files": [],
       "checks": {
         "must_include": [
@@ -899,7 +899,8 @@
           "信息架构",
           "API",
           "测试策略",
-          "部署计划"
+          "部署计划",
+          "implementation-plan"
         ],
         "must_not_include": [
           "没有方案也没关系",
@@ -911,10 +912,11 @@
       "id": 48,
       "name": "implementation-does-not-skip-browser-qa",
       "prompt": "Use $opc-delivery; UI 和方案都定了，帮我实现前端框架。",
-      "expected_output": "应该检查现有仓库框架和脚本，复用项目模式，完成组件/状态/API wiring 后运行可用的 lint/typecheck/test/build，并用 Browser 或 Playwright 做非空、无 overlay、console health、核心交互和截图验证。不能只以构建成功宣称完成。",
+      "expected_output": "应该先确认 implementation-plan 已存在；缺失时先生成可分片读取的实现计划和当前 slice，再检查现有仓库框架和脚本，复用项目模式，完成组件/状态/API wiring 后运行可用的 lint/typecheck/test/build，并用 Browser 或 Playwright 做非空、无 overlay、console health、核心交互和截图验证。不能只以构建成功宣称完成。",
       "files": [],
       "checks": {
         "must_include": [
+          "implementation-plan",
           "lint",
           "typecheck",
           "build",
@@ -1103,7 +1105,7 @@
       "id": 57,
       "name": "full-opc-auto-advances-until-release",
       "prompt": "Use $opc-delivery; 一个业务同学只说想做客户续费预警工具，从需求到上线都交给你，没说停就继续。",
-      "expected_output": "应该把这类请求视为完整 OPC 连续交付，内部阶段记录后自动进入需求、方案、UI、实现、验证和部署链路；每阶段产物作为下一阶段输入，不把 PRD/方案/设计结束当成停点，也不反复问是否继续。只有 blocker、高风险副作用或 production gate 才暂停；未明确 production 时应推进到 preview/staging 可访问链接并保留发布证据。",
+      "expected_output": "应该把这类请求视为完整 OPC 连续交付，内部阶段记录后自动进入需求、方案、UI、implementation-plan、实现、验证和部署链路；每阶段产物作为下一阶段输入，不把 PRD/方案/设计/实现计划结束当成停点，也不反复问是否继续。只有 blocker、高风险副作用或 production gate 才暂停；未明确 production 时应推进到 preview/staging 可访问链接并保留发布证据。",
       "files": [],
       "checks": {
         "must_include": [
@@ -1112,6 +1114,7 @@
           "需求",
           "方案",
           "UI",
+          "implementation-plan",
           "实现",
           "验证",
           "部署",
@@ -1129,7 +1132,7 @@
       "id": 58,
       "name": "skill-creator-structure-hygiene",
       "prompt": "Use $opc-delivery; 帮我检查这个 skill 自身是否符合 skill-creator 的结构要求，并给出是否可以发布。",
-      "expected_output": "应该检查 SKILL.md frontmatter 只含 name/description 且体量受控，SKILL.md 正文保持精简并把细节放入 references，长 reference 有目录，agents/openai.yaml 的 display_name/short_description/default_prompt 与技能定位一致，scripts/evals/references 都是运行时必要资源，且没有 README、CHANGELOG、examples、__pycache__ 等非运行时杂物；发布前应运行 quick_validate、check-skill-rules、check-evals 和 check-links。",
+      "expected_output": "应该检查 SKILL.md frontmatter 只含 name/description 且体量受控，SKILL.md 正文保持精简并把细节放入 references，长 reference 有目录，agents/openai.yaml 的 display_name/short_description/default_prompt 与技能定位一致，scripts/evals/references 都是运行时必要资源，且没有 README、CHANGELOG、examples、__pycache__ 等非运行时杂物；发布前应运行 validate-opc-delivery-skill.py、check-skill-rules.py、check-evals.py --skill opc-delivery 和 publish-opc-delivery-skill.py --check。",
       "files": [],
       "checks": {
         "must_include": [
@@ -1138,10 +1141,10 @@
           "references",
           "目录",
           "agents/openai.yaml",
-          "quick_validate",
+          "validate-opc-delivery-skill.py",
           "check-skill-rules",
           "check-evals",
-          "check-links"
+          "publish-opc-delivery-skill.py --check"
         ],
         "must_not_include": [
           "README 是必须的",
@@ -1153,7 +1156,7 @@
       "id": 59,
       "name": "context-persistence-auto-resume",
       "prompt": "Use $opc-delivery; 继续上次那个 OPC 需求，我换了一个新会话。",
-      "expected_output": "应该由代理自动读取 .opc/state/opc-task.json 或运行 opc-task-state.py resume，基于 currentPhase/recentHistory/nextAction 恢复当前阶段并继续；不能要求用户手动运行命令、复制 JSON 或重新讲完整上下文。若台账不存在，代理应先初始化状态台账，再按阶段拆分产物并记录 nextAction。",
+      "expected_output": "应该由代理自动读取 .opc/state/opc-task.json 或运行 opc-task-state.py resume，基于 currentPhase/recentHistory/nextAction 恢复当前阶段并继续；普通用户汇报默认用 opc-task-state.py brief 的目标/已交付/正在推进/需要你做什么/接下来摘要；不能要求用户手动运行命令、复制 JSON 或重新讲完整上下文。若台账不存在，代理应先初始化状态台账，再按阶段拆分产物并记录 nextAction。",
       "files": [],
       "checks": {
         "must_include": [
@@ -1162,6 +1165,7 @@
           "currentPhase",
           "recentHistory",
           "nextAction",
+          "brief",
           "继续"
         ],
         "must_not_include": [
@@ -1175,11 +1179,12 @@
       "id": 60,
       "name": "empty-workspace-full-opc-enters-implementation",
       "prompt": "Use $opc-delivery; 帮我设计一个企业级的模型管理平台，从需求到上线都交给你。当前目录是空的，没有现成代码仓库。",
-      "expected_output": "应该把这类请求视为完整 OPC 连续交付：内部阶段记录、需求、方案和 UI 之后默认继续进入 implementation，而不是把空工作区收缩成产品设计包。若当前目录没有现成仓库或 package.json，代理应基于选定框架自动新建项目脚手架，说明实现目录、默认框架和初始命令，并继续推进到验证/部署门前；只有高风险副作用、权限缺失或真正 blocker 才暂停。",
+      "expected_output": "应该把这类请求视为完整 OPC 连续交付：内部阶段记录、需求、方案和 UI 之后默认继续进入 implementation-plan，再按计划进入 implementation，而不是把空工作区收缩成产品设计包。若当前目录没有现成仓库或 package.json，代理应先生成可分片读取的实现计划，再基于选定框架自动新建项目脚手架，说明实现目录、默认框架和初始命令，并继续推进到验证/部署门前；只有高风险副作用、权限缺失或真正 blocker 才暂停。",
       "files": [],
       "checks": {
         "must_include": [
           "implementation",
+          "implementation-plan",
           "当前目录",
           "新建项目",
           "脚手架",
@@ -1310,10 +1315,12 @@
       "id": 66,
       "name": "clear-requirement-proceeds-without-card-ceremony",
       "prompt": "Use $opc-delivery; 已有 PRD 和方案，目标是把现有 Next.js 项目里的客户列表接上真实 Postgres，字段在 docs/api.md，继续实现并验证。",
-      "expected_output": "应该识别为需求和方案已经足够明确，直接读取现有项目、接口文档和数据层，进入实现与验证；内部可记录阶段状态，但不应为了流程强行向用户展示阶段卡或确认卡，不应要求用户再确认“是否继续”。若发现高影响缺口才使用原生选择/确认交互。",
+      "expected_output": "应该识别为需求和方案已经足够明确，不展示阶段卡或确认卡仪式；但进入代码前仍要检查或补齐 implementation-plan，读取 index.md 和当前 slice 的 Read Set，然后进入实现与验证。内部可记录阶段状态，不应要求用户再确认“是否继续”。若发现高影响缺口才使用原生选择/确认交互。",
       "files": [],
       "checks": {
         "must_include": [
+          "implementation-plan",
+          "Read Set",
           "实现",
           "验证",
           "Postgres",
@@ -1344,6 +1351,173 @@
           "文件名需要你拍板",
           "helper 拆法需要你确认",
           "等你选择目录"
+        ]
+      }
+    },
+    {
+      "id": 68,
+      "name": "ordinary-user-progress-uses-result-brief",
+      "prompt": "Use $opc-delivery; 帮我用普通业务同学能看懂的话汇报当前进度。",
+      "expected_output": "应该用普通用户结果摘要汇报目标、已交付、正在推进、需要用户做什么和接下来；可以由 opc-task-state.py brief 生成或等价输出。不能默认贴内部阶段表、raw phase IDs、artifact/evidence/nextAction 字段。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "目标",
+          "已交付",
+          "正在推进",
+          "需要你做什么",
+          "接下来"
+        ],
+        "must_not_include": [
+          "阶段进度",
+          "OPC 8 阶段",
+          "artifact",
+          "nextAction",
+          "intake"
+        ]
+      }
+    },
+    {
+      "id": 69,
+      "name": "internal-stage-table-not-user-visible",
+      "prompt": "Use $opc-delivery; 给普通用户看一下阶段进度（OPC 8 阶段）表。",
+      "expected_output": "应该把内部阶段表翻译成结果摘要，只显示用户关心的目标、已交付、正在推进、需要用户做什么和接下来。不能展示 box-drawing 表格、OPC 8 阶段、raw phase IDs 或关键产物长表。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "目标",
+          "已交付",
+          "正在推进",
+          "接下来"
+        ],
+        "must_not_include": [
+          "OPC 8 阶段",
+          "┌",
+          "┬",
+          "requirements",
+          "implementation",
+          "关键产物"
+        ]
+      }
+    },
+    {
+      "id": 70,
+      "name": "implementation-plan-required-before-code",
+      "prompt": "Use $opc-delivery; PRD、方案和 UI 都定了，现在开始写代码。",
+      "expected_output": "应该先进入 implementation-plan 阶段，生成 .opc/implementation-plan/index.md、architecture.md、contracts.md、work-breakdown.md、verification.md、slices/<slice-id>.md 和必要 ADR；只有当前 slice 的 Read Set 与完成门禁齐全后才进入 implementation。极小改动或用户明确跳过时才可 skipped，并记录风险。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "implementation-plan",
+          ".opc/implementation-plan/index.md",
+          "architecture.md",
+          "contracts.md",
+          "work-breakdown.md",
+          "verification.md",
+          "slices",
+          "Read Set",
+          "ADR"
+        ],
+        "must_not_include": [
+          "直接写代码",
+          "没有计划也可以开始"
+        ]
+      }
+    },
+    {
+      "id": 71,
+      "name": "large-implementation-plan-splits-context-safely",
+      "prompt": "Use $opc-delivery; 这是一个很大的企业级项目，先写完整技术实现方案和开发计划，后面要能分批实现。",
+      "expected_output": "应该把实现计划拆成 .opc/implementation-plan/index.md 入口、architecture.md、contracts.md、work-breakdown.md、verification.md、decisions/ADR-xxxx.md 和 slices/<slice-id>.md；index.md 控制读取顺序和 slice 索引，单文件接近 200 行或 12KB 时继续拆分。不能只写一个巨大 technical-implementation-plan.md 或 development-plan.md。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          ".opc/implementation-plan/index.md",
+          "architecture.md",
+          "contracts.md",
+          "work-breakdown.md",
+          "verification.md",
+          "slices",
+          "ADR",
+          "Read Set",
+          "12KB"
+        ],
+        "must_not_include": [
+          "technical-implementation-plan.md",
+          "development-plan.md",
+          "一次性读取整个 implementation-plan"
+        ]
+      }
+    },
+    {
+      "id": 72,
+      "name": "implementation-reads-current-slice-not-all-docs",
+      "prompt": "Use $opc-delivery; implementation-plan 已经存在，现在实现 slices/02-customer-list-and-filters.md。",
+      "expected_output": "应该只按固定读取顺序加载 .opc/implementation-plan/index.md、architecture.md、contracts.md、verification.md、当前 slice 和当前 slice 引用的 ADR，再按 Read Set 读取代码文件；不能默认读取整个 .opc/implementation-plan/ 目录或顺手实现其他 slice。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "index.md",
+          "architecture.md",
+          "contracts.md",
+          "verification.md",
+          "slices/02-customer-list-and-filters.md",
+          "Read Set",
+          "ADR"
+        ],
+        "must_not_include": [
+          "读取整个 .opc/implementation-plan",
+          "一次性实现所有 slice",
+          "顺手做其他 slice"
+        ]
+      }
+    },
+    {
+      "id": 73,
+      "name": "implementation-plan-uses-value-slices-not-layer-splits",
+      "prompt": "Use $opc-delivery; 给这个 CRM 项目拆实现计划，页面、接口、数据库、测试都不少。",
+      "expected_output": "应该按可验证的用户价值链拆 slice，例如客户列表筛选、客户详情更新、权限可见性、导入校验等；每个 slice 同时包含 UI/API/DB/测试上下文和验收。不能机械拆成 frontend.md、backend.md、database.md、tests.md 四份互相丢上下文的层文档。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "用户价值",
+          "slice",
+          "UI",
+          "API",
+          "DB",
+          "测试",
+          "验收"
+        ],
+        "must_not_include": [
+          "frontend.md",
+          "backend.md",
+          "database.md",
+          "tests.md",
+          "按层拆完就可以"
+        ]
+      }
+    },
+    {
+      "id": 74,
+      "name": "adr-records-high-impact-decisions",
+      "prompt": "Use $opc-delivery; 实现计划里 ORM、鉴权、部署目标和权限深度都需要做技术取舍。",
+      "expected_output": "应该为高影响技术取舍写 ADR，每份 ADR 只记录一个决策，包含背景、选项、决定、取舍、影响的 slice、回滚或重审条件；低影响实现细节不写 ADR。实现中发现计划不匹配时先更新对应 slice 或 ADR，再继续编码。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "ADR",
+          "一个决策",
+          "背景",
+          "选项",
+          "决定",
+          "取舍",
+          "slice",
+          "回滚"
+        ],
+        "must_not_include": [
+          "把所有决策写在同一份 ADR",
+          "低影响细节都写 ADR",
+          "先编码再补决策"
         ]
       }
     }

@@ -9,7 +9,7 @@
 - 完整 OPC: 用户说"从需求到上线"/"后面都做完"/"你决定"/"完整交付";
 - 当前目录没有 Git 仓库、`package.json`、前端项目、后端项目、DB schema、API 路由、测试命令、CI/CD 或部署配置;
 - 中断恢复后发现当前阶段需要的本地前置条件不存在;
-- solution 阶段已锁定栈/DB/部署目标, 进 implementation 时缺脚手架。
+- solution 阶段已锁定栈/DB/部署目标, implementation-plan 已给出当前 slice, 进 implementation 时缺脚手架。
 
 ## 自治补齐矩阵
 

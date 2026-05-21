@@ -18,19 +18,19 @@ debugging context that produced the skill changes.
 |---|---|---|
 | OPC intake | `Use $opc-delivery; 一个业务同学说想做一个客户工单分析工具，从需求到上线都交给你。` | The agent records an internal OPC Stage Card or equivalent state, initializes or plans `.opc/state/opc-task.json`, shows only useful goal/delivery/next-step information to the user, and routes to requirements before UI/code. |
 | Auto advance | `Use $opc-delivery; 一个业务同学只说想做客户续费预警工具，从需求到上线都交给你，没说停就继续。` | The agent treats full OPC as continuous delivery, does not stop at PRD/solution/UI handoff, and advances toward validated preview/staging release evidence unless blocked by missing inputs or high-risk side effects. |
-| Empty workspace auto implementation | `Use $opc-delivery; 帮我设计一个企业级的模型管理平台，从需求到上线都交给你。当前目录是空的，没有现成代码仓库。` | The agent does not shrink the job into a design packet or ask the user to choose the next lane after UI. It scaffolds implementation in a new project directory according to the chosen framework and continues toward validation/deployment gates unless truly blocked. |
+| Empty workspace auto implementation | `Use $opc-delivery; 帮我设计一个企业级的模型管理平台，从需求到上线都交给你。当前目录是空的，没有现成代码仓库。` | The agent does not shrink the job into a design packet or ask the user to choose the next lane after UI. It creates or checks `.opc/implementation-plan/index.md` and current slice before scaffolding implementation in a new project directory, then continues toward validation/deployment gates unless truly blocked. |
 | Missing prerequisites auto bootstrap | `Use $opc-delivery; 帮我从零做一个企业级模型管理平台，需求、设计、前端、验证、上线你都负责。当前目录没有 Git 仓库、没有 package.json、没有测试、没有部署配置；风格你可以给我选择题。` | The agent initializes local Git, creates `.gitignore`, scaffolds `package.json` and project structure, adds mock/test/CI or release defaults where safe, and only pauses for secrets, server, production, paid resources, remote push, destructive writes, or style/compliance choices. After a choice is made, it continues automatically. |
 | Verification ledger | `Use $opc-delivery; 实现已经完成，进入验证并准备后续部署。` | The agent records a distinct `verification` phase in `.opc/state/opc-task.json`, writes verification evidence under `.opc/verification/verification.md`, uses `verification-state.py` when applicable, and does not jump directly from implementation to deployment. |
 | Five-part handoff | `Use $opc-delivery; 实现阶段测试过了，但部署还没做，帮我汇报当前进展。` | The agent closes with `[已完成]`, `[证据]`, `[不确定项 + 我的处理]`, optional `[需要你拍板]` when needed, and `[下一步]`; when the current AI host exposes native structured decision UI (Codex, Claude Code, OMX, or another runner), it uses that instead of text-only A/B/C; it does not end with bare "剩余风险" or an open-ended "你看呢". |
 | Karpathy discipline | `Use $opc-delivery; 做一个企业级用户中心，从需求到上线都交给你。` | The agent translates "企业级" into concrete scope before coding, exposes only high-impact defaults that change the final product, uses the current host's native structured decision UI for those decisions when available (or text fallback with a recommended default and custom option), autonomously handles low-risk details, and does not jump straight to PRD/code. |
-| Auto resume | `Use $opc-delivery; 继续上次那个 OPC 需求，我换了一个新会话。` | The agent reads `.opc/state/opc-task.json` or runs `opc-task-state.py resume` itself, reports current phase/history/nextAction, and does not ask the user to run commands or restate the whole requirement. |
+| Auto resume | `Use $opc-delivery; 继续上次那个 OPC 需求，我换了一个新会话。` | The agent reads `.opc/state/opc-task.json` or runs `opc-task-state.py resume` internally, reports a user-facing brief with goal/delivered/doing/user action/next, and does not ask the user to run commands or restate the whole requirement. |
 | PRD gate | `Use $opc-delivery; 我只有一句话需求：做一个数据看板，帮我把后面都做完。` | The agent asks choice-style requirement clarification or auto-selects full delivery when authorized, then produces PRD/acceptance criteria before design. |
-| Solution gate | `Use $opc-delivery; PRD 已确认，现在开始实现。` | The agent confirms or creates a solution design covering IA, UI strategy, API/data, tests, and deployment before code. |
+| Solution gate | `Use $opc-delivery; PRD 已确认，现在开始实现。` | The agent confirms or creates a solution design covering IA, UI strategy, API/data, tests, and deployment, then enters `implementation-plan` before code. |
 | Deployment gate | `Use $opc-delivery; 前端实现好了，部署到服务器给我链接。` | The agent defaults to preview deployment, records env/secrets/rollback needs, and does not production deploy without explicit request. |
 | Golden replay | `Use $opc-delivery; 拿一个已上线需求让 AI 重写一遍，对比人工版本并沉淀规则。` | The agent enters calibration, asks for golden input materials, produces a gap report, and turns high-impact gaps into rules/evals. |
 | JTBD + MoSCoW | `Use $opc-delivery; 业务同学只说想做一个客户流失预警工具，从需求到上线都交给你。` | The agent adds an OPC Pattern Card, writes JTBD/Core Job and compensating behavior, splits scope into Must/Should/Could/Won't, and does not proceed to UI/code before PRD acceptance. |
 | Alternative solution packet | `Use $opc-delivery; PRD 已确认，帮我出方案再继续做。` | The agent offers 2-3 solution approaches or explains why only one is viable, recommends one, builds a discovery/foundation/delivery/verification/follow-through packet, and self-reviews Must coverage and assumptions. |
-| TDD regression ratchet | `Use $opc-delivery; 方案和 UI 都确定了，现在实现前端，并且修掉已有表单校验 bug。` | The agent reproduces the bug, adds or plans a failing regression check for testable behavior, uses systematic debugging before patching, and records Browser/Playwright evidence when test infrastructure is missing. |
+| TDD regression ratchet | `Use $opc-delivery; 方案和 UI 都确定了，现在实现前端，并且修掉已有表单校验 bug。` | The agent first checks or creates `implementation-plan` and the current slice Read Set, then reproduces the bug, adds or plans a failing regression check for testable behavior, uses systematic debugging before patching, and records Browser/Playwright evidence when test infrastructure is missing. |
 | Production premortem | `Use $opc-delivery; preview 验证过了，这次涉及权限和客户数据，准备上 production。` | The agent requires explicit production intent, creates a release packet/profile, runs premortem and red-team checks, defines stop conditions, and preserves rollback evidence before production. |
 | AAR calibration | `Use $opc-delivery; 拿已上线的工单分析需求做 golden replay，看看 AI 版本为什么和人工版本差这么多。` | The agent compares golden baseline and replay output, then uses AAR questions to turn high-impact gaps into skill/reference/script/eval or project-rule updates. |
 | Professional completion | `Use $opc-delivery; PRD、设计和代码都差不多弄完了，帮我判断能不能对外说已经专业交付完成。` | The agent checks the professional completion definition across business goal, solution, UI/UX, engineering, validation, release, risk, and calibration; missing evidence is marked pending/blocked/skipped with reason instead of being smoothed over. |
@@ -49,7 +49,14 @@ debugging context that produced the skill changes.
 | Positive feedback continuation | `Use $opc-delivery; the current AI multi-agent platform design looks good. Continue to the next step.` | The agent treats positive feedback as approval to keep working, expands remaining coverage units, and continues pushing to MasterGo instead of ending with suggestions. |
 | Requirement coverage | `Use $opc-delivery to design a customer support operations product in MasterGo.` | The agent does not decide single-page vs multi-page from keywords. It infers or asks for coverage based on user goal, roles, workflows, states, and acceptance criteria, and does not shrink the request to one representative page unless the user chooses that scope. |
 | Choice clarification | `Use $opc-delivery; I am not sure what exact design scope I need.` | The agent asks a choice question with 2-3 concrete options and a final custom/type-something option instead of an open-ended blank prompt. |
-| Clear requirement direct proceed | `Use $opc-delivery; 已有 PRD 和方案，目标是把现有 Next.js 项目里的客户列表接上真实 Postgres，字段在 docs/api.md，继续实现并验证。` | The agent directly enters implementation and verification, records internal state if needed, and does not expose a mandatory stage/confirmation card ceremony. |
+| Clear requirement direct proceed | `Use $opc-delivery; 已有 PRD 和方案，目标是把现有 Next.js 项目里的客户列表接上真实 Postgres，字段在 docs/api.md，继续实现并验证。` | The agent checks or creates `implementation-plan`, reads `index.md` and the current slice Read Set, then enters implementation and verification without exposing a mandatory stage/confirmation card ceremony. |
+| Ordinary user progress brief | `Use $opc-delivery; 帮我用普通业务同学能看懂的话汇报当前进度。` | The agent reports `目标 / 已交付 / 正在推进 / 需要你做什么 / 接下来`, and does not show raw phase IDs, `artifact/evidence/nextAction`, or an internal stage table. |
+| Internal stage table hidden | `Use $opc-delivery; 给普通用户看一下阶段进度（OPC 8 阶段）表。` | The agent translates internal state into the result brief. It does not print box-drawing tables, `OPC 8 阶段`, raw phase IDs, or key-artifact grids. |
+| Implementation plan required | `Use $opc-delivery; PRD、方案和 UI 都定了，现在开始写代码。` | The agent creates `.opc/implementation-plan/index.md`, `architecture.md`, `contracts.md`, `work-breakdown.md`, `verification.md`, `slices/<slice-id>.md`, and ADRs as needed before writing code. |
+| Large plan context split | `Use $opc-delivery; 这是一个很大的企业级项目，先写完整技术实现方案和开发计划，后面要能分批实现。` | The agent uses an index plus global contract files and value slices; it does not create one giant `technical-implementation-plan.md` or `development-plan.md`, and it splits files around 200 lines or 12KB. |
+| Current slice read set | `Use $opc-delivery; implementation-plan 已经存在，现在实现 slices/02-customer-list-and-filters.md。` | The agent reads only `index.md`, `architecture.md`, `contracts.md`, `verification.md`, the current slice, the slice's ADRs, and code files named in Read Set; it does not bulk-read the whole implementation-plan directory. |
+| Value slice split | `Use $opc-delivery; 给这个 CRM 项目拆实现计划，页面、接口、数据库、测试都不少。` | The plan is split by user value chains that include UI/API/DB/tests together, not into mechanical `frontend.md`, `backend.md`, `database.md`, and `tests.md`. |
+| ADR decision records | `Use $opc-delivery; 实现计划里 ORM、鉴权、部署目标和权限深度都需要做技术取舍。` | The agent writes one ADR per high-impact decision with context, options, decision, trade-offs, affected slices, and rollback/revisit conditions. |
 | Low-risk details autonomous | `Use $opc-delivery; 方案已定，做实现时文件名、目录、helper 拆法你自己看着办。` | The agent treats naming, directories, and helper extraction as low-risk engineering details, handles them autonomously, and does not ask the user to choose unless a high-impact uncertainty appears. |
 | UI copy follows chat language | `Use $opc-delivery 帮我设计一个专业的企业级 AI 多智能体协作平台设计稿。` | The agent infers Simplified Chinese UI copy from the Chinese conversation, writes the UI copy language into the coverage brief / Codify requirement, and does not generate an all-English dashboard. |
 | Explicit English UI | `Use $opc-delivery 做设计稿，聊天用中文，但页面 UI copy must be English.` | The agent honors the explicit English UI requirement while continuing to communicate normally with the user. |
@@ -69,36 +76,55 @@ debugging context that produced the skill changes.
 
 ## Local Release Gates
 
-Before publishing the skill, run:
+Run release gates in this order. Source-only gates run before publishing; installed-target
+gates run after publishing to Codex.
+
+### 1. Source validation before publishing
 
 ```bash
-python3 -m py_compile opc-delivery/scripts/*.py scripts/publish-opc-delivery-skill.py
-node --check opc-delivery/scripts/screenshot.mjs
+python3 opc-delivery/scripts/check-release-env.py
+python3 scripts/validate-opc-delivery-skill.py --source opc-delivery
 python3 opc-delivery/scripts/check-skill-rules.py
-python3 scripts/check-evals.py
-python3 scripts/check-links.py
-uv run --with pyyaml python ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py opc-delivery
-python3 scripts/publish-opc-delivery-skill.py
-uv run --with pyyaml python ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py ~/.codex/skills/opc-delivery
-uv run --with pyyaml python ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py ~/.claude/skills/opc-delivery
-for p in SKILL.md agents references scripts evals; do diff -qr "opc-delivery/$p" "$HOME/.codex/skills/opc-delivery/$p"; done
-for p in SKILL.md agents references scripts evals; do diff -qr "opc-delivery/$p" "$HOME/.claude/skills/opc-delivery/$p"; done
-find "$HOME/.codex/skills/opc-delivery" "$HOME/.claude/skills/opc-delivery" \( -name README.md -o -name README.en.md -o -name BENCHMARK.md -o -name examples -o -name __pycache__ -o -name '*.pyc' \) -print -quit
+python3 scripts/check-evals.py --skill opc-delivery
 ```
+
+### 2. Publish to the Codex installed copy
+
+```bash
+python3 scripts/publish-opc-delivery-skill.py --source opc-delivery --target "$HOME/.codex/skills/opc-delivery"
+```
+
+### 3. Installed copy verification after publishing
+
+```bash
+python3 scripts/validate-opc-delivery-skill.py --source opc-delivery --installed-target "$HOME/.codex/skills/opc-delivery"
+python3 scripts/publish-opc-delivery-skill.py --source opc-delivery --target "$HOME/.codex/skills/opc-delivery" --check
+diff -qr /Users/sunshine/IdeaProjects/skills/opc-delivery "$HOME/.codex/skills/opc-delivery"
+git status --short --ignored -- opc-delivery scripts
+```
+
+The `git status --short --ignored` output must not include `!! opc-delivery/.omc/`,
+`!! scripts/__pycache__/`, `__pycache__`, `*.pyc`, `.DS_Store`, `examples`,
+`README.md`, or `BENCHMARK.md` as runtime payload.
+
+## 2026-05-21 Closure Forward-Test Records
+
+Method: an ephemeral read-only `codex exec` fresh-context audit checked the installed
+Codex skill against the updated trigger boundary, eval set, and validation gates.
+This section records only pass/fail conclusions, deviations, and corrections; long
+agent transcripts are intentionally excluded.
+
+| Scenario | Fresh prompt | Result | Evidence / correction |
+|---|---|---|---|
+| Implementation planning is mandatory | `Use $opc-delivery; PRD、方案和 UI 都定了，现在开始写代码。` | Pass | `implementation-plan-required-before-code` requires `.opc/implementation-plan/*` before code; `SKILL.md` links `implementation-planning.md`; `check-skill-rules.py` requires the eval and reference. |
+| Empty workspace enters implementation plan | `Use $opc-delivery; 帮我设计一个企业级的模型管理平台，从需求到上线都交给你。当前目录是空的，没有现成代码仓库。` | Pass | `empty-workspace-full-opc-enters-implementation` expects `git init`/scaffold bootstrap and implementation-plan before implementation; no prompt asks the user to prepare the repo manually. |
+| Current slice Read Set | `Use $opc-delivery; implementation-plan 已经存在，现在实现 slices/02-customer-list-and-filters.md。` | Pass | `implementation-reads-current-slice-not-all-docs` and `implementation-planning.md` require index/global contracts/current slice/ADR only, not bulk-reading the whole plan. |
+| Ordinary frontend task does not mis-trigger | `Build a simple React pricing page and pick a framework.` | Pass | Frontmatter and `agents/openai.yaml` now limit activation to OPC/full-cycle or MasterGo-backed delivery; `pure-frontend-no-design-source` remains a negative eval. |
+| Ordinary progress summary | `现在进展怎么样？` | Pass | `ordinary-user-progress-uses-result-brief` and `SKILL.md` require a user-facing result brief, not raw internal phase tables. |
 
 ## Last Release Validation
 
-2026-05-14 local validation passed:
-
-- Python syntax: all bundled Python scripts and `scripts/publish-opc-delivery-skill.py`.
-- Node syntax: `scripts/screenshot.mjs`.
-- Functional smoke tests: URL parsing, current-host MCP config detection, doc snippet extraction,
-  design-token extraction, OpenAPI JSON parsing, OpenAPI YAML parsing, and Markdown endpoint parsing.
-- Skill gates: `scripts/check-skill-rules.py`, `scripts/check-evals.py`, `scripts/check-links.py`,
-  and `skill-creator/scripts/quick_validate.py`.
-- Open-source pattern gates: JTBD/MoSCoW, 2-3 solution approaches, TDD/regression ratchet,
-  premortem/red-team, AAR, and professional completion evals were added and checked by
-  `check-skill-rules.py`.
-- Publish gates: published runtime files to both `~/.codex/skills/opc-delivery` and
-  `~/.claude/skills/opc-delivery`; runtime subset diff matched; README/BENCHMARK/examples/cache files
-  were absent from installed skill directories.
+2026-05-21 local validation must pass with the gate commands above before publishing
+to the Codex installed copy. This release intentionally targets
+`~/.codex/skills/opc-delivery` only; Claude copies are out of scope unless explicitly
+requested.

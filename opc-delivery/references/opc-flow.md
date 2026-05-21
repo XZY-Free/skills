@@ -2,7 +2,7 @@
 
 本文件负责把一个粗需求路由到正确阶段, 并保证每阶段都有可验证交付物。OPC 的用户侧模型是**成品驱动 / 疑点触发确认 / 证据驱动完成**。
 
-- 定义阶段(intake / requirements / solution / ui-design): 先抽取事实, 内部维护阶段卡/确认卡。只有高影响不确定才用原生选择交互问用户; 没有疑点就直接产出阶段文档。
+- 定义阶段(intake / requirements / solution / ui-design / implementation-plan): 先抽取事实, 内部维护阶段卡/确认卡。只有高影响不确定才用原生选择交互问用户; 没有疑点就直接产出阶段文档。
 - 执行阶段(implementation / verification / deployment / calibration): 连续推进, 除非遇到 token、凭证、production、远端 push、付费资源、破坏性写入等硬门禁。
 
 阶段间自动衔接, 不要求用户每步说“继续”。空工作区不是设计收尾理由: 从零开始的新需求会自动进入前端 + Node 后端 + DB 全栈脚手架和实现。
@@ -33,7 +33,7 @@
    └── 否 -> 进 4
 
 4. 用户已有 PRD/设计并要实现前端或全栈吗?
-   ├── 是 -> solution-design.md(补齐缺口; 高影响不确定才确认) -> implementation-workflow.md
+   ├── 是 -> solution-design.md(补齐缺口; 高影响不确定才确认) -> implementation-planning.md -> implementation-workflow.md
    └── 否 -> 进 5
 
 5. 用户要部署/CI/CD/上线吗?
@@ -49,6 +49,7 @@
 | requirements | 按需澄清 | 把口语需求变成可验收需求 | `.opc/requirements/discussion.md` + `.opc/requirements/prd.md` | 高影响疑点已处理, PRD 可作为方案输入 |
 | solution | 按需澄清 | 定义怎么做 | `.opc/solution/discussion.md` + `.opc/solution/solution-design.md` | 后端栈/DB/部署目标等关键项明确, 方案覆盖 PRD |
 | ui-design | 按需澄清 | 形成可实现 UI | `.opc/ui/discussion.md` + 设计说明 / MasterGo 画布 | 视觉风格、语种、关键状态明确; 3A 验证或截图 |
+| implementation-plan | 按需澄清 | 把方案拆成可执行开发步骤 | `.opc/implementation-plan/index.md` + architecture/contracts/work-breakdown/verification/slices/ADR | 读取顺序、用户价值切片、技术契约和验证门禁明确 |
 | implementation | 执行 | 写成全栈项目 | 前端代码 + Node 后端 + DB schema + API 路由 | lint/typecheck/test/build/Browser QA |
 | verification | 执行 | 验证主链路和证据 | `.opc/verification/verification.md` | 命令、截图、URL、数据刷新或差异证据 |
 | deployment | 执行(部署目标不明才确认) | 发布到目标环境 | preview/prod URL、环境变量记录、回滚方式 | 可访问链接、部署状态、健康检查、访问证据 |
@@ -75,7 +76,7 @@
 
 ## 执行阶段自动推进
 
-本节也称“自动阶段轮转”契约。implementation -> verification -> deployment -> calibration 默认连续推进。
+本节也称“自动阶段轮转”契约。implementation-plan -> implementation -> verification -> deployment -> calibration 默认连续推进。
 
 1. 本阶段交付物、验收口径和下一阶段输入齐了, 立即 mark done 并进下一阶段。
 2. 不要在每个阶段末尾问“是否继续”; 只在硬阻塞或高风险副作用前提问。
@@ -84,10 +85,12 @@
 5. 用户只说“上线”但没明确 production 时, 默认走 preview/staging 可访问链接; 部署目标平台不明确时用原生选择交互确认。
 6. 某阶段被用户明确跳过, 状态写 `skipped` + 原因 + 替代证据, 继续后续阶段。
 7. 中间阶段恢复时, 先 resume state + discussion log, 再继续。
-8. `ui-design` 收敛后默认下一步是 `implementation`; 只有用户明确说“先别实现”或有 blocker 才停。
-9. 当前工作区没有现成代码仓库、`package.json` 或前端项目结构时, 按方案自动新建全栈工作区。
-10. 当前业务工作区没有 Git 仓库且不在父级仓库内时, 默认 `git init`、补 `.gitignore`, 继续推进; 没有 remote 不是停点。
-11. 缺 mock 数据(用户已选演示)、测试脚本、CI/CD 或 preview 默认配置时, 先创建最小可用版本; 缺 API key、服务器、production 授权或风格/合规关键选择时, 走原生选择交互收集, 用户选完继续。
+8. `ui-design` 收敛后默认下一步是 `implementation-plan`; 只有用户明确说“先别实现”或有 blocker 才停。
+9. `implementation-plan` 必须写 `.opc/implementation-plan/index.md` 和当前第一条 `slices/*.md`; 不能用一个巨大技术方案文档或按 frontend/backend/database/tests 机械拆分替代。
+10. 进入 `implementation` 前先读 implementation-plan 的 Read Set; 缺失则回到 `implementation-plan` 补齐, 不直接写代码。
+11. 当前工作区没有现成代码仓库、`package.json` 或前端项目结构时, 按方案自动新建全栈工作区。
+12. 当前业务工作区没有 Git 仓库且不在父级仓库内时, 默认 `git init`、补 `.gitignore`, 继续推进; 没有 remote 不是停点。
+13. 缺 mock 数据(用户已选演示)、测试脚本、CI/CD 或 preview 默认配置时, 先创建最小可用版本; 缺 API key、服务器、production 授权或风格/合规关键选择时, 走原生选择交互收集, 用户选完继续。
 
 ## 状态台账
 
@@ -112,6 +115,21 @@ python3 <skill-dir>/scripts/opc-task-state.py mark requirements done \
   --artifact ".opc/requirements/prd.md" \
   --evidence "高影响疑点已处理, PRD 可作为方案输入" \
   --next-action "进入 solution 阶段, 补齐技术方案、数据和部署计划"
+```
+
+实现规划完成:
+
+```bash
+python3 <skill-dir>/scripts/opc-task-state.py mark implementation-plan done \
+  --artifact ".opc/implementation-plan/index.md" \
+  --evidence "实现计划含 index、全局契约、用户价值切片、Read Set 和验证门禁" \
+  --next-action "按 index.md 指向的第一条 slice 进入 implementation"
+```
+
+普通用户询问进度:
+
+```bash
+python3 <skill-dir>/scripts/opc-task-state.py brief
 ```
 
 等待用户动作:
@@ -157,6 +175,7 @@ python3 <skill-dir>/scripts/opc-task-state.py validate --for-completion
 - PRD 要含目标、用户、JTBD、MoSCoW、用户故事、验收标准和 Open Questions。
 - 方案要有 2-3 个候选路径(或写明为何只有一条)、推荐理由、Planning Packet 和自我审查; 必须明示后端栈、DB、部署目标。
 - UI 设计要有信息架构、状态、语种、可访问性、性能预算和视觉验证。
+- 实现前技术规划要有 `index.md`、架构/契约/验证文件、按用户价值拆的 slices、必要 ADR 和固定 Read Set; 禁止单巨大文档或按技术层机械拆分。
 - 全栈实现要遵循现有项目约定、组件 + API routes + DB schema 拆分、TDD/regression ratchet 和浏览器验证。
 - CI/CD 要先 preview、保护 secrets、记录 release packet、stop conditions、部署状态和回滚方式。
 - 已上线需求回放要用 AAR 把差距沉淀到规则、脚本或 eval。

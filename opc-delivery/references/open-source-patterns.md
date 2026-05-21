@@ -8,7 +8,7 @@
 
 | 来源 | 借鉴模式 | OPC 落点 |
 |---|---|---|
-| Superpowers | brainstorming, writing plans, TDD/regression ratchet, systematic debugging, evidence-before-completion | 先澄清/设计再实现；方案给 2-3 个可选路径；行为可测时先写失败测试或回归用例；失败先定位根因；完成前必须有新鲜证据 |
+| Superpowers | brainstorming, writing plans, TDD/regression ratchet, systematic debugging, evidence-before-completion | 先澄清/设计/拆实现计划再实现；方案给 2-3 个可选路径；行为可测时先写失败测试或回归用例；失败先定位根因；完成前必须有新鲜证据 |
 | Anthropic skills | skill progressive disclosure, frontend design, browser validation | `SKILL.md` 只放硬规则，细节放 references；UI 要有明确审美方向；前端完成要用真实浏览器/截图/console 证据 |
 | jakenuts agent-skills | design-led development, git workflow safety | 每个功能先写用户结果句；错误、恢复、可访问性和性能预算前置；有副作用的 git/发布动作保留确认和可回滚路径 |
 | neurofoo agent-skills | JTBD, MoSCoW, premortem, red-team, AAR | 需求阶段写核心 Job 和优先级；生产前做失败预演和对抗审查；上线回放用 after-action review 沉淀规则 |
@@ -45,9 +45,10 @@ OPC Pattern Card
 - 方案结尾做自我审查: 是否覆盖 Must、是否有占位符、是否存在互相矛盾的假设、是否能直接交给实现。
 - 把工作拆成 planning packet: discovery、foundation、delivery、verification、follow-through。
 
-### UI 和实现阶段
+### UI、实现规划和实现阶段
 
 - 每个核心功能先写用户结果句: `这帮助 <用户> 通过 <机制> 达成 <结果>`。
+- 实现前先写 `.opc/implementation-plan/index.md` 和当前用户价值 slice, 不把完整开发计划塞进一个长文档。
 - 交互组件覆盖 default、hover/focus、loading、empty、error、success、disabled/permission 状态。
 - 行为可测时先补失败测试或回归用例，再写实现；没有测试基础设施时，写明原因并用浏览器场景补证据。
 - 遇到 bug 或验证失败时走 systematic debugging: 复现 -> 读错误 -> 查最近变化 -> 单一假设 -> 最小验证 -> 修根因。

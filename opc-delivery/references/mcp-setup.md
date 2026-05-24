@@ -33,7 +33,7 @@
 ## 总流程
 
 1. **先确认当前正在运行的宿主 CLI**:能从当前会话判断 Codex / Claude Code / Cursor 时,
-   直接运行 `scripts/check-mcp-config.py --host codex|claude|cursor`;只有当前会话上下文
+   直接运行 `scripts/mandatory/check-mcp-config.py --host codex|claude|cursor`;只有当前会话上下文
    不明确时才运行 `--host auto`,脚本仍无法判断时再问用户,不要靠其它宿主的配置猜;
 2. 只检查当前宿主的 MCP 配置文件,只汇报 token 是否存在/是否像占位符,不要打印明文 token;
 3. 再检测工具列表里是否存在 `mcp__codify__*` 和 `mcp__mastergo-magic-mcp__*`;
@@ -75,16 +75,16 @@
 优先用脚本并显式传当前宿主:
 
 ```bash
-python3 <skill-dir>/scripts/check-mcp-config.py --host codex
-python3 <skill-dir>/scripts/check-mcp-config.py --host claude
-python3 <skill-dir>/scripts/check-mcp-config.py --host cursor
-python3 <skill-dir>/scripts/check-mcp-config.py --host codex --check-network
+python3 <skill-dir>/scripts/mandatory/check-mcp-config.py --host codex
+python3 <skill-dir>/scripts/mandatory/check-mcp-config.py --host claude
+python3 <skill-dir>/scripts/mandatory/check-mcp-config.py --host cursor
+python3 <skill-dir>/scripts/mandatory/check-mcp-config.py --host codex --check-network
 ```
 
 如果当前宿主实在无法判断,再用 auto 兜底:
 
 ```bash
-python3 <skill-dir>/scripts/check-mcp-config.py --host auto
+python3 <skill-dir>/scripts/mandatory/check-mcp-config.py --host auto
 ```
 
 | 宿主 | 检查位置 |
@@ -290,7 +290,7 @@ Codify MCP 支持两类 URL，具体参数名以当前包 README / 官方文档�
 
 ```bash
 curl -i http://127.0.0.1:9999/
-python3 <skill-dir>/scripts/check-mcp-config.py --host codex --check-network
+python3 <skill-dir>/scripts/mandatory/check-mcp-config.py --host codex --check-network
 ```
 
 Codex TOML 示例(按实际包参数调整):
@@ -302,7 +302,7 @@ args = ["-y", "<codify-mcp-pkg>", "--url=http://127.0.0.1:9999"]
 env = { CODIFY_ACCESS_KEY = "<USER_CODIFY_KEY>" }
 ```
 
-`scripts/check-mcp-config.py` 会识别 `--url=...`、`CODIFY_MCP_URL`，并标记
+`scripts/mandatory/check-mcp-config.py` 会识别 `--url=...`、`CODIFY_MCP_URL`，并标记
 `url_type` 为 `remote` / `local` / `missing` / `custom`。本地 URL 不默认联网探测；
 只有加 `--check-network` 时才会尝试访问。
 

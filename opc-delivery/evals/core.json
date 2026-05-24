@@ -1,0 +1,287 @@
+{
+  "skill_name": "opc-delivery",
+  "description": "Core evals - high-frequency happy paths + 关键契约 (autonomy / handoff / evidence). 日常迭代跑这个。",
+  "evals": [
+    {
+      "id": 1,
+      "name": "restore-entry-from-rich-url",
+      "prompt": "我想用 mastergo 把设计稿转代码，设计稿地址是 https://mastergo.com/file/193097526299871?fileOpenFrom=home&page_id=M&layer_id=2%3A77196",
+      "expected_output": "应该:(a) 先 preflight 检查当前宿主是否已配 MasterGo MCP——未配置 / token 是占位时走 mcp-setup 流程问用户索取自己的 token（绝不复用 demo token），并告知 token 路径是 MasterGo → 个人设置 → 安全设置 → 个人访问令牌；(b) 解析 URL 时只取 layer_id，**忽略 page_id 和 fileOpenFrom**，得出 fileId=193097526299871、layerId=2:77196、contentId=193097526299871-2-77196；(c) MCP 就绪后继续走还原流程（framework 探嗅 → DSL → D2C → JSX → 验证）。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "fileId",
+          "layerId",
+          "2:77196",
+          "preflight"
+        ],
+        "must_not_include": [
+          "page_id 当成 layerId",
+          "demo token",
+          "<USER_MASTERGO_TOKEN>"
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "name": "codify-design-from-scratch",
+      "prompt": "帮我设计一个专业的企业级的AI多智能体协作平台的设计稿",
+      "expected_output": "应该路由到 Codify 设计路径(不是 Magic 还原),并按 preflight gate 顺序处理:(a) 先确认在哪个 MasterGo 文件 / 页面上创建——用户没给上下文时**必须问**,不能默默 fallback 到某个文件;(b) 形成 MasterGo 设计 Gate Card 和覆盖 brief,不确定时用选择题澄清且保留自定义 / type something,不能把需求擅自缩成一个 1440 首页或首屏;(c) 组件库策略先读本地 .codify/library/catalog.json;本地无快照时让用户授权远端查库,授权后再 get_library_list + get_component_info 落盘;(d) 不能因为用户没指定就 useComponentLibrary=false,也不能用 '避免卡在库选择上' 作为跳过理由;(e) 给出 2-3 个简短设计方向 brief 让用户确认,或让用户明确授权 '你决定';(f) 必要时接力 frontend-design / web-artifacts-builder / theme-factory 等当前可发现的设计 skill 加工出视觉关键词,再喂给 Codify design 工具,不是把用户原话直接喂进去;(g) 写入前过 codify-preflight.py,设计完用 get_design_diff 验证。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "Gate Card",
+          "library-snapshot",
+          "团队组件库",
+          "覆盖 brief",
+          "设计方向",
+          "自定义",
+          "Codify"
+        ],
+        "must_not_include": [
+          "useComponentLibrary=false",
+          "直接 design(",
+          "为了避免卡住",
+          "一个 1440 首页"
+        ]
+      }
+    },
+    {
+      "id": 18,
+      "name": "missing-codify-mcp-no-local-doc-fallback",
+      "prompt": "帮我设计一个专业的企业级的AI多智能体协作平台的mastergo设计稿。当前会话没有 Codify/MasterGo 写入 MCP 工具。",
+      "expected_output": "应该判定 MasterGo 画布设计任务被阻塞，进入 mcp-setup 流程：检查当前宿主配置，说明缺少 Codify MCP / token / 会话重启中的哪一项，按用户行动契约给出配置步骤，并说明配置完成后继续推送到 MasterGo。不能创建本地 Markdown 设计说明、HTML 原型、Figma 稿或只给 Codify prompt 当交付，也不能说已完成。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "阻塞",
+          "mcp-setup",
+          "Codify MCP",
+          "MasterGo"
+        ],
+        "must_not_include": [
+          "docs/",
+          "Markdown 设计说明",
+          "可直接粘到 Codify",
+          "已完成"
+        ]
+      }
+    },
+    {
+      "id": 19,
+      "name": "delivery-contract-no-substitute-artifacts",
+      "prompt": "用 mastergo 帮我做设计、还原和同步。如果某一步工具不可用，你就先给我别的可交付物。",
+      "expected_output": "应该明确拒绝把其它产物当成当前路径完成：Codify 设计必须推送 MasterGo，Magic 还原必须产出并验证可运行前端，更新流必须应用增量并复验，配置流必须当前宿主加载成功；工具不可用时进入阻塞/配置/用户行动流程，不能用 Markdown、HTML mock、Figma、prompt、DSL/D2C 或 diff 报告替代。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "交付物",
+          "阻塞",
+          "MasterGo",
+          "可运行前端"
+        ],
+        "must_not_include": [
+          "先给你别的可交付物",
+          "替代完成"
+        ]
+      }
+    },
+    {
+      "id": 22,
+      "name": "d2c-raw-output-not-restoration-complete",
+      "prompt": "MasterGo Magic 已经把 DSL、D2C HTML 和资源都拉到 .mg 目录了。",
+      "expected_output": "应该说明 DSL/D2C/资源落盘只是中间产物，不是还原完成。必须继续选择企业级实现或快速复刻，生成可运行前端项目，并按 3B 截图/API/用户确认标准验证后才能说完成。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "中间产物",
+          "可运行前端",
+          "3B",
+          "验证"
+        ],
+        "must_not_include": [
+          "D2C 拉取成功，完成",
+          ".mg 目录完成"
+        ]
+      }
+    },
+    {
+      "id": 30,
+      "name": "ui-copy-follows-chat-language",
+      "prompt": "帮我在 MasterGo 里设计一个专业的企业级 AI 多智能体协作平台设计稿。",
+      "expected_output": "应该判断当前聊天主语言是中文，并把页面 UI 文案语种写进覆盖 brief 和 Codify requirement。导航、标题、按钮、表头、状态、空态、审批、审计、监控和日志等业务文案应使用简体中文；MasterGo、Codify、AI、Agent、API、MCP、D2C、SLA 等技术词可以保留原文。不能生成整页英文 Dashboard/Agents/Governance/Audit 文案。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "UI 文案语种",
+          "简体中文",
+          "Codify requirement",
+          "技术词"
+        ],
+        "must_not_include": [
+          "英文 UI",
+          "Dashboard 文案",
+          "Agents/Governance/Audit 全英文"
+        ]
+      }
+    },
+    {
+      "id": 46,
+      "name": "requirements-prd-before-ui",
+      "prompt": "Use $opc-delivery; 我只有一句话需求：做一个数据看板，帮我把后面都做完。",
+      "expected_output": "应该先进入需求阶段，通过选择题澄清范围或在用户授权时选择完整上线需求，产出 PRD/轻量 PRD、用户故事、核心流程、数据和验收标准；不能在 PRD 缺失时直接生成 MasterGo 设计稿或前端代码。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "PRD",
+          "用户故事",
+          "验收标准",
+          "选择题",
+          "Open Questions"
+        ],
+        "must_not_include": [
+          "直接 design",
+          "直接写 React"
+        ]
+      }
+    },
+    {
+      "id": 47,
+      "name": "solution-design-before-implementation",
+      "prompt": "Use $opc-delivery; PRD 已经确认了，现在开始实现。",
+      "expected_output": "应该先确认或生成方案文档，覆盖信息架构、UI 策略、技术方案、API/数据、测试策略和部署计划，然后进入 implementation-plan 生成可分片读取的技术实现计划，再进入实现；如果用户明确跳过，也要保留轻量方案和风险记录。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "solution-design.md",
+          "信息架构",
+          "API",
+          "测试策略",
+          "部署计划",
+          "implementation-plan"
+        ],
+        "must_not_include": [
+          "没有方案也没关系",
+          "直接实现所有东西"
+        ]
+      }
+    },
+    {
+      "id": 56,
+      "name": "professional-completion-requires-evidence",
+      "prompt": "Use $opc-delivery; PRD、设计和代码都差不多弄完了，帮我判断能不能对外说已经专业交付完成。",
+      "expected_output": "应该读取专业完成定义，对业务目标、方案合理性、UI/体验、工程实现、验证、发布、风险和校准逐项核对证据；缺证据的维度必须标成 pending/blocked/skipped with reason，不能用工作量、文件数量、命令成功或主观满意替代完成结论。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "专业完成定义",
+          "业务目标",
+          "方案合理性",
+          "UI/体验",
+          "工程实现",
+          "验证",
+          "发布",
+          "pending",
+          "blocked"
+        ],
+        "must_not_include": [
+          "差不多完成",
+          "做了很多所以完成"
+        ]
+      }
+    },
+    {
+      "id": 57,
+      "name": "full-opc-auto-advances-until-release",
+      "prompt": "Use $opc-delivery; 一个业务同学只说想做客户续费预警工具，从需求到上线都交给你，没说停就继续。",
+      "expected_output": "应该把这类请求视为完整 OPC 连续交付，内部阶段记录后自动进入需求、方案、UI、implementation-plan、实现、验证和部署链路；每阶段产物作为下一阶段输入，不把 PRD/方案/设计/实现计划结束当成停点，也不反复问是否继续。只有 blocker、高风险副作用或 production gate 才暂停；未明确 production 时应推进到 preview/staging 可访问链接并保留发布证据。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "自动",
+          "继续",
+          "需求",
+          "方案",
+          "UI",
+          "implementation-plan",
+          "实现",
+          "验证",
+          "部署",
+          "preview",
+          "blocked"
+        ],
+        "must_not_include": [
+          "等你确认后再继续",
+          "PRD 完成就结束",
+          "是否继续下一步"
+        ]
+      }
+    },
+    {
+      "id": 63,
+      "name": "handoff-structured-turn-close",
+      "prompt": "Use $opc-delivery; 实现阶段测试过了，但部署还没做，帮我汇报当前进展。",
+      "expected_output": "应该按收尾契约输出清晰 hand-off：包含 [已完成]、[证据]、[不确定项 + 我的处理] 和 [下一步]；如果需要用户拍板，当前 AI 宿主（Codex、Claude Code、OMX 或其它 runner）有真实结构化选择/确认交互时必须使用原生交互并说明推荐默认和自定义入口，只有不可用时才降级为 A/B/C 文本选项。不能只列“剩余风险”，不能用“你看呢/你定吧/看你的”这类开放式问句，不能缺少显式下一步。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "[已完成]",
+          "[证据]",
+          "[不确定项 + 我的处理]",
+          "[下一步]",
+          "我现在"
+        ],
+        "must_not_include": [
+          "剩余风险:",
+          "你看呢",
+          "你定吧",
+          "看你的"
+        ]
+      }
+    },
+    {
+      "id": 67,
+      "name": "low-risk-details-do-not-interrupt-user",
+      "prompt": "Use $opc-delivery; 方案已定，做实现时文件名、目录、helper 拆法你自己看着办。",
+      "expected_output": "应该把文件名、目录、helper 拆法识别为低风险工程细节并自治处理，记录默认处理即可继续实现；不应该打开选择框或要求用户拍板。只有密钥、生产发布、远端 push、付费资源、破坏性写入、合规或品牌硬约束等高影响事项才暂停。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "自治",
+          "低风险",
+          "实现",
+          "继续"
+        ],
+        "must_not_include": [
+          "文件名需要你拍板",
+          "helper 拆法需要你确认",
+          "等你选择目录"
+        ]
+      }
+    },
+    {
+      "id": 70,
+      "name": "implementation-plan-required-before-code",
+      "prompt": "Use $opc-delivery; PRD、方案和 UI 都定了，现在开始写代码。",
+      "expected_output": "应该先进入 implementation-plan 阶段，生成 .opc/implementation-plan/index.md、architecture.md、contracts.md、work-breakdown.md、verification.md、slices/<slice-id>.md 和必要 ADR；只有当前 slice 的 Read Set 与完成门禁齐全后才进入 implementation。极小改动或用户明确跳过时才可 skipped，并记录风险。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "implementation-plan",
+          ".opc/implementation-plan/index.md",
+          "architecture.md",
+          "contracts.md",
+          "work-breakdown.md",
+          "verification.md",
+          "slices",
+          "Read Set",
+          "ADR"
+        ],
+        "must_not_include": [
+          "直接写代码",
+          "没有计划也可以开始"
+        ]
+      }
+    }
+  ]
+}

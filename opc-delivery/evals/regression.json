@@ -123,7 +123,7 @@
       "id": 9,
       "name": "no-stale-tool-or-optional-html-parser",
       "prompt": "MasterGo MCP 报错了，你需要先查官方文档再指导我。",
-      "expected_output": "应该使用 scripts/fetch-doc-snippet.py 或 curl + stdlib 文本提取查官方文档，不应依赖可选第三方 HTML 转文本包；需要截图时应使用当前宿主 Browser/Playwright 能力或 scripts/screenshot.mjs，不应引用不存在的固定工具名。",
+      "expected_output": "应该使用 scripts/helpers/fetch-doc-snippet.py 或 curl + stdlib 文本提取查官方文档，不应依赖可选第三方 HTML 转文本包；需要截图时应使用当前宿主 Browser/Playwright 能力或 scripts/helpers/screenshot.mjs，不应引用不存在的固定工具名。",
       "files": [],
       "checks": {
         "must_include": [

@@ -174,8 +174,7 @@ curl -sI http://localhost:3000  # HTTP 200 仅是开始, 不是完成
 ### 3B-1.3 Playwright 自动截图
 
 ```bash
-cp <skill-dir>/scripts/helpers/screenshot.mjs scripts/screenshot.mjs
-node scripts/screenshot.mjs --base http://localhost:3000 \
+node <skill-dir>/scripts/helpers/screenshot.mjs --base http://localhost:3000 \
   --routes /,/v2,/portal,/leave-with --out screenshots
 ```
 

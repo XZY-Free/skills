@@ -42,7 +42,7 @@ NOISE_SUFFIXES = {".pyc"}
 BANNED = {
     "html2text": "Use scripts/fetch-doc-snippet.py instead of optional html2text.",
     "AskUserQuestion": "Ask directly or use the host's available user-input mechanism.",
-    "webapp-testing": "Use Browser/Playwright guidance or scripts/screenshot.mjs.",
+    "webapp-testing": "Use Browser/Playwright guidance or scripts/helpers/screenshot.mjs.",
     "ui-ux-pro-max": "Reference only currently discoverable design skills.",
 }
 REQUIRED_EVAL_NAMES = {

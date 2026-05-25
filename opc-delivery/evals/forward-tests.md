@@ -84,7 +84,7 @@ gates run after publishing to Codex.
 ```bash
 python3 opc-delivery/scripts/check-release-env.py
 python3 scripts/validate-opc-delivery-skill.py --source opc-delivery
-python3 opc-delivery/scripts/check-skill-rules.py
+python3 opc-delivery/scripts/dev/check-skill-rules.py
 python3 scripts/check-evals.py --skill opc-delivery
 ```
 

@@ -66,7 +66,7 @@
 - 用户已重启或当前会话工具已连通;
 - 仍需重启时只能说"配置已写入,待重启加载",不能说 MCP 已可用。
 - 重启 / reconnect 后继续原任务时,先复述原始目标;若是设计任务,恢复
-  [design-scope.md](design-scope.md) 的覆盖 brief,再继续写入或验证。
+  [05-mastergo.md](05-mastergo.md#mastergo-设计-gate-card) 的覆盖 brief,再继续写入或验证。
 
 ### 配置文件快速检查
 
@@ -316,5 +316,5 @@ env = { CODIFY_ACCESS_KEY = "<USER_CODIFY_KEY>" }
   团队库相关操作需要文件已订阅团队库;
 - 报权限错先确认这两个层面,再确认 token 本身是否过期。
 
-详见 [troubleshooting-magic.md](troubleshooting-magic.md) 与
-[troubleshooting-codify.md](troubleshooting-codify.md) 的权限错误小节。
+详见 [troubleshooting.md](troubleshooting.md#magic-排障) 与
+[troubleshooting.md](troubleshooting.md#codify-排障) 的权限错误小节。

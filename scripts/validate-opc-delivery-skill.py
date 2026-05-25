@@ -131,14 +131,14 @@ def check_script_references(source: Path, errors: list[str]) -> None:
         text = path.read_text(encoding="utf-8", errors="ignore")
         if re.search(r"\bpython\s+(?:scripts/|<skill-dir>/scripts/)", text):
             errors.append(f"{rel(path)} must use python3 when invoking bundled scripts")
-        for match in re.finditer(r"scripts/([A-Za-z0-9_.-]+)", text):
+        for match in re.finditer(r"(?:<skill-dir>/)?scripts/([A-Za-z0-9_./-]+\.(?:py|mjs|sh))", text):
             script = source / "scripts" / match.group(1)
             if not script.exists():
                 errors.append(f"{rel(path)} references missing script {match.group(0)}")
 
 
 def check_executable_scripts(source: Path, errors: list[str]) -> None:
-    paths = [*sorted((source / "scripts").iterdir()), *sorted((REPO_ROOT / "scripts").glob("*.py"))]
+    paths = [*sorted((source / "scripts").rglob("*")), *sorted((REPO_ROOT / "scripts").glob("*.py"))]
     for path in paths:
         if not path.is_file():
             continue
@@ -161,7 +161,7 @@ def check_noise(source: Path, errors: list[str]) -> None:
 
 def check_python_syntax(source: Path, errors: list[str]) -> None:
     files = [
-        *sorted((source / "scripts").glob("*.py")),
+        *sorted((source / "scripts").rglob("*.py")),
         REPO_ROOT / "scripts" / "publish-opc-delivery-skill.py",
         REPO_ROOT / "scripts" / "check-evals.py",
         Path(__file__).resolve(),
@@ -176,7 +176,7 @@ def check_python_syntax(source: Path, errors: list[str]) -> None:
 
 
 def check_node_syntax(source: Path, errors: list[str]) -> None:
-    files = sorted((source / "scripts").glob("*.mjs"))
+    files = sorted((source / "scripts").rglob("*.mjs"))
     if not files:
         return
     node = shutil.which("node")
@@ -188,7 +188,7 @@ def check_node_syntax(source: Path, errors: list[str]) -> None:
 
 
 def check_shell_syntax(source: Path, errors: list[str]) -> None:
-    for path in sorted((source / "scripts").glob("*.sh")):
+    for path in sorted((source / "scripts").rglob("*.sh")):
         run_command(["bash", "-n", str(path)], errors)
 
 
@@ -275,7 +275,7 @@ def main() -> int:
         check_python_syntax(source, errors)
         check_node_syntax(source, errors)
         check_shell_syntax(source, errors)
-        run_command(["python3", str(source / "scripts" / "check-skill-rules.py")], errors)
+        run_command(["python3", str(source / "scripts" / "dev" / "check-skill-rules.py")], errors)
         run_command(["python3", str(REPO_ROOT / "scripts" / "check-evals.py"), "--root", str(REPO_ROOT), "--skill", source.name], errors)
         check_publish(source, installed_targets, errors)
 

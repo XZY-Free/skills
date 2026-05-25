@@ -203,7 +203,142 @@ def check_decision_block(text: str) -> list[str]:
     return errors
 
 
-def lint(text: str, phase: str = "") -> list[str]:
+# === Productization Gate Checks (filesystem-level) ===
+
+
+def is_productization_skipped(section_text: str) -> bool:
+    """方案阶段产品姿态门禁是否标记为跳过。"""
+    if not section_text:
+        return False
+    lowered = section_text.lower()
+    for marker in ("本阶段跳过", "已 skipped", "skipped:", "status: skipped"):
+        if marker.lower() in lowered:
+            return True
+    return False
+
+
+def check_capability_table(section_text: str) -> list[str]:
+    """从产品姿态门禁 section 抽升降级表, 验证 ≤5 硬卡和 ≥30% 软约束。"""
+    errors: list[str] = []
+    rows: list[tuple[str, str]] = []
+    in_table = False
+    for line in section_text.splitlines():
+        if "曝光层级" in line and "|" in line:
+            in_table = True
+            continue
+        if in_table:
+            if not line.strip().startswith("|"):
+                in_table = False
+                continue
+            cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            if len(cells) < 2:
+                continue
+            if "---" in cells[0]:
+                continue
+            capability = cells[0]
+            level = cells[1]
+            if capability and level and "能力" not in capability:
+                rows.append((capability, level))
+
+    if not rows:
+        errors.append(
+            "[productization] 升降级表为空或解析不到 (需要含'能力'列和'曝光层级'列的 markdown 表)"
+        )
+        return errors
+
+    high = sum(1 for _, lvl in rows if "高曝光" in lvl)
+    low_or_ctx = sum(1 for _, lvl in rows if "低曝光" in lvl or "上下文" in lvl)
+    total = len(rows)
+
+    if high > 5:
+        errors.append(f"[productization] 升降级表高曝光数 = {high}, 超过硬卡 ≤5")
+
+    low_ratio = low_or_ctx / total if total else 0
+    if low_ratio < 0.3 and "低占比理由" not in section_text:
+        errors.append(
+            f"[productization] 升降级表低曝光+仅上下文比例 = {low_ratio:.0%} (< 30%), "
+            "必须写'低占比理由'说明 (软约束)"
+        )
+
+    return errors
+
+
+def check_solution_productization_gate(source_dir: Path) -> list[str]:
+    """方案阶段产品姿态门禁检查 (filesystem-level)。"""
+    errors: list[str] = []
+
+    design = source_dir / ".opc" / "solution" / "solution-design.md"
+    if not design.is_file():
+        return []  # 方案文档都没有就不是 productization 的问题
+
+    design_text = design.read_text(encoding="utf-8", errors="ignore")
+
+    if "## 产品姿态门禁" not in design_text:
+        errors.append(
+            "[productization] solution-design.md 缺 '## 产品姿态门禁' section "
+            "(方案阶段强制; 不适用时显式写 'Status: skipped' + 原因)"
+        )
+        return errors
+
+    section_match = re.search(
+        r"##\s*产品姿态门禁(.*?)(?=\n## |\Z)",
+        design_text,
+        re.DOTALL,
+    )
+    section = section_match.group(1) if section_match else ""
+
+    if is_productization_skipped(section):
+        return []
+
+    competitor = source_dir / ".opc" / "solution" / "competitor-survey.md"
+    if not competitor.is_file() or not competitor.read_text(encoding="utf-8").strip():
+        errors.append("[productization] 缺 .opc/solution/competitor-survey.md (或为空)")
+
+    for required_sub in ("产品姿态", "首屏主信号", "升降级"):
+        if required_sub not in section:
+            errors.append(f"[productization] 产品姿态门禁 section 缺 '{required_sub}' 子部分")
+
+    errors.extend(check_capability_table(section))
+
+    return errors
+
+
+def check_implementation_product_surface(source_dir: Path) -> list[str]:
+    """实现阶段每个 UI slice 必填 Product Surface section (filesystem-level)。"""
+    errors: list[str] = []
+
+    # 方案阶段已 skip productization → 实现阶段也 skip
+    design = source_dir / ".opc" / "solution" / "solution-design.md"
+    if design.is_file():
+        design_text = design.read_text(encoding="utf-8", errors="ignore")
+        match = re.search(
+            r"##\s*产品姿态门禁(.*?)(?=\n## |\Z)",
+            design_text,
+            re.DOTALL,
+        )
+        if match and is_productization_skipped(match.group(1)):
+            return []
+
+    slices_dir = source_dir / ".opc" / "implementation-plan" / "slices"
+    if not slices_dir.is_dir():
+        return []  # implementation-plan 不存在不在本检查范围
+
+    for slice_file in sorted(slices_dir.glob("*.md")):
+        content = slice_file.read_text(encoding="utf-8", errors="ignore")
+        has_ui = "## UI" in content
+        has_surface = "## Product Surface" in content
+        if has_ui and not has_surface:
+            errors.append(
+                f"[productization] {slice_file.name} 有 ## UI 但缺 ## Product Surface section"
+            )
+
+    return errors
+
+
+# === End Productization Gate Checks ===
+
+
+def lint(text: str, phase: str = "", source_dir: Path | None = None) -> list[str]:
     errors: list[str] = []
     errors.extend(check_required(text))
     errors.extend(check_internal_progress_table(text))
@@ -212,6 +347,11 @@ def lint(text: str, phase: str = "") -> list[str]:
     errors.extend(check_decision_block(text))
     if phase:
         errors.extend(check_phase_specific(text, phase))
+    if phase and source_dir:
+        if phase == "solution":
+            errors.extend(check_solution_productization_gate(source_dir))
+        elif phase == "implementation":
+            errors.extend(check_implementation_product_surface(source_dir))
     return errors
 
 
@@ -223,6 +363,12 @@ def main() -> int:
         default="",
         choices=("", "intake", "requirements", "solution", "ui-design", "implementation-plan", "implementation", "verification", "deployment", "calibration"),
         help="可选: 当前阶段名, 用于阶段特定检查",
+    )
+    parser.add_argument(
+        "--source-dir",
+        type=Path,
+        default=Path.cwd(),
+        help="项目根目录, 默认当前目录。用于 phase=solution/implementation 的产品化门禁文件级检查",
     )
     args = parser.parse_args()
 
@@ -238,7 +384,7 @@ def main() -> int:
         print("ERROR: empty handoff text", file=sys.stderr)
         return 2
 
-    errors = lint(text, phase=args.phase)
+    errors = lint(text, phase=args.phase, source_dir=args.source_dir)
 
     if errors:
         print("❌ 收尾契约校验未通过:", file=sys.stderr)

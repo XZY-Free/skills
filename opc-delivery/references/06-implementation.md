@@ -81,6 +81,7 @@
 - 当前 slice 指针
 - 影响全局实现的 ADR 列表
 - 文件拆分和恢复提示
+- IA Map: 自动聚合所有 slice 的 Product Surface, 出 markdown 表(脚本 ia-map-aggregator.py 生成, 不手维护)
 
 **`architecture.md`**:
 - C4 风格 context / container / component 摘要
@@ -207,6 +208,16 @@
 - 文案语种:
 - 设计质量 brief: purpose / tone / differentiation / constraints / anti-generic guardrails
 
+## Product Surface
+- 仅 UI slice 必填; 后端/基建/数据迁移 slice 写 "N/A (backend / infra)" 跳过
+- 入口位置: 一级导航 / 首页主区 / 二级 tab / 详情页 / 设置子项 / 上下文操作
+- 对应升降级表能力: <能力名> (查 solution-design.md 的能力升降级表)
+- 升降级表标的层级: <高曝光 / 中曝光 / 低曝光 / 仅上下文>
+- 实际实现层级: <一级 / 首页 / 二级 / ...>
+- 一致性: ✓ 一致 / ⚠️ 偏离(原因: <一句>) / ❌ 新能力(升降级表没覆盖, 现场补判断并追加到 solution-design.md)
+- 多个能力时, 每个能力一行
+- 详见 [03b-productization.md#能力升降级](03b-productization.md#能力升降级)
+
 ## API
 - METHOD /api/<resource>
 - Input / Output / Error
@@ -269,8 +280,9 @@ Accepted / Proposed / Superseded
 - 全局契约文件覆盖架构、API/DB/权限/环境变量和验证
 - `work-breakdown.md` 按用户价值切片
 - `parallelization.md` 存在, 或轻量任务写明无需并行的原因
-- 每个 slice 有 Read Set、Context Budget、Parallelization、UI/API/Data/Files/Steps/Verify/Checkpoint
+- 每个 slice 有 Read Set、Context Budget、Parallelization、UI/Product Surface/API/Data/Files/Steps/Verify/Checkpoint
 - UI 相关 slice 已带入设计质量 brief 或明确说明严格跟随 MasterGo 原稿
+- UI slice 的 Product Surface 一致性 = ✓ 或 ⚠️(有理由); ❌ 矛盾态必须先处理(回方案更新升降级表或现场补判断追加到 solution-design.md)
 - 高影响决策已写入 `decisions/ADR-xxxx.md`
 - 单文件未超过拆分阈值, 或已拆分并更新索引
 - `opc-task-state.py mark implementation-plan done` 的 evidence 指向 `index.md` 和当前第一条 slice
@@ -479,7 +491,11 @@ python3 <skill-dir>/scripts/mandatory/opc-task-state.py checkpoint \
 
 ## 前端设计质量执行
 
-实现新 UI 或非像素级还原时, 把 [04-solution.md](04-solution.md#体验设计质量门禁) 落到代码里:
+实现新 UI 或非像素级还原时:
+
+**Product Surface 一致性**(先做): 实际放置位置和 solution-design.md 的升降级表对账; 不一致写理由到 slice 的 Product Surface 字段, 矛盾态先回方案补。详见 [03b-productization.md#能力升降级](03b-productization.md#能力升降级)。
+
+**设计质量 brief 兑现**: 把 [04-solution.md](04-solution.md#体验设计质量门禁) 落到代码里:
 
 - 全局样式或 design tokens 表达当前 tone: 字体、色彩、空间、radius、shadow、motion
 - 组件变体覆盖 default / loading / empty / error / success / disabled / permission

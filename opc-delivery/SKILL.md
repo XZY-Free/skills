@@ -9,7 +9,13 @@ description: "OPC 一人公司式产品交付工作流。把粗糙业务目标�
 
 **opc-delivery 是自治推进的成品交付代理。**
 
-默认行为: 业务目标 → 真实可登录、可操作、数据持久化的程序 → 证据闭合。
+默认行为: 业务目标 → 成品 → 证据闭合。
+
+成品 = 同时满足:
+- **工程成立**: 真实可登录、可操作、数据持久化
+- **产品成立**: 产品姿态清晰, IA 主次正确(不是工程模块直接翻译), 不像后台 / 内部工具 / demo
+
+两者同等地位, 缺一不算完成。
 
 只有遇到真实阻塞才停(API key、token、第三方账号、production 发布、付费资源、破坏性写入)。
 
@@ -61,6 +67,9 @@ description: "OPC 一人公司式产品交付工作流。把粗糙业务目标�
 | token 安全 | token 是用户资产, 不复用其它会话, 配置成功后建议 revoke | [10-contracts.md#token-安全契约](references/10-contracts.md#token-安全契约) |
 | UI 文案语种 | 跟随用户指定/素材/聊天主语言; 中文场景默认简体中文 UI | [03-requirements.md#ui-文案语种契约](references/03-requirements.md#ui-文案语种契约) |
 | UI 设计质量 | 写 purpose/tone/differentiation/constraints/anti-generic guardrails | [04-solution.md#体验设计质量门禁](references/04-solution.md#体验设计质量门禁) |
+| 产品姿态门禁 | 方案阶段 4 张产物: competitor-survey / 姿态判断 / 首屏主信号 / 升降级表; 高曝光 ≤5 硬卡 | [04-solution.md#产品姿态门禁](references/04-solution.md#产品姿态门禁) |
+| Product Surface | UI slice 必填: 入口位置 / 对应能力 / 升降级一致性 | [06-implementation.md#slice-模板](references/06-implementation.md#slice-模板) |
+| 3C 产品成立验收 | 完整 OPC + 有方案产物必跑: 姿态/首屏/升降级/竞品对账 + 独立 reviewer | [07-verification.md#3c-产品成立验收](references/07-verification.md#3c-产品成立验收) |
 | 自治补齐 | 缺 Git/脚手架/后端/DB/CI 自动补齐; 缺凭证才停 | [02-clarification.md#自治补齐矩阵](references/02-clarification.md#自治补齐矩阵) |
 | 实现规划 | 完整 OPC 必写 implementation-plan/index.md + slices + ADR + parallelization | [06-implementation.md#part-1-implementation-plan实现前技术规划](references/06-implementation.md#part-1-implementation-plan实现前技术规划) |
 
@@ -70,12 +79,12 @@ description: "OPC 一人公司式产品交付工作流。把粗糙业务目标�
 0. OPC intake / route                             → 01-routing.md
 0.5 高影响疑点澄清(按需)                          → 02-clarification.md
 1. 需求阶段(PRD + JTBD + MoSCoW)                  → 03-requirements.md
-2. 方案阶段(架构/数据/部署 + 设计质量 brief)      → 04-solution.md
+2. 方案阶段(架构/数据/部署 + 产品姿态门禁 + 设计质量 brief) → 04-solution.md
 3A. MasterGo/Codify UI 设计                       → 05-mastergo.md
 3B. MasterGo Magic 还原                           → 05-mastergo.md
 4. 实现前技术规划(index + slices + parallel)     → 06-implementation.md
 5. 前端 + Node 后端实现 + API 接入                → 06-implementation.md
-6. 验证(3A 设计完 / 3B 还原实现完 + update flow) → 07-verification.md
+6. 验证(3A 设计完 / 3B 还原实现完 / 3C 产品成立 + update flow) → 07-verification.md
 7. CI/CD 和部署                                   → 08-deployment.md
 8. 已上线需求回放校准                             → 08-deployment.md
 ```
@@ -89,7 +98,10 @@ description: "OPC 一人公司式产品交付工作流。把粗糙业务目标�
 | [01-routing.md](references/01-routing.md) | 每个新任务入口、阶段路由、MasterGo 子任务路由(Codify vs Magic) |
 | [02-clarification.md](references/02-clarification.md) | 高影响疑点澄清、问/不问白名单、自治补齐矩阵、Git/后端启动规则 |
 | [03-requirements.md](references/03-requirements.md) | 需求阶段、PRD、JTBD/MoSCoW、UI 文案语种契约、复杂产品覆盖模板 |
-| [04-solution.md](references/04-solution.md) | 方案阶段、全栈技术默认、UI 方案门禁、体验设计质量门禁 |
+| [03b-productization.md](references/03b-productization.md) | 产品化机制通用原则: 姿态分类、IA 主次、首屏信号、能力升降级、与成熟产品对比 |
+| [03c-content-products.md](references/03c-content-products.md) | 内容消费类品类骨架(reading / video / feed / chat / 学习材料) |
+| [03d-saas-workspace.md](references/03d-saas-workspace.md) | SaaS / 工作台类品类骨架 |
+| [04-solution.md](references/04-solution.md) | 方案阶段、全栈技术默认、UI 方案门禁、产品姿态门禁、体验设计质量门禁 |
 | [05-mastergo.md](references/05-mastergo.md) | Codify 画布设计 + Magic D2C 还原(企业级/快速复刻双模式) |
 | [06-implementation.md](references/06-implementation.md) | 实现规划(implementation-plan)+ 全栈实现 + API 接入 |
 | [07-verification.md](references/07-verification.md) | 3A 设计验证 + 3B 还原实现验证 + 渲染补丁 + 设计稿更新流 |

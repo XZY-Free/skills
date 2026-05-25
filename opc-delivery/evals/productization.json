@@ -1,0 +1,271 @@
+{
+  "skill_name": "opc-delivery",
+  "description": "Productization evals - 产品成立(姿态/IA/首屏/升降级)专题。验证 skill 能把工程后台味的 UI 推到成熟上线产品姿态。和 core/regression 同级。",
+  "evals": [
+    {
+      "id": 101,
+      "name": "engineering-passes-but-product-fails",
+      "prompt": "Use $opc-delivery; 我做了一个客服平台, 前后端跑通了, 工单可登录可操作, 数据能存进 DB, 部署上 preview 了。给我盖章完成。",
+      "expected_output": "应该说明 '能登录 / 能操作 / 数据持久化' 只是 '工程成立', 不等于 '产品成立'。必须按北极星的双极并列(工程成立 + 产品成立)同时收口: 检查 .opc/solution/solution-design.md 是否含产品姿态门禁 4 张产物(竞品调研 / 产品姿态 / 首屏主信号 / 升降级表), 检查 .opc/verification/3c-product-soundness.md 是否已跑通 3C 对账。任一缺失就不算完成。不能仅凭工程层证据宣称交付。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "工程成立",
+          "产品成立",
+          "产品姿态门禁",
+          "升降级表",
+          "3C"
+        ],
+        "must_not_include": [
+          "工程跑通就完成",
+          "preview 上了所以完成",
+          "可以盖章"
+        ]
+      }
+    },
+    {
+      "id": 102,
+      "name": "solution-phase-requires-product-posture-gate",
+      "prompt": "Use $opc-delivery; PRD 已经确认, 现在进方案阶段, 帮我做新 UI 的方案设计。",
+      "expected_output": "应该把产品姿态门禁作为方案阶段强制前置, 在 UI 方案门禁和体验设计质量门禁之前先做。输出 4 张产物: (a) .opc/solution/competitor-survey.md, 含 2-3 个同品类成熟产品的姿态/一级 nav/首屏/学不学; (b) solution-design.md 的产品姿态判断(主姿态 + 子类型 + 反例排除 + 同品类参照); (c) 首屏主信号(可截图描述 + 反 dashboard 化承诺); (d) 能力升降级表(4 层级 + 高曝光 ≤5 硬卡)。handoff-lint.py --phase solution 会硬卡。引用 references/03b-productization.md 作为通用原则。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "产品姿态门禁",
+          "competitor-survey.md",
+          "首屏主信号",
+          "升降级表",
+          "高曝光 ≤5",
+          "03b-productization.md"
+        ],
+        "must_not_include": [
+          "直接进 UI 方案",
+          "产品姿态可选",
+          "先做设计再回来补"
+        ]
+      }
+    },
+    {
+      "id": 103,
+      "name": "competitor-survey-before-design",
+      "prompt": "Use $opc-delivery; 方案阶段开始, 给我做企业级读书 app 的设计方向。用户没给竞品参照。",
+      "expected_output": "应该先做 Step 0 竞品调研, 不能凭知识库直接给 UI 方案。基于需求列 2-3 个同品类成熟产品(如微信读书 / 多看 / Kindle Web), 用 curl / WebFetch 拿 marketing landing + 未登录态截图(webapp-testing 起 Playwright 可选), 拿不到就用知识库 IA 描述兜底; VIP 功能内部界面不需要。落盘 .opc/solution/competitor-survey.md, 表格含 '产品 / 姿态推断 / 一级导航 / 首屏主信号 / 学什么 / 不学什么'。这份调研直接喂给后面的姿态/首屏/升降级表。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "竞品调研",
+          "competitor-survey.md",
+          "学什么",
+          "不学什么",
+          "知识库",
+          "兜底"
+        ],
+        "must_not_include": [
+          "直接给设计方向",
+          "凭感觉做",
+          "不用看竞品",
+          "VIP 内部页"
+        ]
+      }
+    },
+    {
+      "id": 104,
+      "name": "homepage-signal-concrete-not-slogan",
+      "prompt": "Use $opc-delivery; 方案阶段写首屏主信号, 我先写'突出 AI 智能能力, 展示核心价值, 让用户感受平台力量'。",
+      "expected_output": "应该拒绝这种抽象口号式描述, 把首屏主信号改写成可截图的具体画面: 主区(N% 视觉权重) 是什么具体元素、次区是什么、边缘是什么; 配反 dashboard 化承诺(明说不是 'N 个 KPI 卡 + M 个能力入口' 的样子); 加同品类对比一句(竞品 X 的首屏是 Y, 我在 Z 像、在 W 故意不同)。lint 检查'突出 / 强调 / 体现 / 展示核心'这类抽象动词没有具体可视描述 → 退回重写。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "可截图",
+          "视觉权重",
+          "反 dashboard",
+          "同品类对比",
+          "退回重写"
+        ],
+        "must_not_include": [
+          "突出核心价值",
+          "展示产品能力",
+          "让用户感受",
+          "抽象口号可以接受"
+        ]
+      }
+    },
+    {
+      "id": 105,
+      "name": "capability-tier-table-max-five-high",
+      "prompt": "Use $opc-delivery; 方案的升降级表里, 我把工单列表 / 工单详情 / 客户画像 / 知识库 / 报表 / 智能建议 / 标签管理 / 通知模板 全部摆高曝光放一级导航。",
+      "expected_output": "应该按升降级表硬约束阻止: 高曝光数 = 8 > 5(硬卡), handoff-lint.py --phase solution 会 fail。必须强制做减法: 主任务能力(工单列表/详情)留高曝光, 辅助能力(智能建议/客户画像)降为中曝光放工单详情侧栏, 配置类(标签/通知模板/SLA)降为低曝光放设置子项, 操作类(转人工)降为仅上下文。同时低曝光 + 仅上下文比例 ≥ 30%(软约束, 不到必须写'低占比理由')。不允许'全部一级'当默认。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "高曝光",
+          "≤ 5",
+          "硬卡",
+          "做减法",
+          "低曝光",
+          "仅上下文",
+          "30%"
+        ],
+        "must_not_include": [
+          "8 个一级导航可以",
+          "全部摆一级",
+          "用户找得到就行"
+        ]
+      }
+    },
+    {
+      "id": 106,
+      "name": "ia-not-engineering-modules",
+      "prompt": "Use $opc-delivery; 这个客服平台代码分了 ticket / customer / knowledge / report / setting / auth 6 个模块, 一级导航就照这个搞就行了吧?",
+      "expected_output": "应该拒绝把工程模块直接翻译成产品 IA。产品 IA 按 '用户主任务排序', 不按 '后端模块边界' 排; auth 不该当一级导航(配置类), customer 在客服系统通常是工单详情的上下文(不独立一级), report 是主管低频功能(末位或降级)。北极星里明确'IA 主次正确(不是工程模块直接翻译)'; references/03b-productization.md 反这种 '实现模块 = 一级导航' 的失败模式。重做一级 nav: 把'工单'放首位(主任务), 其他按升降级表分配, 配置类入设置子项。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "用户主任务",
+          "工程模块",
+          "IA",
+          "升降级表",
+          "auth",
+          "设置子项"
+        ],
+        "must_not_include": [
+          "照模块切就行",
+          "工程模块就是 IA",
+          "auth 摆一级"
+        ]
+      }
+    },
+    {
+      "id": 107,
+      "name": "product-surface-required-on-ui-slice",
+      "prompt": "Use $opc-delivery; implementation 阶段在写 slice 02-customer-list, 我只写了 UI 路由 / 状态 / 文案语种 / 设计 brief。",
+      "expected_output": "应该指出 UI slice 缺 ## Product Surface section, handoff-lint.py --phase implementation 会 fail。必须补: 入口位置(一级导航 / 首页主区 / 二级 tab / 详情页 / 设置子项 / 上下文操作)、对应升降级表能力(查 solution-design.md)、升降级表标的层级、实际实现层级、一致性(✓ 一致 / ⚠️ 偏离 / ❌ 新能力)。多能力时每个能力一行。如果是新能力(升降级表没覆盖), 现场补 Product Surface(含层级判断 + 理由), 同步追加到 solution-design.md(宽松态)。后端/基建/数据迁移 slice 写 'N/A (backend / infra)' 跳过。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "Product Surface",
+          "入口位置",
+          "升降级表标的层级",
+          "一致性",
+          "宽松态",
+          "N/A"
+        ],
+        "must_not_include": [
+          "UI slice 不需要 Product Surface",
+          "回头再补",
+          "不影响实现"
+        ]
+      }
+    },
+    {
+      "id": 108,
+      "name": "3c-product-soundness-verification-required",
+      "prompt": "Use $opc-delivery; 3B-2 企业级实现验证通过了, 截图比对 / 数据接入 / API 溯源都 OK, 准备 mark verification done。",
+      "expected_output": "应该说明 3B-2 只是工程层验收, 完整 OPC + 有方案阶段产物时还必须跑 3C 产品成立验收(referces/07-verification.md#3c-产品成立验收 + references/03b-productization.md)。4 个对账: 3C.1 姿态对账(首屏能识别主姿态 + 没有反例 X 的味道)、3C.2 首屏对账(主信号 = 视觉最大元素 + 没退化成 dashboard)、3C.3 升降级对账(高曝光在一级、低曝光没抢戏)、3C.4 竞品对账(学/不学的兑现)。每个对账要 '文字判断 + 截图引用'。3C 不通过不允许 mark done。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "3C",
+          "产品成立",
+          "姿态对账",
+          "首屏对账",
+          "升降级对账",
+          "竞品对账",
+          "截图引用"
+        ],
+        "must_not_include": [
+          "3B-2 过了就完成",
+          "工程层 OK 就交付",
+          "3C 可选"
+        ]
+      }
+    },
+    {
+      "id": 109,
+      "name": "3c-uses-independent-reviewer-subagent",
+      "prompt": "Use $opc-delivery; 我自己实现的代码, 3C 4 个对账我也自己跑一遍, 写'通过', 不就行了?",
+      "expected_output": "应该拒绝 '代理自己审自己'(违反 OMC 根级 CLAUDE.md execution_protocols 的 writer/reviewer 分离硬规则)。3C 拆两阶段: Stage 1 执行代理跑对账(拿截图、写文字判断、列偏离表, 输出 .opc/verification/3c-product-soundness.md); Stage 2 派发独立 reviewer subagent(用 verifier 或 product-reviewer), 只看截图 + solution-design.md + 3C 报告, 不给代码上下文, 独立判产品成立 / 不成立 / 哪里偏。reviewer 判不成立 → 回对应对账修, 重跑 3C。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "writer/reviewer 分离",
+          "Stage 1",
+          "Stage 2",
+          "独立",
+          "reviewer subagent",
+          "不给代码上下文"
+        ],
+        "must_not_include": [
+          "自己审自己可以",
+          "形式上写通过",
+          "一阶段就行"
+        ]
+      }
+    },
+    {
+      "id": 110,
+      "name": "category-skeleton-reference-required",
+      "prompt": "Use $opc-delivery; 方案阶段, 用户要做一个'每日精选短文 + 收藏 + 笔记'的阅读 app。",
+      "expected_output": "应该判定主姿态 = 内容消费(reading 子类型), 引用 references/03c-content-products.md 取品类骨架: 一级导航默认 '今日 / 书架 / 发现 / 我'(不是 'dashboard / 文章列表 / 笔记列表 / 用户'); 首屏主信号默认 '上次未读位置 + 推荐书架'(不是 KPI 卡); 升降级表里阅读器/书架是高曝光, 笔记是中曝光(详情侧栏 / 二级 tab), 设置和账号低曝光。竞品参照可选微信读书 / 多看。如果是 SaaS / 工作台类(工单 / issue / 任务), 引用 03d-saas-workspace.md。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "内容消费",
+          "03c-content-products.md",
+          "上次未读位置",
+          "首屏主信号",
+          "微信读书"
+        ],
+        "must_not_include": [
+          "做成 dashboard",
+          "首屏摆 KPI 卡",
+          "通用模板就行"
+        ]
+      }
+    },
+    {
+      "id": 111,
+      "name": "ia-map-aggregator-checks-global-view",
+      "prompt": "Use $opc-delivery; implementation 推进中, 已经写了 5 个 UI slice。怎么一眼看到整站 IA 全貌、防止累积超 5 个一级导航?",
+      "expected_output": "应该说明 .opc/implementation-plan/index.md 含 ## IA Map section, 由 scripts/helpers/ia-map-aggregator.py 自动聚合所有 slice 的 Product Surface 字段, 不手维护。每次 handoff-lint.py 或 mark slice done 时刷新。表格列 'Slice / 能力 / 标的层级 / 实际层级 / 位置 / 一致'。脚本检查实际落在高曝光位的能力数量, > 5 输出 ⚠️ 警告(对应升降级表硬卡)。代理用它在实现到一半就发现 'IA 已经累积到 6 项一级 nav, 该把某能力降级了'。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "IA Map",
+          "ia-map-aggregator.py",
+          "自动聚合",
+          "Product Surface",
+          "一级 nav"
+        ],
+        "must_not_include": [
+          "手动维护",
+          "实现完再看 IA",
+          "等 3C 才发现"
+        ]
+      }
+    }
+  ],
+  "negative_evals": [
+    {
+      "id": 901,
+      "name": "magic-pure-restoration-skips-product-gate",
+      "prompt": "Use $opc-delivery; Magic 纯还原 MasterGo 设计稿到前端代码, 沿用原设计的产品姿态, 不引入新 IA。",
+      "expected_behavior": "不应该触发产品姿态门禁的强制 4 张产物。方案阶段产品姿态门禁应标 'Status: skipped' + 原因 '纯还原, 沿用原产品姿态'; 3C 也相应跳过(在 .opc/verification/3c-product-soundness.md 标 skipped + 同样原因)。Magic 还原的成功标准回到 3B-2(截图相似度 + 数据接入 + API 溯源), 不强制产品成立。",
+      "should_trigger": false
+    },
+    {
+      "id": 902,
+      "name": "small-tweak-skips-product-gate",
+      "prompt": "Use $opc-delivery; 改一下登录页文案、调一下按钮颜色, 不涉及 IA 或新功能。",
+      "expected_behavior": "不应该触发完整产品姿态门禁。极小修改(改 1-2 个组件 / 不涉及 IA / 没新能力) 标 'Status: skipped' + 原因; handoff-lint.py 看到合法 skipped 应放行。3C 也跳过。但仍要做基本视觉一致性检查(原 04-solution.md 的体验设计质量门禁是否兑现)。",
+      "should_trigger": false
+    },
+    {
+      "id": 903,
+      "name": "user-explicit-skip-product-gate-honored",
+      "prompt": "Use $opc-delivery; 我先要个能跑的 demo 给老板看, 产品姿态/IA 后面再说, 先不做这层验收。",
+      "expected_behavior": "应尊重用户明确授权。产品姿态门禁标 'Status: skipped, 用户明确说先不做产品化收口', 3C 同步跳过。但应在 hand-off 的 [不确定项 + 我的处理] 里显式记录这是欠下的产品化债务, 提醒用户后续需要补; 不能默默跳过、也不能继续走完整 OPC 流程当没事。",
+      "should_trigger": false
+    }
+  ]
+}

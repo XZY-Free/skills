@@ -40,6 +40,7 @@
   - `run-evals.py` — 从 evals.json 生成 BENCHMARK.md 骨架
 - **CI(`.github/workflows/ci.yml`)**:push / PR 时自动跑四个校验脚本
 - **opc-delivery/BENCHMARK.md**:由 `run-evals.py` 生成的骨架,等首次完整复测填数据
+- **opc-delivery 方案介绍页**:8 屏滑动官网 + 方案文档双入口部署上线,README 提供链接
 
 ### 已知限制
 

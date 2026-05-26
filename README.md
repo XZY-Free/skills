@@ -26,9 +26,18 @@ skill 是 markdown + 配套素材（references / evals / assets），不依赖�
 
 | Skill | 一句话简介 | 入口 |
 |---|---|---|
-| 🚀 **opc-delivery** | 把粗业务需求推进到 PRD、UI、前端实现、验证和部署 | [SKILL.md](opc-delivery/SKILL.md) |
+| 🚀 **opc-delivery** | 把一句话业务想法做成能登录、能操作的真实页面，带方案、验证和部署证据 | [SKILL.md](opc-delivery/SKILL.md) |
 
 > 仓库目前只有 1 个 skill。后续会按业务场景持续增加，命名约定见下方"贡献新 skill"。
+
+### 了解 opc-delivery
+
+想看它把"一句话需求"推进成可上线产品的全貌，有两个入口：
+
+- 🌐 **方案官网** — <http://119.45.222.120/plans/>，8 屏滑动叙事：是什么、谁用、做出来什么、怎么开口、怎么推进、边界、产品化、总结
+- 📖 **方案文档** — <http://119.45.222.120/plans/doc>，四个核心设计 + 七阶段流程 + 停下来的边界 + 怎么用怎么判断
+
+skill 源码看 [`opc-delivery/SKILL.md`](opc-delivery/SKILL.md) 和 [`opc-delivery/references/`](opc-delivery/references/)。
 
 ## 通用安装方式
 

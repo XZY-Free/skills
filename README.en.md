@@ -26,9 +26,18 @@ Skills are markdown files plus supporting assets (references / evals / assets) �
 
 | Skill | One-liner | Entry |
 |---|---|---|
-| 🚀 **opc-delivery** | Turn rough business asks into PRD, UI, frontend, QA, and deployment evidence | [SKILL.md](opc-delivery/SKILL.md) |
+| 🚀 **opc-delivery** | Turn a one-line business idea into a real page that runs, with plan / QA / deploy evidence | [SKILL.md](opc-delivery/SKILL.md) |
 
 > Just 1 skill so far. More to come — naming convention below.
+
+### Learn about opc-delivery
+
+Two entry points walk through how it pushes a one-line request to a shippable product:
+
+- 🌐 **Landing page** — <http://119.45.222.120/plans/>, an 8-slide narrative: what it is, who uses it, what it produces, how to talk to it, how it runs, where it stops, product polish, and recap
+- 📖 **Solution doc** — <http://119.45.222.120/plans/doc>, four core design ideas + a 7-stage flow + stop-the-line boundaries + how-to-roll-out / adoption metrics
+
+For the skill source, see [`opc-delivery/SKILL.md`](opc-delivery/SKILL.md) and [`opc-delivery/references/`](opc-delivery/references/).
 
 ## Generic Install
 

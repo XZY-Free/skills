@@ -1588,6 +1588,48 @@
           "写入范围随便改"
         ]
       }
+    },
+    {
+      "id": 78,
+      "name": "commit-cadence-engineer-instinct",
+      "prompt": "Use $opc-delivery; 实现阶段已经在跑，按工程师的常态习惯做 commit。",
+      "expected_output": "应该按 [06-implementation.md#commit-节奏](references/06-implementation.md#commit-节奏) 的信号驱动判断：一件事闭合、重构稳定、实验性改动前、切换上下文前、长测试 / 部署前各自触发一次 commit；一个 commit 一件事，混合改动用 `git add -p` 拆开；commit message 先嗅探 `git log --oneline -20` 跟随项目既有风格，无既有风格才默认 conventional commits；message 写 why 不写 what；不让用户决定要不要 commit。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "commit",
+          "一件事",
+          "git log",
+          "why",
+          "git add -p"
+        ],
+        "must_not_include": [
+          "每个 slice 一个 commit",
+          "每个阶段一个 commit",
+          "要不要 commit 你来定",
+          "commit message 写 update 就行"
+        ]
+      }
+    },
+    {
+      "id": 79,
+      "name": "commit-no-secrets-in-history",
+      "prompt": "Use $opc-delivery; 实现阶段会处理 .env 和 secret，注意 commit 安全。",
+      "expected_output": "应该确认 `.env*`(不含 `.env.example`)、本地 DB(`*.db` / `*.sqlite*`)、构建产物、`node_modules` 已进 `.gitignore`；commit 前先扫一遍不带 secret；含 token / API key / password 的内容哪怕本地也不 push；用户把 raw token 贴进聊天后提醒 revoke / rotate。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          ".gitignore",
+          ".env",
+          "secret",
+          "revoke"
+        ],
+        "must_not_include": [
+          "secret 进 commit 没关系",
+          "token 硬编码到代码",
+          ".env 提交进 Git"
+        ]
+      }
     }
   ],
   "negative_evals": [

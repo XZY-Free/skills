@@ -89,7 +89,7 @@
 
 | 缺什么 | 默认动作 | 何时问用户 |
 |---|---|---|
-| Git 仓库 | 当前业务工作区 `git init` + `.gitignore`, 阶段完成做本地里程碑 commit | 已有父级仓库 / 目录所有权不清 / 需推远端 |
+| Git 仓库 | 当前业务工作区 `git init` + `.gitignore`, 按工程师直觉自治 commit(信号驱动, 一个 commit 一件事) | 已有父级仓库 / 目录所有权不清 / 需推远端 |
 | 前端工程 | 按方案或默认栈起脚手架(Next.js / Vite / Astro) | 现有项目强约束冲突 |
 | **Node 后端** | 起后端(Next.js API routes / Hono / Fastify / Express) + health endpoint | 后端栈影响长期维护且未明确 |
 | **DB + ORM** | `prisma init --datasource-provider sqlite`(开发) → Postgres(部署); 写 `schema.prisma` + `migrate dev` | DB 未明确且影响部署/迁移 |
@@ -114,7 +114,7 @@
 
 - 当前目录没 `.git/` 且不在父级仓库内 → 完整 OPC 默认 `git init`
 - 同时补 `.gitignore`: `node_modules`、构建产物、`.env*`(不含 `.env.example`)、日志、缓存、本地 DB(`*.db`、`*.sqlite*`)、Prisma 生成物
-- 本地 commit 可作为阶段证据; commit message 记录"为什么做这个阶段"
+- 本地 commit 可作为阶段证据; commit 颗粒度和 message 风格见 [06-implementation.md#commit-节奏](06-implementation.md#commit-节奏)(信号驱动, 一个 commit 一件事, 跟随项目既有风格)
 - 没有 remote 时**不要**要求用户先建 GitHub 仓库; 继续本地实现、验证和 preview
 - 远端 push、创建远端 repo、修改受保护分支 = 确认门
 

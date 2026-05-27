@@ -326,6 +326,15 @@ python3 <skill-dir>/scripts/mandatory/opc-task-state.py checkpoint \
 
 该命令写 `.opc/implementation/continuation.md` + 把路径和 nextAction 写进 `.opc/state/opc-task.json`。
 
+**checkpoint ≠ git commit, 不要互相替代**:
+
+| 机制 | 颗粒度 | 写什么 |
+|---|---|---|
+| `git commit` | 逻辑一件事 | 代码产物里程碑, 供 bisect / revert / 历史 |
+| `opc-task-state.py checkpoint` | slice / lane / 上下文边界 | 任务恢复指针, 写到 `.opc/state/` |
+
+commit 颗粒度和 message 风格详见 [06-implementation.md#commit-节奏](06-implementation.md#commit-节奏)。同一时刻既 commit 又 checkpoint 是常见组合(slice 完成时), 但不能因为做了一个就跳过另一个。
+
 ### 台账只存摘要
 
 `.opc/state/opc-task.json` 只保存: 当前阶段 / 每阶段状态 / 产物路径 / 一句话证据 / 最近历史 / 下一步。

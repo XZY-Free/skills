@@ -25,6 +25,7 @@
 - [全栈实现默认](#全栈实现默认)
 - [框架选择 + 空工作区](#框架选择--空工作区)
 - [Git / 工程初始化](#git--工程初始化)
+- [Commit 节奏](#commit-节奏)
 - [后端 + DB 初始化](#后端--db-初始化)
 - [TDD / regression ratchet](#tdd--regression-ratchet)
 - [上下文预算执行](#上下文预算执行)
@@ -357,7 +358,106 @@ OPC 默认交付**用户能登录能用的全栈应用**, 不是前端 + mock �
 
 这些动作写入 `.opc/state/opc-task.json` 的 note/evidence。**不要把"缺仓库 / 缺脚手架 / 缺测试"作为实现阶段停点**。
 
+commit 颗粒度和 message 风格见下文 [Commit 节奏](#commit-节奏); 不要在阶段 / slice 之间机械切 commit。
+
 实现阶段 gate truth = 真实运行的产物(测试通过 + 浏览器主链路截图 + API 返回真实数据), 不是"代码写完了"。lint 通过、build 通过只是必要条件, 不是充分证据。
+
+## Commit 节奏
+
+OPC 默认 commit 节奏 = **工程师的常态 commit 习惯**, 不是机械化的"每个 slice 一个 commit"。"是否要 commit"在 [不问白名单](02-clarification.md#必问-vs-不问-白名单) 里 — 代理自己判断, 不让用户停下来定。
+
+### 为什么不按 slice / 阶段切
+
+把 commit 颗粒度跟 slice / 阶段绑死会出两种坏味:
+
+- slice 内做了 3 件不相关的事(scaffold + 写 schema + 改样式)凑成一个大 commit → 后续 bisect / revert 没法用
+- slice 是个跨 4 文件的小修复, 又被切成 1 commit / 文件 → commit 历史噪音化
+
+commit 颗粒度由**逻辑内聚性**决定: 一个 commit 描述一件事。这件事可以横跨多个 slice 步骤, 也可以只是 slice 里的一个子动作。
+
+### Commit 触发信号(自治判断)
+
+看到这些信号就 commit, 不用问用户:
+
+- **一件事闭合**: 一个用户价值 / 一个功能点 / 一个修复, 代码行为可验证 → commit
+- **重构稳定**: 行为不变, 测试还绿, 跟前面 feat 是两件事 → 单独 commit
+- **实验性 / 破坏性改动前**: 准备做大重命名、删大段代码、跑会改 schema 的迁移 → 先把"现在能跑"的状态 commit 当安全点
+- **切换上下文前**: 一组逻辑相关改动结束, 要切到不相关的另一块前 → commit 划界, 避免下一段混进来
+- **长测试 / 浏览器验证 / 部署前**: 先 commit 锁定要被验证的版本
+- **阶段闭合**: 需求 / 方案 / UI / 实现 / 部署任一阶段产物落盘 → commit 当里程碑(可叠加在常规 commit 之上)
+
+### 一个 commit 一件事
+
+混着不算 commit:
+
+- ❌ "feat: 加登录 + 顺手 format + 删了几个 TODO"
+- ❌ "fix bug + refactor user.ts + 升级 dependency"
+- ✅ 拆成 3 个 commit, 一件事一个
+
+一次写完发现已经混了 → 用 `git add -p` 分块 stage, 或先 stash 一部分, 分批 commit; 不要强行打包。
+
+### Commit message: 跟随项目风格, 写 why
+
+**先嗅探项目既有风格再决定 message 格式**:
+
+```bash
+git log --oneline -20
+```
+
+按观察到的实际风格写:
+
+- 项目用 conventional commits(`feat:` / `fix:` / `refactor:` 开头) → 跟用
+- 项目用中文自由格式("让 X 做 Y" / "修 X bug") → 跟用
+- 项目用 ticket 前缀(`PROJ-123:`) → 跟用
+- 项目混用 / 无既有 commit / 仓库刚 `git init` → 默认 conventional commits
+
+默认 conventional commits 模板(仅在无既有风格时):
+
+```
+<type>(<scope>): <一句 what>
+
+<可选: 为什么这么做, 哪些副作用, 跟哪个 slice / PRD 段对齐>
+```
+
+- type: feat / fix / refactor / chore / docs / test / build / ci / perf / style
+- 中文 OK; 技术名词保留英文(`Prisma`、`API routes`、`schema`)
+
+为什么 message 要写 why(无论哪种风格):
+
+- diff 已经是 what; message 再重复 what 信息密度为零
+- 几个月后回头读 git log 决定 revert / cherry-pick → 看的是 why
+- bisect 命中某个 commit 时, message 要能一句话讲清"这个 commit 在做什么 + 为什么这样选"
+
+### 跟 checkpoint 的分工
+
+OPC 有两套持久化, 不要互相替代:
+
+| 机制 | 颗粒度 | 写什么 |
+|---|---|---|
+| `git commit` | 逻辑一件事 | 代码产物里程碑, 供 bisect / revert / 历史 |
+| `opc-task-state.py checkpoint` | slice / lane / 上下文边界 | 任务恢复指针, 写到 `.opc/state/` |
+
+可以同一时刻既 commit 又 checkpoint(常见: slice 完成时), 但不要因为 checkpoint 就跳过 commit, 也不要因为 commit 就跳过 checkpoint。两者用途不同。
+
+### 远端 push 仍是确认门
+
+commit 是本地的, 用户随时丢弃。push 不是: 协作者会拉, CI 会跑, 公开仓库可能被索引。
+
+- push 到 remote → 按 [02-clarification.md#git-与后端启动规则](02-clarification.md#git-与后端启动规则) 走确认门
+- force push / 改受保护分支 / 跨用户改 PR → 确认门
+- 含 secret 的 commit 哪怕只在本地, 不要 push; 授权 push 前先扫一遍
+
+### 反模式
+
+- ❌ 每个 slice 自动 commit, 不论改动是否内聚
+- ❌ 一天攒一个超大 commit "Day 1 progress"
+- ❌ message 只写 "update" / "fix" / "WIP" / "."
+- ❌ 项目明明用中文自由格式, 强行套 conventional commits
+- ❌ 无关 format / lint 改动混进 feat commit
+- ❌ commit 含 `.env`、secret、build 产物、本地 DB(`.gitignore` 失效时)
+- ❌ 实验性大重构前不 commit, 改炸了只能靠 IDE 撤销
+- ❌ 因为做了 checkpoint 就跳过 commit, 或反过来
+- ❌ 让用户决定"现在要不要 commit"
 
 ## 后端 + DB 初始化
 

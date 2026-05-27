@@ -72,6 +72,7 @@ description: "OPC 一人公司式产品交付工作流。把粗糙业务目标�
 | 3C 产品成立验收 | 完整 OPC + 有方案产物必跑: 姿态/首屏/升降级/竞品对账 + 独立 reviewer | [07-verification.md#3c-产品成立验收](references/07-verification.md#3c-产品成立验收) |
 | 自治补齐 | 缺 Git/脚手架/后端/DB/CI 自动补齐; 缺凭证才停 | [02-clarification.md#自治补齐矩阵](references/02-clarification.md#自治补齐矩阵) |
 | 实现规划 | 完整 OPC 必写 implementation-plan/index.md + slices + ADR + parallelization | [06-implementation.md#part-1-implementation-plan实现前技术规划](references/06-implementation.md#part-1-implementation-plan实现前技术规划) |
+| Commit 节奏 | 工程师式 commit 直觉; 信号驱动; 一个 commit 一件事; 跟随项目既有风格, 无既有风格时默认 conventional commits | [06-implementation.md#commit-节奏](references/06-implementation.md#commit-节奏) |
 
 ## 工作流总览
 

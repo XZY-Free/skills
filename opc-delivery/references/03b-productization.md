@@ -294,11 +294,11 @@ PRD 抽出 20+ 能力, 升降级后:
 
 ### 实现阶段 (Product Surface)
 
-每个 UI slice 在 slice 模板加 `Product Surface` 字段, 对照升降级表。详见 [06-implementation.md#slice-模板](06-implementation.md#slice-模板)。
+每个 UI slice 在 slice 模板加 `Product Surface` 字段, 对照升降级表。详见 [06a-implementation-plan.md#slice-模板](06a-implementation-plan.md#slice-模板)。
 
 ### 验证阶段 (3C 对账)
 
-3B-2 通过后跑 3C, 用 4 个对账(姿态/首屏/升降级/竞品)对照方案阶段产物。详见 [07-verification.md#3c-产品成立验收](07-verification.md#3c-产品成立验收)。
+3B-2 通过后跑 3C, 用 4 个对账(姿态/首屏/升降级/竞品)对照方案阶段产物。详见 [07c-product-verify.md#3c-产品成立验收](07c-product-verify.md#3c-产品成立验收)。
 
 ---
 

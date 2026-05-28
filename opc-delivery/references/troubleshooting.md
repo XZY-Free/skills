@@ -6,7 +6,7 @@
 
 - Magic 工具(`getDsl` / `getD2c` / `getMeta`)报错
 - Codify 工具(`design` / `agent_*` / `get_*`)报错
-- D2C 渲染问题(蒙版/字体/胶囊/SVG → 看 [07-verification.md](07-verification.md#渲染补丁))
+- D2C 渲染问题(蒙版/字体/胶囊/SVG → 看 [07b-restore-verify.md](07d-restore-patches.md#渲染补丁))
 - MCP 配置卡住、token 占位、本地 bridge / 远端 URL 异常 → 看 [mcp-setup.md](mcp-setup.md)
 
 ## 目录
@@ -56,8 +56,8 @@ curl -sL 'https://duckduckgo.com/html/?q=mastergo+mcp+<错误关键词>'
 |---|---|
 | Magic 工具(`getDsl` / `getD2c` / `getMeta`) | [Magic 排障](#magic-排障) |
 | Codify 工具(`design` / `agent_*` / `get_*`) | [Codify 排障](#codify-排障) |
-| 渲染问题(蒙版/字体/胶囊/SVG) | [07-verification.md 渲染补丁](07-verification.md#渲染补丁) |
-| API 文档格式 / 字段映射 / 溯源汇报 | [06-implementation.md API 接入](06-implementation.md#part-3-api-接入) |
+| 渲染问题(蒙版/字体/胶囊/SVG) | [07d-restore-patches.md 渲染补丁](07d-restore-patches.md#渲染补丁) |
+| API 文档格式 / 字段映射 / 溯源汇报 | [06c-api-wiring.md](06c-api-wiring.md) |
 | MCP 配置 / token 占位 / 本地 bridge | [mcp-setup.md](mcp-setup.md) |
 
 ---
@@ -257,7 +257,7 @@ Codify 的 `get_code` 等工具需要 contentId(用户在插件里点复制按�
 
 - 先运行 `get_codify_guidelines`, **不要凭旧经验猜 Codify 规范**
 - 再运行 `get_user_info`, 确认账号、权限、配额和当前上下文
-- 按 [05-mastergo.md HTML 与 UI 文案合规](05-mastergo.md#html-与-ui-文案合规) 把原生 CSS HTML 转成 Tailwind utility HTML
+- 按 [05a-codify-design.md HTML 与 UI 文案合规](05a-codify-design.md#html-与-ui-文案合规) 把原生 CSS HTML 转成 Tailwind utility HTML
 - 重新写入 MasterGo 后用 `get_design_diff` 或画布截图验证
 
 ### B.8 远端 TLS / 404 / 本地 bridge 未启动

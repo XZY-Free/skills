@@ -15,9 +15,9 @@
 
 ## 核心策略
 
-本文件假设你已熟悉 SKILL.md 的 [🔐 token 安全契约](../SKILL.md#-token-安全契约)、
-[🙋 用户行动契约](../SKILL.md#-用户行动契约) 与
-[交付物契约](../SKILL.md#交付物契约)。在此基础上,MCP 配置阶段有三条具体行为:
+本文件假设你已熟悉 SKILL.md 的核心契约 — 详见 [10-contracts.md](10-contracts.md#token-安全契约) 的 token 安全、
+宿主原生交互(见 [02-clarification.md](02-clarification.md#宿主原生交互))与
+[交付物契约](10-contracts.md#交付物契约)。在此基础上,MCP 配置阶段有三条具体行为:
 
 - **默认双装**:两个 MCP 一起配,因为设计 ↔ 还原工作流经常来回切换;
 - **当前宿主配置才是事实源**:`tool_search` / 会话里暴露出的 `mcp__*` 工具只能说明
@@ -66,7 +66,7 @@
 - 用户已重启或当前会话工具已连通;
 - 仍需重启时只能说"配置已写入,待重启加载",不能说 MCP 已可用。
 - 重启 / reconnect 后继续原任务时,先复述原始目标;若是设计任务,恢复
-  [05-mastergo.md](05-mastergo.md#mastergo-设计-gate-card) 的覆盖 brief,再继续写入或验证。
+  [05a-codify-design.md](05a-codify-design.md#mastergo-设计-gate-card) 的覆盖 brief,再继续写入或验证。
 
 ### 配置文件快速检查
 

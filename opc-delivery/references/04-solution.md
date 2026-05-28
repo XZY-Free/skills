@@ -1,6 +1,6 @@
 # 04 — 方案阶段
 
-在 PRD 之后、UI/实现规划之前, 定义"怎么做"。方案要锁定产品路径、架构方向、技术路线、数据和部署约束; 完整开发切片和上下文拆分交给 [06-implementation.md](06-implementation.md)。
+在 PRD 之后、UI/实现规划之前, 定义"怎么做"。方案要锁定产品路径、架构方向、技术路线、数据和部署约束; 完整开发切片和上下文拆分交给 [06a-implementation-plan.md](06a-implementation-plan.md)。
 
 方案阶段**不固定**要求用户看确认卡。先基于 PRD、现有项目和默认栈形成方案; 只有后端栈、DB、部署目标、权限/合规等高影响项不明确时, 才用原生选择交互。
 
@@ -296,7 +296,7 @@ OPC 默认全栈交付, 推荐 Node 系轻量栈:
 - 组件库策略
 - 验证方式
 
-这些字段要映射进 [05-mastergo.md](05-mastergo.md#mastergo-设计-gate-card) 的 MasterGo 设计 Gate Card。
+这些字段要映射进 [05a-codify-design.md](05a-codify-design.md#mastergo-设计-gate-card) 的 MasterGo 设计 Gate Card。
 
 ---
 

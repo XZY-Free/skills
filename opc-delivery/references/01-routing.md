@@ -31,15 +31,15 @@
    否 → 进 2
 
 2. 用户要 MasterGo 画布设计/修改?
-   是 → MasterGo 子任务路由 → 05-mastergo.md(设计部分)
+   是 → MasterGo 子任务路由 → 05a-codify-design.md
    否 → 进 3
 
 3. 用户给 MasterGo URL 并要还原/转代码?
-   是 → MasterGo 子任务路由 → 05-mastergo.md(还原部分)
+   是 → MasterGo 子任务路由 → 05b-magic-restore.md
    否 → 进 4
 
 4. 已有 PRD/设计要实现前端或全栈?
-   是 → 04-solution.md(补齐缺口) → 06-implementation.md
+   是 → 04-solution.md(补齐缺口) → 06a-implementation-plan.md
    否 → 进 5
 
 5. 要部署/CI/CD/上线?
@@ -195,7 +195,7 @@ implementation-plan → implementation → verification → deployment → calib
 
 ## 状态台账
 
-代理自动读写的恢复机制, **不是用户手动步骤**。进入任务时先读 [10-contracts.md](10-contracts.md#上下文持久化): 有 `.opc/state/opc-task.json` 就 `resume`, 没有就先写最小内部 Stage Card 再初始化。
+代理自动读写的恢复机制, **不是用户手动步骤**。进入任务时先读 [10-contracts.md](10-contracts.md#上下文持久化契约): 有 `.opc/state/opc-task.json` 就 `resume`, 没有就先写最小内部 Stage Card 再初始化。
 
 定义阶段额外读 `.opc/<phase>/discussion.md`。
 

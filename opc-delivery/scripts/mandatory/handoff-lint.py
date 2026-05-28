@@ -335,6 +335,87 @@ def check_implementation_product_surface(source_dir: Path) -> list[str]:
     return errors
 
 
+def is_project_docs_skipped(handoff_text: str) -> bool:
+    """handoff 文本里显式标记 project-docs 跳过 → 不强卡。"""
+    if not handoff_text:
+        return False
+    skip_markers = (
+        "project-docs: skipped",
+        "project-docs skipped",
+        "11-project-docs: skipped",
+        "项目文档跳过",
+        "docs/ 跳过",
+        "long-term docs skipped",
+    )
+    lowered = handoff_text.lower()
+    return any(m.lower() in lowered for m in skip_markers)
+
+
+def check_implementation_project_docs(source_dir: Path, handoff_text: str) -> list[str]:
+    """实现完成前必须萃取项目长期文档. 见 references/11-project-docs.md.
+
+    需求来源: 让别的开发者 / AI 工具接手时, 不破坏项目. .opc/ 下是过程证据,
+    不是给接手者读的入口. 必须在 implementation 完成前萃取出 README + docs/.
+    """
+    if is_project_docs_skipped(handoff_text):
+        return []
+
+    errors: list[str] = []
+
+    if not (source_dir / "README.md").is_file():
+        errors.append(
+            "[project-docs] 缺 README.md (项目入口) — implementation 完成前必产; "
+            "需含 tech stack / quick start / project layout / 接手必读 / scripts. "
+            "见 references/11-project-docs.md. 跳过须在 handoff 写 'project-docs: skipped' + 原因"
+        )
+
+    docs_dir = source_dir / "docs"
+    if not docs_dir.is_dir():
+        errors.append(
+            "[project-docs] 缺 docs/ 目录 — implementation 完成前必产; "
+            "至少含 ARCHITECTURE.md / DATA-MODEL.md / CONVENTIONS.md / decisions/. "
+            "见 references/11-project-docs.md"
+        )
+    else:
+        for required in ("ARCHITECTURE.md", "CONVENTIONS.md"):
+            if not (docs_dir / required).is_file():
+                errors.append(
+                    f"[project-docs] 缺 docs/{required} — 从 .opc/implementation-plan/ 萃取(不复制, 去过程词)"
+                )
+        # DATA-MODEL.md 在无 DB 项目里可缺, 但项目有 prisma/schema.prisma 或 drizzle schema 时必产
+        has_db_schema = (
+            (source_dir / "prisma" / "schema.prisma").is_file()
+            or any(source_dir.rglob("drizzle.config.*"))
+        )
+        if has_db_schema and not (docs_dir / "DATA-MODEL.md").is_file():
+            errors.append(
+                "[project-docs] 项目有 DB schema 但缺 docs/DATA-MODEL.md — "
+                "把 .opc/implementation-plan/contracts.md 的 DB 段萃取成数据字典视图"
+            )
+        # decisions/ 只在有 ADR 时必产
+        adr_source = source_dir / ".opc" / "implementation-plan" / "decisions"
+        if adr_source.is_dir() and any(adr_source.glob("ADR-*.md")):
+            if not (docs_dir / "decisions").is_dir():
+                errors.append(
+                    "[project-docs] .opc/implementation-plan/decisions/ 有 ADR 但 docs/decisions/ 不存在 — "
+                    "把 ADR 挪到 docs/decisions/ (git mv), 让接手者看得到"
+                )
+
+    # 工具方言文件: 仅警告, 不 fail (项目可能本来就有, 脚本无法区分)
+    vendor_files = ("AGENTS.md", "CLAUDE.md", ".cursorrules", ".windsurfrules", "GEMINI.md")
+    new_vendor = [v for v in vendor_files if (source_dir / v).exists()]
+    if new_vendor and not any(
+        token in handoff_text for token in ("用户授权", "用户要求", "原本存在", "preserved")
+    ):
+        errors.append(
+            f"[project-docs] 检测到工具方言文件 {new_vendor} — 若是 skill 自动生成请删除并改用 README + docs/; "
+            "若是用户原本就有或明确授权, 在 handoff 写 '用户授权 X.md' 跳过本警告. "
+            "见 references/11-project-docs.md#显式不产出"
+        )
+
+    return errors
+
+
 # === End Productization Gate Checks ===
 
 
@@ -352,6 +433,7 @@ def lint(text: str, phase: str = "", source_dir: Path | None = None) -> list[str
             errors.extend(check_solution_productization_gate(source_dir))
         elif phase == "implementation":
             errors.extend(check_implementation_product_surface(source_dir))
+            errors.extend(check_implementation_project_docs(source_dir, text))
     return errors
 
 

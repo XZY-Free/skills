@@ -90,13 +90,13 @@ echo "exit=$?"
 ## reference 读取节流
 
 - **单 turn 最多 Read 1 个 reference**(除非 SKILL.md 显式指引并读)
-- 实现 slice 时只读: SKILL.md + 当前 slice md + 06-implementation.md 的 anchor
+- 实现 slice 时只读: SKILL.md + 当前 slice md + 06a-implementation-plan.md / 06b-implementation.md / 06c-api-wiring.md 中相关 anchor
 - 不预防性 Read("以防万一先把这个文件加载进来"是反模式)
 - reference 之间已有 anchor 链接, 需要时再跳
 
 ## DSL / D2C 拉取
 
-- 整站根容器 DSL 偶尔 > 20MB 报 `Request too large` → 改成对每个子 Frame 单独 `getDsl`(见 [07-verification.md](07-verification.md#设计稿更新流))
+- 整站根容器 DSL 偶尔 > 20MB 报 `Request too large` → 改成对每个子 Frame 单独 `getDsl`(见 [07b-restore-verify.md](07d-restore-patches.md#设计稿更新流))
 - D2C HTML 一般 1-2MB, 单次拉取没问题
 - 但**不要在同一 turn 里既拉 D2C 又 Read 截图**
 

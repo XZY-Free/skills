@@ -1,6 +1,6 @@
 ---
 name: opc-delivery
-description: "OPC 一人公司式产品交付工作流。把粗糙业务目标推进到能登录、能操作、数据持久化的真实程序, 并产出验证 / 部署证据。覆盖需求 → PRD → 方案 → UI 设计 → 实现 → 验证 → 部署 → 校准全链路, 含 MasterGo 设计 / 还原子流程。只在阻塞(API key、token、付费资源、production 发布)时停, slice 间不停。不用于纯前端组件、纯 Figma 任务、单独 MCP 配置。"
+description: "OPC 一人公司式产品交付工作流。当用户希望'从粗业务需求一条龙做到可上线的真实程序'时, 用此 skill 自治推进: 需求 → PRD → 方案(含产品姿态门禁) → UI(可含 MasterGo Codify 设计 / Magic 还原) → 全栈实现(前端 + Node 后端 + DB) → 验证 → 部署 → 校准。默认产出能登录、可操作、数据持久化的真实程序 + 项目长期文档(README + docs/ARCHITECTURE/DATA-MODEL/CONVENTIONS/decisions), 让别的开发者或 AI 工具接手时不破坏项目。即使用户没说 'OPC', 只要场景包含 '做一个能登录可操作的 X 后台/平台/系统'、'从需求到上线交给你'、'帮我把这个想法做出来'、'一条龙交付'、'MasterGo 还原 / 转代码'、'做个企业级 X 平台' 都应优先触发本 skill。默认连续推进 slice 间不停, 只在 API key / token / 付费资源 / production 发布 / 破坏性写入等真实阻塞才停。不用于: 纯 Figma 单图任务、单独 MCP 配置、纯前端单组件、已上线项目的单点 bug 修复。"
 ---
 
 # OPC 产品交付技能
@@ -68,11 +68,12 @@ description: "OPC 一人公司式产品交付工作流。把粗糙业务目标�
 | UI 文案语种 | 跟随用户指定/素材/聊天主语言; 中文场景默认简体中文 UI | [03-requirements.md#ui-文案语种契约](references/03-requirements.md#ui-文案语种契约) |
 | UI 设计质量 | 写 purpose/tone/differentiation/constraints/anti-generic guardrails | [04-solution.md#体验设计质量门禁](references/04-solution.md#体验设计质量门禁) |
 | 产品姿态门禁 | 方案阶段 4 张产物: competitor-survey / 姿态判断 / 首屏主信号 / 升降级表; 高曝光 ≤5 硬卡 | [04-solution.md#产品姿态门禁](references/04-solution.md#产品姿态门禁) |
-| Product Surface | UI slice 必填: 入口位置 / 对应能力 / 升降级一致性 | [06-implementation.md#slice-模板](references/06-implementation.md#slice-模板) |
-| 3C 产品成立验收 | 完整 OPC + 有方案产物必跑: 姿态/首屏/升降级/竞品对账 + 独立 reviewer | [07-verification.md#3c-产品成立验收](references/07-verification.md#3c-产品成立验收) |
+| Product Surface | UI slice 必填: 入口位置 / 对应能力 / 升降级一致性 | [06a-implementation-plan.md#slice-模板](references/06a-implementation-plan.md#slice-模板) |
+| 3C 产品成立验收 | 完整 OPC + 有方案产物必跑: 姿态/首屏/升降级/竞品对账 + 独立 reviewer | [07c-product-verify.md#3c-产品成立验收](references/07c-product-verify.md#3c-产品成立验收) |
 | 自治补齐 | 缺 Git/脚手架/后端/DB/CI 自动补齐; 缺凭证才停 | [02-clarification.md#自治补齐矩阵](references/02-clarification.md#自治补齐矩阵) |
-| 实现规划 | 完整 OPC 必写 implementation-plan/index.md + slices + ADR + parallelization | [06-implementation.md#part-1-implementation-plan实现前技术规划](references/06-implementation.md#part-1-implementation-plan实现前技术规划) |
-| Commit 节奏 | 工程师式 commit 直觉; 信号驱动; 一个 commit 一件事; 跟随项目既有风格, 无既有风格时默认 conventional commits | [06-implementation.md#commit-节奏](references/06-implementation.md#commit-节奏) |
+| 实现规划 | 完整 OPC 必写 implementation-plan/index.md + slices + ADR + parallelization | [06a-implementation-plan.md](references/06a-implementation-plan.md) |
+| Commit 节奏 | 工程师式 commit 直觉; 信号驱动; 一个 commit 一件事; 跟随项目既有风格, 无既有风格时默认 conventional commits | [06b-implementation.md#commit-节奏](references/06b-implementation.md#commit-节奏) |
+| 项目文档萃取 | implementation 完成前必产: README + docs/(ARCHITECTURE / DATA-MODEL / CONVENTIONS / decisions); **不**自动写 AGENTS.md / CLAUDE.md / .cursorrules | [11-project-docs.md](references/11-project-docs.md) |
 
 ## 工作流总览
 
@@ -81,11 +82,12 @@ description: "OPC 一人公司式产品交付工作流。把粗糙业务目标�
 0.5 高影响疑点澄清(按需)                          → 02-clarification.md
 1. 需求阶段(PRD + JTBD + MoSCoW)                  → 03-requirements.md
 2. 方案阶段(架构/数据/部署 + 产品姿态门禁 + 设计质量 brief) → 04-solution.md
-3A. MasterGo/Codify UI 设计                       → 05-mastergo.md
-3B. MasterGo Magic 还原                           → 05-mastergo.md
-4. 实现前技术规划(index + slices + parallel)     → 06-implementation.md
-5. 前端 + Node 后端实现 + API 接入                → 06-implementation.md
-6. 验证(3A 设计完 / 3B 还原实现完 / 3C 产品成立 + update flow) → 07-verification.md
+3A. MasterGo/Codify UI 设计                       → 05a-codify-design.md
+3B. MasterGo Magic 还原                           → 05b-magic-restore.md
+4. 实现前技术规划(index + slices + parallel)     → 06a-implementation-plan.md
+5. 前端 + Node 后端实现 + API 接入                → 06b-implementation.md + 06c-api-wiring.md
+5.5 项目长期文档萃取(README + docs/)              → 11-project-docs.md
+6. 验证(3A 设计完 / 3B 还原实现完 / 3C 产品成立 + 渲染补丁/更新流) → 07a-design-verify.md + 07b-restore-verify.md + 07c-product-verify.md + 07d-restore-patches.md
 7. CI/CD 和部署                                   → 08-deployment.md
 8. 已上线需求回放校准                             → 08-deployment.md
 ```
@@ -103,18 +105,25 @@ description: "OPC 一人公司式产品交付工作流。把粗糙业务目标�
 | [03c-content-products.md](references/03c-content-products.md) | 内容消费类品类骨架(reading / video / feed / chat / 学习材料) |
 | [03d-saas-workspace.md](references/03d-saas-workspace.md) | SaaS / 工作台类品类骨架 |
 | [04-solution.md](references/04-solution.md) | 方案阶段、全栈技术默认、UI 方案门禁、产品姿态门禁、体验设计质量门禁 |
-| [05-mastergo.md](references/05-mastergo.md) | Codify 画布设计 + Magic D2C 还原(企业级/快速复刻双模式) |
-| [06-implementation.md](references/06-implementation.md) | 实现规划(implementation-plan)+ 全栈实现 + API 接入 |
-| [07-verification.md](references/07-verification.md) | 3A 设计验证 + 3B 还原实现验证 + 渲染补丁 + 设计稿更新流 |
+| [05a-codify-design.md](references/05a-codify-design.md) | Codify 画布设计(Gate Card / 组件库 / preflight / 写入工具) |
+| [05b-magic-restore.md](references/05b-magic-restore.md) | Magic D2C 还原(企业级 / 快速复刻双模式, URL 解析, 框架探嗅) |
+| [06a-implementation-plan.md](references/06a-implementation-plan.md) | implementation-plan(架构 / 契约 / slices / ADR / 并行) |
+| [06b-implementation.md](references/06b-implementation.md) | 全栈实现(Git / 后端 + DB / Commit 节奏 / TDD / 完成门槛) |
+| [06c-api-wiring.md](references/06c-api-wiring.md) | API 接入(企业级实现 / 字段映射 / 强制溯源汇报) |
+| [07a-design-verify.md](references/07a-design-verify.md) | 3A: Codify 设计完 SOP(结构 / 文案 / 组件库映射 / accepted) |
+| [07b-restore-verify.md](references/07b-restore-verify.md) | 3B: Magic 还原核心验证(快速复刻 + 企业级) |
+| [07c-product-verify.md](references/07c-product-verify.md) | 3C: 产品成立验收(姿态 / 首屏 / 升降级 / 竞品 + 验证归档 + 不达标处理) |
+| [07d-restore-patches.md](references/07d-restore-patches.md) | 渲染补丁(蒙版/字体/胶囊/SVG/渐变) + 设计稿更新流(增量同步) |
 | [08-deployment.md](references/08-deployment.md) | CI/CD、部署目标、Vercel/Netlify/服务器路径、回放校准 |
 | [09-runtime-budget.md](references/09-runtime-budget.md) | 执行期资源边界(32MB / 长日志 / 多 Read / 截图回流) |
 | [10-contracts.md](references/10-contracts.md) | 核心契约总集: 收尾、交付、证据、持久化、Karpathy、token |
+| [11-project-docs.md](references/11-project-docs.md) | 项目长期文档萃取(README + docs/), 让接手者不破坏项目 |
 | [mcp-setup.md](references/mcp-setup.md) | MCP 缺失、token 配置、宿主切换、本地/远端 URL 排障 |
 | [troubleshooting.md](references/troubleshooting.md) | Magic / Codify MCP 报错、原型连线限制、Request too large |
 
 ## 脚本索引
 
-只列 mandatory 层(实现期必跑); helpers 在对应 reference 内按需引用; dev 是开发期自检, 不在此暴露。
+只列 mandatory 层(实现期必跑); helpers / dev 完整清单见 [scripts/README.md](scripts/README.md), 避免重复造轮子。
 
 | 脚本 | 用途 |
 |---|---|
@@ -123,6 +132,28 @@ description: "OPC 一人公司式产品交付工作流。把粗糙业务目标�
 | `scripts/mandatory/check-mcp-config.py` | 检查当前宿主 MCP 配置、token 占位、本地/远端 Codify URL |
 | `scripts/mandatory/codify-preflight.py` | Codify 写入前综合门禁 |
 | `scripts/mandatory/parse-mastergo-url.py` | 从 MasterGo URL 提取 fileId/layerId/contentId |
+
+## Skill 自身资源边界
+
+opc-delivery 自己生产的文件也要遵守 [09-runtime-budget.md](references/09-runtime-budget.md) — 否则模型读自己的 skill 都会被卡。
+
+| 文件类型 | 硬上限 | warn | 理由 |
+|---|---|---|---|
+| `.md` (SKILL.md, references) | 500 行 | 400 行 | 单次 Read 在 ~25000 token, 留余量 |
+| `.json` (evals 等) | 1000 行 | 800 行 | 同理 |
+
+接近 warn 时就动手拆。拆分原则: 按**独立流程边界**切, 不机械按行数切; 父文件保留索引 + 一句话定位; 更新所有 anchor 引用。
+
+自检: `python3 scripts/dev/check-file-sizes.py`(开发期跑, 不进 mandatory)。
+
+## Skill 自身写作规范(给贡献者)
+
+硬规则要解释为什么, 否则失去边界判断能力。范本看 [10-contracts.md](references/10-contracts.md) — 每条契约写成**规则 + Why + How to apply + Exception**, 而不是平铺的"必须/不要"列表。
+
+- ❌ "实现完前必须接 API"(空硬规则, 边界场景无法判断)
+- ✅ "实现完前接 API: **为什么** — 没接 API 的页面只是 mock 包装, 不是真实交付; **如何应用** — 走 06c-api-wiring 完整流程并打印溯源汇报; **例外** — 用户明确说'演示版'或后端文档未到位时标 `api-pending`, 不假装完成。"
+
+`❌ ... ✅ ...` 配对反例是 OK 的, 它是教学反例, 不是空硬规则。但**首次提出规则**时必须给 Why, 而不是直接列禁令。
 
 ## 沟通风格
 

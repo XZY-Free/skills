@@ -146,26 +146,12 @@ lint 只要求**至少有 `[继续下一 slice]` 或 `[下一步]` 或 `[需要�
 
 ## 问 / 不问 白名单
 
-详细完整版在 [02-clarification.md](02-clarification.md#必问-vs-不问-白名单)。这里只给摘要供快速对照。
+完整版在 [02-clarification.md#必问-vs-不问-白名单](02-clarification.md#必问-vs-不问-白名单)。SKILL.md 契约索引行有摘要供快速对照, 这里不重复列表 — 避免双地维护漂移。
 
-### ✅ 只在这些场景问
+记住边界:
 
-- 任务最开始的范围 / 目标 / 业务身份模糊(**一次性**)
-- secret / API key / token / 第三方账号 / 私有 URL
-- production 部署 / 远端 push / 破坏性迁移 / 覆盖画布
-- 付费资源开通 / 真实 SLA / 法务合规 / 客户数据边界
-- 会改变交付范围的 framing 词(企业级 / 完整 / 生产级)
-
-### ❌ 绝对不问
-
-- 下一个 slice 做什么 / 是否继续 / 要不要进入下一阶段
-- 文件名 / 目录结构 / 内部路由 / helper 拆法
-- 小依赖(图标库、日期格式化库、状态管理库)
-- 本地脚手架、`.gitignore`、`.env.example`、测试命令
-- mock seed 具体值、内部 enum 取值
-- typecheck / lint 失败如何修
-- 部署到 Vercel 还是 Netlify(除非用户素材已暗示)
-- 是否要写测试 / 要不要 commit
+- **只问**: 任务最开始范围 / token / production / 付费 / 范围 framing 词("企业级"等)
+- **绝对不问**: 下一 slice 做什么 / 文件名 / typecheck 怎么修 / 是否 commit
 
 ---
 
@@ -333,7 +319,7 @@ python3 <skill-dir>/scripts/mandatory/opc-task-state.py checkpoint \
 | `git commit` | 逻辑一件事 | 代码产物里程碑, 供 bisect / revert / 历史 |
 | `opc-task-state.py checkpoint` | slice / lane / 上下文边界 | 任务恢复指针, 写到 `.opc/state/` |
 
-commit 颗粒度和 message 风格详见 [06-implementation.md#commit-节奏](06-implementation.md#commit-节奏)。同一时刻既 commit 又 checkpoint 是常见组合(slice 完成时), 但不能因为做了一个就跳过另一个。
+commit 颗粒度和 message 风格详见 [06b-implementation.md#commit-节奏](06b-implementation.md#commit-节奏)。同一时刻既 commit 又 checkpoint 是常见组合(slice 完成时), 但不能因为做了一个就跳过另一个。
 
 ### 台账只存摘要
 

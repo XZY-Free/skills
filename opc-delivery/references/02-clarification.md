@@ -114,7 +114,7 @@
 
 - 当前目录没 `.git/` 且不在父级仓库内 → 完整 OPC 默认 `git init`
 - 同时补 `.gitignore`: `node_modules`、构建产物、`.env*`(不含 `.env.example`)、日志、缓存、本地 DB(`*.db`、`*.sqlite*`)、Prisma 生成物
-- 本地 commit 可作为阶段证据; commit 颗粒度和 message 风格见 [06-implementation.md#commit-节奏](06-implementation.md#commit-节奏)(信号驱动, 一个 commit 一件事, 跟随项目既有风格)
+- 本地 commit 可作为阶段证据; commit 颗粒度和 message 风格见 [06b-implementation.md#commit-节奏](06b-implementation.md#commit-节奏)(信号驱动, 一个 commit 一件事, 跟随项目既有风格)
 - 没有 remote 时**不要**要求用户先建 GitHub 仓库; 继续本地实现、验证和 preview
 - 远端 push、创建远端 repo、修改受保护分支 = 确认门
 

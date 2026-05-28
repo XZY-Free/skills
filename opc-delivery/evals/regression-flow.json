@@ -1,0 +1,468 @@
+{
+  "skill_name": "opc-delivery",
+  "evals": [
+    {
+      "id": 17,
+      "name": "requirement-coverage-not-keyword-page-count",
+      "prompt": "帮我在 MasterGo 里设计一个专业的企业级 AI 多智能体协作平台。",
+      "expected_output": "应该把任务理解为“完整满足用户的设计需求”，而不是根据企业级/平台/工作台等关键词机械判断单页或多页。应先形成需求覆盖 brief：目标、角色、核心流程、设计单元和验收口径；如果不确定范围，用选择题澄清并保留自定义 / type something。只有用户明确选择概念代表页时，才可只做代表页，并说明这不是完整产品设计交付。每轮都按 Codify 规范写入 MasterGo 并验证。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "覆盖 brief",
+          "目标",
+          "核心流程",
+          "自定义",
+          "Codify"
+        ],
+        "must_not_include": [
+          "企业级默认多页",
+          "只做首页就完成",
+          "单屏概念稿完成",
+          "一个 1440 首页"
+        ]
+      }
+    },
+    {
+      "id": 37,
+      "name": "task-ledger-required-before-completion",
+      "prompt": "Use $opc-delivery; Gate Card 已经确认，刚才推了总览页，用户说可以了，给最终总结。",
+      "expected_output": "应该检查 .codify/state/mastergo-task.json 或等价任务台账，列出剩余设计单元；若还有 planned/generated/pushed 未 verified 的单元，不能最终完成，应该继续下一单元或标记待验证。任务台账是恢复来源，不是完成证据。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "mastergo-task-state.py",
+          "剩余设计单元",
+          "待验证"
+        ],
+        "must_not_include": [
+          "总览页可以了所以完成",
+          "不用检查台账"
+        ]
+      }
+    },
+    {
+      "id": 48,
+      "name": "implementation-does-not-skip-browser-qa",
+      "prompt": "Use $opc-delivery; UI 和方案都定了，帮我实现前端框架。",
+      "expected_output": "应该先确认 implementation-plan 已存在；缺失时先生成可分片读取的实现计划和当前 slice，再检查现有仓库框架和脚本，复用项目模式，完成组件/状态/API wiring 后运行可用的 lint/typecheck/test/build，并用 Browser 或 Playwright 做非空、无 overlay、console health、核心交互和截图验证。不能只以构建成功宣称完成。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "implementation-plan",
+          "lint",
+          "typecheck",
+          "build",
+          "Browser",
+          "截图"
+        ],
+        "must_not_include": [
+          "构建成功就完成",
+          "没有浏览器验证"
+        ]
+      }
+    },
+    {
+      "id": 49,
+      "name": "deployment-preview-before-production",
+      "prompt": "Use $opc-delivery; 前端实现好了，部署到服务器给我链接。",
+      "expected_output": "应该先走 CI/CD 和部署工作流，确认目标平台、环境变量、构建命令和回滚方式；默认先 preview deployment，production 需要用户明确要求；交付 release evidence，包括 URL、状态、健康检查和回滚路径。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "preview",
+          "环境变量",
+          "rollback",
+          "release.md",
+          "URL"
+        ],
+        "must_not_include": [
+          "默认 production",
+          "不需要回滚"
+        ]
+      }
+    },
+    {
+      "id": 50,
+      "name": "golden-feature-calibration",
+      "prompt": "Use $opc-delivery; 我们先拿一个已经上线的需求让 AI 重写一遍，对比人工版本并沉淀规则。",
+      "expected_output": "应该进入已上线需求回放校准流程，收集 golden baseline，按 OPC 正常流程 replay，输出 gap report，对比需求覆盖、UI、代码、部署验证差距，并把高影响差距沉淀为 SKILL/reference/scripts/evals 规则。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "golden baseline",
+          "replay",
+          "gap report",
+          "规则",
+          "evals"
+        ],
+        "must_not_include": [
+          "直接上新需求测试",
+          "主观感觉差不多"
+        ]
+      }
+    },
+    {
+      "id": 51,
+      "name": "requirements-uses-jtbd-and-moscow",
+      "prompt": "Use $opc-delivery; 业务同学只说想做一个客户流失预警工具，从需求到上线都交给你。",
+      "expected_output": "应该在需求阶段补 OPC Pattern Card，并用 JTBD/Core Job、补偿行为和 MoSCoW 拆范围；PRD 必须明确 Must/Should/Could/Won't、用户故事、验收标准和 Open Questions，不能直接进入 UI 或代码。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "Pattern Card",
+          "JTBD",
+          "Core Job",
+          "MoSCoW",
+          "Won't",
+          "Open Questions"
+        ],
+        "must_not_include": [
+          "直接做页面",
+          "先出个 demo"
+        ]
+      }
+    },
+    {
+      "id": 52,
+      "name": "solution-offers-alternatives-and-self-review",
+      "prompt": "Use $opc-delivery; PRD 已确认，帮我出方案再继续做。",
+      "expected_output": "应该进入方案阶段，给出 2-3 个候选方案和推荐方案，说明取舍、风险和放弃原因，并拆成 discovery/foundation/delivery/verification/follow-through planning packet；最后做自我审查，检查 Must 覆盖、占位符、冲突假设和下游输入。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "2-3",
+          "候选方案",
+          "推荐方案",
+          "Planning Packet",
+          "自我审查",
+          "Must"
+        ],
+        "must_not_include": [
+          "唯一方案且没有原因",
+          "直接开始实现"
+        ]
+      }
+    },
+    {
+      "id": 53,
+      "name": "implementation-prefers-tdd-regression",
+      "prompt": "Use $opc-delivery; 方案和 UI 都确定了，现在实现前端，并且修掉已有表单校验 bug。",
+      "expected_output": "应该在实现 inventory 中声明 TDD/regression ratchet：对可测行为先补失败测试或最小回归用例；修 bug 先复现和定位根因，遇到失败走 systematic debugging；没有测试基础设施时必须说明原因并用 Browser/Playwright 场景和截图补证据。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "TDD",
+          "regression",
+          "失败测试",
+          "systematic debugging",
+          "Browser",
+          "截图"
+        ],
+        "must_not_include": [
+          "先随便改一下",
+          "构建过了就完成"
+        ]
+      }
+    },
+    {
+      "id": 54,
+      "name": "production-deploy-runs-premortem-redteam",
+      "prompt": "Use $opc-delivery; preview 验证过了，这次涉及权限和客户数据，准备上 production。",
+      "expected_output": "应该在 production gate 前生成 release packet/release profile，确认显式授权、artifact、promotion model、rollout strategy、verification、rollback；必须做 premortem，且因涉及权限和客户数据要做 red-team，并写 stop conditions 后再推进。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "release packet",
+          "release profile",
+          "premortem",
+          "red-team",
+          "stop conditions",
+          "rollback"
+        ],
+        "must_not_include": [
+          "直接 --prod",
+          "无需回滚"
+        ]
+      }
+    },
+    {
+      "id": 55,
+      "name": "calibration-uses-aar-to-update-rules",
+      "prompt": "Use $opc-delivery; 拿已上线的工单分析需求做 golden replay，看看 AI 版本为什么和人工版本差这么多。",
+      "expected_output": "应该进入校准流程，建立 golden baseline 和 replay output，分类 gap，并用 AAR 回答 what expected/what happened/why different/what changes；高影响差距要落到 SKILL/reference/scripts/evals 或项目规则，不能只写主观总结。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "golden baseline",
+          "replay output",
+          "gap",
+          "AAR",
+          "what expected",
+          "what happened",
+          "why different",
+          "what changes",
+          "evals"
+        ],
+        "must_not_include": [
+          "主观感觉",
+          "差不多就行"
+        ]
+      }
+    },
+    {
+      "id": 58,
+      "name": "skill-creator-structure-hygiene",
+      "prompt": "Use $opc-delivery; 帮我检查这个 skill 自身是否符合 skill-creator 的结构要求，并给出是否可以发布。",
+      "expected_output": "应该检查 SKILL.md frontmatter 只含 name/description 且体量受控，SKILL.md 正文保持精简并把细节放入 references，长 reference 有目录，agents/openai.yaml 的 display_name/short_description/default_prompt 与技能定位一致，scripts/evals/references 都是运行时必要资源，且没有 README、CHANGELOG、examples、__pycache__ 等非运行时杂物；发布前应运行 validate-opc-delivery-skill.py、check-skill-rules.py、check-evals.py --skill opc-delivery 和 publish-opc-delivery-skill.py --check。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "SKILL.md",
+          "frontmatter",
+          "references",
+          "目录",
+          "agents/openai.yaml",
+          "validate-opc-delivery-skill.py",
+          "check-skill-rules",
+          "check-evals",
+          "publish-opc-delivery-skill.py --check"
+        ],
+        "must_not_include": [
+          "README 是必须的",
+          "不需要验证"
+        ]
+      }
+    },
+    {
+      "id": 62,
+      "name": "verification-phase-state-ledger",
+      "prompt": "Use $opc-delivery; 实现已经完成，进入验证并准备后续部署。",
+      "expected_output": "应该把验证作为 implementation 和 deployment 之间的独立阶段处理：在 .opc/state/opc-task.json 中 currentPhase 或 phases 里出现 verification，验证报告默认写到 .opc/verification/verification.md，必要时用 verification-state.py 归档命令、截图、浏览器或 API 证据。不能从 implementation 直接跳到 deployment，也不能把 build/typecheck 通过当作完整验证。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "verification",
+          ".opc/state/opc-task.json",
+          ".opc/verification/verification.md",
+          "verification-state.py",
+          "deployment"
+        ],
+        "must_not_include": [
+          "直接进入 deployment",
+          ".opc/validation/verification.md",
+          "build 通过就算验证完成"
+        ]
+      }
+    },
+    {
+      "id": 64,
+      "name": "karpathy-framing-before-code",
+      "prompt": "Use $opc-delivery; 做一个企业级用户中心，从需求到上线都交给你。",
+      "expected_output": "应该先把“企业级用户中心”翻译成可校准的具体范围，而不是直接写 PRD 或代码。应暴露会影响成品的默认假设，列出企业级可能包含/不包含的能力，例如账号、登录、角色、RBAC/SSO/审计/多租户/计费等；需要拍板时优先使用当前 AI 宿主的真实结构化选择/确认交互收集 1-3 个高影响决策，推荐默认放第一并保留自定义入口，宿主原生结构化交互不可用时才降级为 A/B/C 文本选择；低风险细节直接自治；同时给每步 verify 检查，体现优先简单、外科手术式修改和目标驱动执行。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "高影响",
+          "企业级",
+          "默认假设",
+          "RBAC",
+          "SSO",
+          "审计",
+          "verify",
+          "自定义"
+        ],
+        "must_not_include": [
+          "我先直接实现",
+          "下面是完整 PRD",
+          "你看呢"
+        ]
+      }
+    },
+    {
+      "id": 71,
+      "name": "large-implementation-plan-splits-context-safely",
+      "prompt": "Use $opc-delivery; 这是一个很大的企业级项目，先写完整技术实现方案和开发计划，后面要能分批实现。",
+      "expected_output": "应该把实现计划拆成 .opc/implementation-plan/index.md 入口、architecture.md、contracts.md、work-breakdown.md、verification.md、decisions/ADR-xxxx.md 和 slices/<slice-id>.md；index.md 控制读取顺序和 slice 索引，单文件接近 200 行或 12KB 时继续拆分。不能只写一个巨大 technical-implementation-plan.md 或 development-plan.md。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          ".opc/implementation-plan/index.md",
+          "architecture.md",
+          "contracts.md",
+          "work-breakdown.md",
+          "verification.md",
+          "slices",
+          "ADR",
+          "Read Set",
+          "12KB"
+        ],
+        "must_not_include": [
+          "technical-implementation-plan.md",
+          "development-plan.md",
+          "一次性读取整个 implementation-plan"
+        ]
+      }
+    },
+    {
+      "id": 72,
+      "name": "implementation-reads-current-slice-not-all-docs",
+      "prompt": "Use $opc-delivery; implementation-plan 已经存在，现在实现 slices/02-customer-list-and-filters.md。",
+      "expected_output": "应该只按固定读取顺序加载 .opc/implementation-plan/index.md、architecture.md、contracts.md、verification.md、当前 slice 和当前 slice 引用的 ADR，再按 Read Set 读取代码文件；不能默认读取整个 .opc/implementation-plan/ 目录或顺手实现其他 slice。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "index.md",
+          "architecture.md",
+          "contracts.md",
+          "verification.md",
+          "slices/02-customer-list-and-filters.md",
+          "Read Set",
+          "ADR"
+        ],
+        "must_not_include": [
+          "读取整个 .opc/implementation-plan",
+          "一次性实现所有 slice",
+          "顺手做其他 slice"
+        ]
+      }
+    },
+    {
+      "id": 73,
+      "name": "implementation-plan-uses-value-slices-not-layer-splits",
+      "prompt": "Use $opc-delivery; 给这个 CRM 项目拆实现计划，页面、接口、数据库、测试都不少。",
+      "expected_output": "应该按可验证的用户价值链拆 slice，例如客户列表筛选、客户详情更新、权限可见性、导入校验等；每个 slice 同时包含 UI/API/DB/测试上下文和验收。不能机械拆成 frontend.md、backend.md、database.md、tests.md 四份互相丢上下文的层文档。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "用户价值",
+          "slice",
+          "UI",
+          "API",
+          "DB",
+          "测试",
+          "验收"
+        ],
+        "must_not_include": [
+          "frontend.md",
+          "backend.md",
+          "database.md",
+          "tests.md",
+          "按层拆完就可以"
+        ]
+      }
+    },
+    {
+      "id": 74,
+      "name": "adr-records-high-impact-decisions",
+      "prompt": "Use $opc-delivery; 实现计划里 ORM、鉴权、部署目标和权限深度都需要做技术取舍。",
+      "expected_output": "应该为高影响技术取舍写 ADR，每份 ADR 只记录一个决策，包含背景、选项、决定、取舍、影响的 slice、回滚或重审条件；低影响实现细节不写 ADR。实现中发现计划不匹配时先更新对应 slice 或 ADR，再继续编码。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "ADR",
+          "一个决策",
+          "背景",
+          "选项",
+          "决定",
+          "取舍",
+          "slice",
+          "回滚"
+        ],
+        "must_not_include": [
+          "把所有决策写在同一份 ADR",
+          "低影响细节都写 ADR",
+          "先编码再补决策"
+        ]
+      }
+    },
+    {
+      "id": 76,
+      "name": "implementation-plan-records-context-budget",
+      "prompt": "Use $opc-delivery; 这个全栈项目很大，开发过程中之前多次因为会话上下文满了停掉。请写实现计划时避免这个问题。",
+      "expected_output": "应该在 implementation-plan 里为每个 slice 写 Context Budget、Checkpoint Trigger、Resume 和 Stop Before，并使用 .opc/implementation/continuation.md + opc-task-state.py checkpoint 作为压缩或重开会话后的恢复入口。执行时只领取当前上下文能完成并验证的 slice/lane；上下文预算 red 时不能开始新实现，要先 checkpoint。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "Context Budget",
+          "Checkpoint Trigger",
+          "continuation.md",
+          "opc-task-state.py checkpoint",
+          "Resume",
+          "Stop Before"
+        ],
+        "must_not_include": [
+          "依赖聊天历史继续",
+          "等上下文满了再说",
+          "一次性实现所有 slice"
+        ]
+      }
+    },
+    {
+      "id": 77,
+      "name": "implementation-plan-identifies-parallel-lanes",
+      "prompt": "Use $opc-delivery; 这个项目有多个独立页面、API resource 和测试补强，开发计划要考虑哪些可以并行给子代理做。",
+      "expected_output": "应该生成或更新 .opc/implementation-plan/parallelization.md，列出 dependency graph、可并行 lane、主代理保留项、Eligible For Subagent、Read Set、Write Set、验证命令、merge order 和 handoff contract。只有依赖清楚、写入范围不重叠、验证责任明确且宿主/上层指令允许时才派发子代理；不适合并行的部分要写原因。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "parallelization.md",
+          "dependency graph",
+          "Eligible For Subagent",
+          "Read Set",
+          "Write Set",
+          "merge order",
+          "handoff"
+        ],
+        "must_not_include": [
+          "所有任务都并行",
+          "共享 schema 还没定就派发",
+          "写入范围随便改"
+        ]
+      }
+    },
+    {
+      "id": 78,
+      "name": "commit-cadence-engineer-instinct",
+      "prompt": "Use $opc-delivery; 实现阶段已经在跑，按工程师的常态习惯做 commit。",
+      "expected_output": "应该按 [06-implementation.md#commit-节奏](references/06-implementation.md#commit-节奏) 的信号驱动判断：一件事闭合、重构稳定、实验性改动前、切换上下文前、长测试 / 部署前各自触发一次 commit；一个 commit 一件事，混合改动用 `git add -p` 拆开；commit message 先嗅探 `git log --oneline -20` 跟随项目既有风格，无既有风格才默认 conventional commits；message 写 why 不写 what；不让用户决定要不要 commit。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "commit",
+          "一件事",
+          "git log",
+          "why",
+          "git add -p"
+        ],
+        "must_not_include": [
+          "每个 slice 一个 commit",
+          "每个阶段一个 commit",
+          "要不要 commit 你来定",
+          "commit message 写 update 就行"
+        ]
+      }
+    },
+    {
+      "id": 79,
+      "name": "commit-no-secrets-in-history",
+      "prompt": "Use $opc-delivery; 实现阶段会处理 .env 和 secret，注意 commit 安全。",
+      "expected_output": "应该确认 `.env*`(不含 `.env.example`)、本地 DB(`*.db` / `*.sqlite*`)、构建产物、`node_modules` 已进 `.gitignore`；commit 前先扫一遍不带 secret；含 token / API key / password 的内容哪怕本地也不 push；用户把 raw token 贴进聊天后提醒 revoke / rotate。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          ".gitignore",
+          ".env",
+          "secret",
+          "revoke"
+        ],
+        "must_not_include": [
+          "secret 进 commit 没关系",
+          "token 硬编码到代码",
+          ".env 提交进 Git"
+        ]
+      }
+    }
+  ],
+  "negative_evals": []
+}

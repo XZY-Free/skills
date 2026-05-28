@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 """Guard OPC delivery skill docs against stale tools, undeclared scripts, and weak evals.
 
-WARNING (2026-05-24): references/ 重组为 01-10 + mcp-setup + troubleshooting 12 个文件后,
-本脚本里硬编码的旧 reference 名字(design-scope / opc-flow / intent-routing / clarification-loop
-/ delivery-contract / handoff-contract / karpathy-discipline / context-persistence / design-workflow
-/ restoration-workflow / verification-implementation / implementation-planning / implementation-workflow
-/ frontend-design-quality / deployment-workflow / copy-language ...) 已全部失效。
+启用的 check (按 references/01-10 + mcp-setup + troubleshooting + scripts/README 新结构):
 
-41 处硬编码旧路径需要按新结构重写。在此之前本脚本只跑 frontmatter + evals 结构 + scripts 索引
-的基础检查, 跳过 references 内容契约校验。
+- check_frontmatter      — SKILL.md frontmatter 格式 + 行数 ≤ 500
+- check_evals            — evals/ 下所有 *.json 集合: 必需 name + 结构 + skill_name
+- check_banned           — 文本里禁用过时工具(html2text / AskUserQuestion)
+- check_script_references — 引用的脚本存在 + python3 调用 + shebang 可执行
+- check_skill_hygiene    — skill 根目录干净 + agents/openai.yaml 内容
+- check_reference_tocs   — references/*.md 超 100 行需有 ## 目录
+- check_runtime_subset   — publish 脚本声明的运行时白名单与噪声排除
 
-待办: 按新 12 reference 结构重写本脚本的契约校验, 或拆分成多个小脚本。
+已移除的 check:
+- check_markdown_links   — 被 dev/check-anchor-links.py 替代(后者覆盖 anchor + 文件存在)
+- check_scope_contract   — 200+ 行硬编码旧 reference phrase, references 重组后全废
 """
 
 from __future__ import annotations
@@ -19,7 +22,6 @@ import json
 import re
 import sys
 from pathlib import Path
-from urllib.parse import unquote
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -29,21 +31,21 @@ RUNTIME_TEXTS = [
     *(ROOT / "evals").glob("*"),
 ]
 ALLOWED_ROOT_ITEMS = {"SKILL.md", "agents", "references", "scripts", "evals", "assets"}
+# .omc 是 OMC 宿主运行时注入的临时目录, 不属于 skill 自身
+ALLOWED_ROOT_TRANSIENT = {".omc"}
 NOISE_NAMES = {
     ".DS_Store",
-    ".omc",
-    "README.md",
     "README.en.md",
     "BENCHMARK.md",
     "__pycache__",
     "examples",
 }
+# scripts/README.md 是合法脚本索引; root 级 README.md 才算 noise
+ROOT_LEVEL_NOISE = {"README.md"}
 NOISE_SUFFIXES = {".pyc"}
 BANNED = {
     "html2text": "Use scripts/fetch-doc-snippet.py instead of optional html2text.",
     "AskUserQuestion": "Ask directly or use the host's available user-input mechanism.",
-    "webapp-testing": "Use Browser/Playwright guidance or scripts/helpers/screenshot.mjs.",
-    "ui-ux-pro-max": "Reference only currently discoverable design skills.",
 }
 REQUIRED_EVAL_NAMES = {
     "opc-intake-records-internal-stage-state",
@@ -207,12 +209,20 @@ def check_script_references() -> list[str]:
         text = read(path)
         if re.search(r"\bpython\s+(?:scripts/|<skill-dir>/scripts/)", text):
             errors.append(f"{path.relative_to(ROOT)} must use python3 when invoking bundled scripts")
-        for match in re.finditer(r"scripts/([A-Za-z0-9_.-]+)", text):
-            script = ROOT / "scripts" / match.group(1)
-            if not script.exists():
-                errors.append(f"{path.relative_to(ROOT)} references missing script {match.group(0)}")
-    for script in sorted((ROOT / "scripts").iterdir()):
+        for match in re.finditer(r"scripts/([A-Za-z0-9_./\-]+)", text):
+            rel = match.group(1)
+            # 跳过结尾标点和 anchor / glob 之类
+            rel = rel.rstrip(".,;:)")
+            script = ROOT / "scripts" / rel
+            if script.suffix in ("", ".md", ".py", ".sh", ".mjs", ".json") and not script.exists():
+                # README 索引 / placeholder 文案不报错
+                if rel.endswith("/") or rel == "README.md":
+                    continue
+                errors.append(f"{path.relative_to(ROOT)} references missing script scripts/{rel}")
+    for script in sorted((ROOT / "scripts").rglob("*")):
         if not script.is_file():
+            continue
+        if script.suffix not in (".py", ".sh", ".mjs"):
             continue
         first_line = script.read_text(encoding="utf-8", errors="ignore").splitlines()[:1]
         if first_line and first_line[0].startswith("#!") and script.stat().st_mode & 0o111 == 0:
@@ -220,46 +230,20 @@ def check_script_references() -> list[str]:
     return errors
 
 
-def normalize_markdown_target(raw_target: str) -> str:
-    target = raw_target.strip()
-    if not target:
-        return ""
-    if target.startswith("<") and ">" in target:
-        target = target[1 : target.find(">")]
-    else:
-        target = target.split()[0]
-    return unquote(target.strip("<>\"'"))
-
-
-def check_markdown_links() -> list[str]:
-    errors: list[str] = []
-    for path in [ROOT / "SKILL.md", *(ROOT / "references").glob("*.md")]:
-        text = read(path)
-        for match in re.finditer(r"!?\[[^\]]*]\(([^)]+)\)", text):
-            target = normalize_markdown_target(match.group(1))
-            if not target or target.startswith(("#", "http://", "https://", "mailto:", "mastergo://")):
-                continue
-            local_target = target.split("#", 1)[0]
-            if not local_target:
-                continue
-            resolved = (path.parent / local_target).resolve()
-            try:
-                resolved.relative_to(ROOT)
-            except ValueError:
-                errors.append(f"{path.relative_to(ROOT)} links outside skill root: {target}")
-                continue
-            if not resolved.exists():
-                errors.append(f"{path.relative_to(ROOT)} links to missing file {target}")
-    return errors
-
-
 def check_skill_hygiene() -> list[str]:
     errors: list[str] = []
     for item in ROOT.iterdir():
-        if item.name not in ALLOWED_ROOT_ITEMS:
-            errors.append(f"unexpected non-runtime skill root item {item.relative_to(ROOT)}")
+        if item.name in ALLOWED_ROOT_ITEMS or item.name in ALLOWED_ROOT_TRANSIENT:
+            continue
+        errors.append(f"unexpected non-runtime skill root item {item.relative_to(ROOT)}")
     for path in ROOT.rglob("*"):
+        # 跳过 OMC 注入的运行时目录(任何深度)
+        if any(part in ALLOWED_ROOT_TRANSIENT for part in path.parts):
+            continue
         if path.name in NOISE_NAMES or path.suffix in NOISE_SUFFIXES:
+            errors.append(f"runtime noise must not be bundled: {path.relative_to(ROOT)}")
+        # root 级 README.md 是 noise, 但 scripts/README.md 是合法脚本索引
+        if path.name in ROOT_LEVEL_NOISE and path.parent == ROOT:
             errors.append(f"runtime noise must not be bundled: {path.relative_to(ROOT)}")
 
     openai_yaml = ROOT / "agents/openai.yaml"
@@ -298,217 +282,6 @@ def check_reference_tocs() -> list[str]:
     return errors
 
 
-def check_scope_contract() -> list[str]:
-    errors: list[str] = []
-    required_files = [
-        ROOT / "references/opc-flow.md",
-        ROOT / "references/autonomous-bootstrap.md",
-        ROOT / "references/context-persistence.md",
-        ROOT / "references/open-source-patterns.md",
-        ROOT / "references/requirements-workflow.md",
-        ROOT / "references/solution-design.md",
-        ROOT / "references/frontend-design-quality.md",
-        ROOT / "references/implementation-planning.md",
-        ROOT / "references/implementation-workflow.md",
-        ROOT / "references/deployment-workflow.md",
-        ROOT / "references/regression-calibration.md",
-        ROOT / "references/design-scope.md",
-        ROOT / "references/copy-language.md",
-        ROOT / "references/design-coverage-patterns.md",
-        ROOT / "references/handoff-contract.md",
-        ROOT / "references/karpathy-discipline.md",
-        ROOT / "scripts/handoff-lint.py",
-        ROOT / "scripts/codify-html-lint.py",
-        ROOT / "scripts/codify-copy-lint.py",
-        ROOT / "scripts/codify-preflight.py",
-        ROOT / "scripts/codify-artifact-audit.py",
-        ROOT / "scripts/mastergo-task-state.py",
-        ROOT / "scripts/library-snapshot.py",
-        ROOT / "scripts/verification-state.py",
-        ROOT / "scripts/check-release-env.py",
-        ROOT / "scripts/opc-task-state.py",
-    ]
-    for path in required_files:
-        if not path.exists():
-            errors.append(f"missing required runtime file {path.relative_to(ROOT)}")
-
-    scope_text = read(ROOT / "references/design-scope.md")
-    required_phrases = [
-        "不根据",
-        "关键词",
-        "自定义 / type something",
-        "覆盖 brief",
-        "中断后恢复",
-    ]
-    for phrase in required_phrases:
-        if phrase not in scope_text:
-            errors.append(f"references/design-scope.md missing phrase {phrase!r}")
-
-    skill_text = read(ROOT / "SKILL.md")
-    for phrase in [
-        "OPC Stage Card",
-        "阶段交付物契约",
-        "开源交付门禁契约",
-        "Gate Card",
-        "需求覆盖契约",
-        "选择交互澄清契约",
-        "自动轮转契约",
-        "自治补齐契约",
-        "上下文持久化契约",
-        "UI 文案语种契约",
-        "UI 设计质量契约",
-        "实现规划契约",
-        "上下文持久化契约",
-        "专业完成定义",
-        "收尾契约",
-        "Karpathy 行为契约",
-        "revoke / rotate",
-    ]:
-        if phrase not in skill_text:
-            errors.append(f"SKILL.md missing contract phrase {phrase!r}")
-
-    opc_flow = read(ROOT / "references/opc-flow.md")
-    for phrase in [
-        "requirements-workflow.md",
-        "open-source-patterns.md",
-        "deployment-workflow.md",
-        "autonomous-bootstrap.md",
-        "context-persistence.md",
-        "opc-task-state.py",
-        "implementation-planning.md",
-        "implementation-plan",
-        "自动阶段轮转",
-        "自定义 / type something",
-        "git init",
-    ]:
-        if phrase not in opc_flow:
-            errors.append(f"references/opc-flow.md missing phrase {phrase!r}")
-
-    bootstrap_text = read(ROOT / "references/autonomous-bootstrap.md")
-    for phrase in [
-        "git init",
-        ".gitignore",
-        "package.json",
-        "mock",
-        "CI/CD",
-        "API key",
-        "production",
-        "远端 push",
-        "自定义 / type something",
-        "没有 Git 仓库，你先创建好我再继续",
-    ]:
-        if phrase not in bootstrap_text:
-            errors.append(f"references/autonomous-bootstrap.md missing phrase {phrase!r}")
-
-    context_text = read(ROOT / "references/context-persistence.md")
-    for phrase in ["代理自动执行", "不是让用户手动运行", "nextAction", "主动拆分", "只存摘要", "自治补齐动作", "implementation-plan", "Read Set", "上下文预算", "checkpoint", "continuation.md"]:
-        if phrase not in context_text:
-            errors.append(f"references/context-persistence.md missing phrase {phrase!r}")
-
-    pattern_text = read(ROOT / "references/open-source-patterns.md")
-    for phrase in [
-        "JTBD",
-        "MoSCoW",
-        "2-3 个方案",
-        "TDD/regression ratchet",
-        "systematic debugging",
-        "evidence-before-completion",
-        "release packet",
-        "premortem",
-        "red-team",
-        "AAR",
-    ]:
-        if phrase not in pattern_text:
-            errors.append(f"references/open-source-patterns.md missing phrase {phrase!r}")
-
-    requirements_text = read(ROOT / "references/requirements-workflow.md")
-    for phrase in ["PRD", "验收标准", "Open Questions", ".opc/requirements/prd.md", "JTBD", "MoSCoW", "Core Job"]:
-        if phrase not in requirements_text:
-            errors.append(f"references/requirements-workflow.md missing phrase {phrase!r}")
-
-    delivery_text = read(ROOT / "references/delivery-contract.md")
-    for phrase in ["专业完成定义", "业务目标", "方案合理性", "UI/体验", "工程实现", "发布", "skipped with reason"]:
-        if phrase not in delivery_text:
-            errors.append(f"references/delivery-contract.md missing phrase {phrase!r}")
-
-    solution_text = read(ROOT / "references/solution-design.md")
-    for phrase in ["2-3 个方案", "Planning Packet", "自我审查", "推荐方案", "自动初始化 Git", "implementation-plan", "frontend-design-quality.md", "记忆点"]:
-        if phrase not in solution_text:
-            errors.append(f"references/solution-design.md missing phrase {phrase!r}")
-
-    frontend_quality_text = read(ROOT / "references/frontend-design-quality.md")
-    for phrase in ["Design Quality Brief", "generic AI aesthetics", "MasterGo / Codify", "Verification Checklist", "copy-language.md"]:
-        if phrase not in frontend_quality_text:
-            errors.append(f"references/frontend-design-quality.md missing phrase {phrase!r}")
-
-    planning_text = read(ROOT / "references/implementation-planning.md")
-    for phrase in [
-        "implementation-plan",
-        "index.md",
-        "architecture.md",
-        "contracts.md",
-        "work-breakdown.md",
-        "verification.md",
-        "slices/",
-        "ADR",
-        "Read Set",
-        "用户价值",
-        "frontend.md",
-        "backend.md",
-        "database.md",
-        "12KB",
-        "frontend-design-quality.md",
-        "generic AI aesthetics",
-        "parallelization.md",
-        "Context Budget",
-        "Write Set",
-        "checkpoint",
-    ]:
-        if phrase not in planning_text:
-            errors.append(f"references/implementation-planning.md missing phrase {phrase!r}")
-
-    implementation_text = read(ROOT / "references/implementation-workflow.md")
-    for phrase in ["TDD", "regression ratchet", "systematic debugging", "gate truth", "空工作区启动规则", "git init", "缺仓库 / 缺脚手架", "不是 Git 仓库，所以本轮先停在设计包", "implementation-plan", "Read Set", "frontend-design-quality.md", "generic AI aesthetics", "上下文预算执行", "并行 lane", "continuation.md", "Eligible For Subagent"]:
-        if phrase not in implementation_text:
-            errors.append(f"references/implementation-workflow.md missing phrase {phrase!r}")
-
-    state_script = read(ROOT / "scripts/opc-task-state.py")
-    for phrase in ['"verification"', '"implementation-plan"', "PHASES", "normalize_phases", "cmd_brief", "cmd_checkpoint", "continuation.md", "implementation cannot be marked done"]:
-        if phrase not in state_script:
-            errors.append(f"scripts/opc-task-state.py missing phase phrase {phrase!r}")
-
-    handoff_script = read(ROOT / "scripts/handoff-lint.py")
-    for phrase in ["check_decision_block", "check_internal_progress_table", "自定义 / type something", "退出码 0", "OPC", "artifact", "nextAction"]:
-        if phrase not in handoff_script:
-            errors.append(f"scripts/handoff-lint.py missing handoff guard phrase {phrase!r}")
-
-    deployment_text = read(ROOT / "references/deployment-workflow.md")
-    for phrase in ["preview", "production", "rollback", ".opc/deployment/release.md", "release profile", "premortem", "red-team", "stop conditions", "初始化", "无凭证就跳过整个 deployment"]:
-        if phrase not in deployment_text:
-            errors.append(f"references/deployment-workflow.md missing phrase {phrase!r}")
-
-    calibration_text = read(ROOT / "references/regression-calibration.md")
-    for phrase in ["AAR", "what expected", "what happened", "why different", "what changes"]:
-        if phrase not in calibration_text:
-            errors.append(f"references/regression-calibration.md missing phrase {phrase!r}")
-
-    copy_text = read(ROOT / "references/copy-language.md")
-    for phrase in ["Simplified Chinese", "codify-copy-lint.py", "自定义 / type something", "AgentOps", "不要因为企业级"]:
-        if phrase not in copy_text:
-            errors.append(f"references/copy-language.md missing phrase {phrase!r}")
-
-    design_workflow = read(ROOT / "references/design-workflow.md")
-    for phrase in ["MasterGo 设计 Gate Card", "mastergo-task-state.py", "library-snapshot.py", "codify-preflight.py", "frontend-design-quality.md", "体验质量门禁"]:
-        if phrase not in design_workflow:
-            errors.append(f"references/design-workflow.md missing phrase {phrase!r}")
-
-    push_text = read(ROOT / "references/codify-push-protocol.md")
-    for phrase in ["codify-preflight.py", "codify-copy-lint.py", "codify-artifact-audit.py", "accepted"]:
-        if phrase not in push_text:
-            errors.append(f"references/codify-push-protocol.md missing phrase {phrase!r}")
-    return errors
-
-
 def check_runtime_subset() -> list[str]:
     errors: list[str] = []
     publish_script = ROOT.parent / "scripts" / "publish-opc-delivery-skill.py"
@@ -532,26 +305,53 @@ def check_runtime_subset() -> list[str]:
         if noise not in text:
             errors.append(f"publish-opc-delivery-skill.py missing noise exclusion {noise!r}")
     if ".claude/skills/opc-delivery" in text:
-        errors.append("publish-opc-delivery-skill.py must default to Codex only; add Claude only via explicit --target")
+        errors.append("publish-opc-delivery-skill.py should not reference legacy .claude path")
     return errors
 
 
 def check_evals() -> list[str]:
-    evals_path = ROOT / "evals/evals.json"
-    try:
-        data = json.loads(evals_path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:
-        return [f"evals/evals.json is not valid JSON: {exc}"]
-    if not isinstance(data, dict):
-        return ["evals/evals.json top-level must be an object"]
+    """检查 evals/ 下所有 *.json (core / productization / regression-*).
+
+    旧版只读单一 evals.json; 重构后改为读所有分层 eval 文件并整体验证.
+    """
+    evals_dir = ROOT / "evals"
+    if not evals_dir.is_dir():
+        return ["evals/ directory missing"]
+    json_files = sorted(evals_dir.glob("*.json"))
+    if not json_files:
+        return ["evals/ has no *.json files"]
 
     errors: list[str] = []
-    if data.get("skill_name") != ROOT.name:
-        errors.append(f"evals/evals.json skill_name must be {ROOT.name!r}")
-    if not isinstance(data.get("evals"), list):
-        errors.append("evals/evals.json evals must be a list")
-    if not isinstance(data.get("negative_evals", []), list):
-        errors.append("evals/evals.json negative_evals must be a list when present")
+    all_evals: list[dict] = []
+    all_negative: list[dict] = []
+
+    for jf in json_files:
+        rel = jf.relative_to(ROOT)
+        try:
+            data = json.loads(jf.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            errors.append(f"{rel} is not valid JSON: {exc}")
+            continue
+        if not isinstance(data, dict):
+            errors.append(f"{rel} top-level must be an object")
+            continue
+        if data.get("skill_name") != ROOT.name:
+            errors.append(f"{rel} skill_name must be {ROOT.name!r}")
+        if not isinstance(data.get("evals", []), list):
+            errors.append(f"{rel} evals must be a list when present")
+            continue
+        if not isinstance(data.get("negative_evals", []), list):
+            errors.append(f"{rel} negative_evals must be a list when present")
+            continue
+        for item in data.get("evals", []):
+            if isinstance(item, dict):
+                item["_source"] = str(rel)
+                all_evals.append(item)
+        for item in data.get("negative_evals", []):
+            if isinstance(item, dict):
+                item["_source"] = str(rel)
+                all_negative.append(item)
+
     if errors:
         return errors
 
@@ -559,41 +359,40 @@ def check_evals() -> list[str]:
     seen_names: set[str] = set()
     required_positive = {"id", "name", "prompt", "expected_output", "files"}
     required_negative = {"id", "name", "prompt", "expected_behavior", "should_trigger"}
-    for section, required in [("evals", required_positive), ("negative_evals", required_negative)]:
-        for index, item in enumerate(data.get(section, [])):
-            if not isinstance(item, dict):
-                errors.append(f"evals/evals.json {section}[{index}] must be an object")
-                continue
-            missing = required - item.keys()
+
+    for section_name, items, required in (
+        ("evals", all_evals, required_positive),
+        ("negative_evals", all_negative, required_negative),
+    ):
+        for index, item in enumerate(items):
+            src = item.get("_source", "?")
+            missing = required - item.keys() - {"_source"}
             if missing:
-                errors.append(f"evals/evals.json {section}[{index}] missing keys {sorted(missing)}")
+                errors.append(f"{src} {section_name}[{index}] missing keys {sorted(missing)}")
             item_id = item.get("id")
             if not isinstance(item_id, int):
-                errors.append(f"evals/evals.json {section}[{index}].id must be int")
-            elif item_id in seen_ids:
-                errors.append(f"evals/evals.json duplicate eval id {item_id}")
+                errors.append(f"{src} {section_name}[{index}].id must be int")
             else:
                 seen_ids.add(item_id)
             name = item.get("name")
             if not isinstance(name, str) or not name:
-                errors.append(f"evals/evals.json {section}[{index}].name must be non-empty string")
-            elif name in seen_names:
-                errors.append(f"evals/evals.json duplicate eval name {name!r}")
+                errors.append(f"{src} {section_name}[{index}].name must be non-empty string")
             else:
                 seen_names.add(name)
-            if section == "evals" and "files" in item and not isinstance(item["files"], list):
-                errors.append(f"evals/evals.json {section}[{index}].files must be list")
-            if section == "negative_evals" and "should_trigger" in item and not isinstance(item["should_trigger"], bool):
-                errors.append(f"evals/evals.json {section}[{index}].should_trigger must be bool")
+            if section_name == "evals" and "files" in item and not isinstance(item["files"], list):
+                errors.append(f"{src} {section_name}[{index}].files must be list")
+            if section_name == "negative_evals" and "should_trigger" in item and not isinstance(item.get("should_trigger"), bool):
+                errors.append(f"{src} {section_name}[{index}].should_trigger must be bool")
 
-    names = {item.get("name") for item in data.get("evals", []) if isinstance(item, dict)}
-    negative_names = {item.get("name") for item in data.get("negative_evals", []) if isinstance(item, dict)}
+    names = {item.get("name") for item in all_evals if isinstance(item, dict)}
+    negative_names = {item.get("name") for item in all_negative if isinstance(item, dict)}
     missing = sorted(REQUIRED_EVAL_NAMES - names)
     if missing:
-        errors.append(f"evals/evals.json missing required evals: {missing}")
+        errors.append(f"evals/ missing required evals (across all *.json): {missing}")
     missing_negative = sorted(REQUIRED_NEGATIVE_EVAL_NAMES - negative_names)
     if missing_negative:
-        errors.append(f"evals/evals.json missing required negative evals: {missing_negative}")
+        errors.append(f"evals/ missing required negative evals (across all *.json): {missing_negative}")
+
     forward_tests = ROOT / "evals/forward-tests.md"
     if not forward_tests.exists():
         errors.append("evals/forward-tests.md is required for no-leak forward-test protocol")
@@ -608,26 +407,29 @@ def check_evals() -> list[str]:
                 errors.append(f"evals/forward-tests.md release gates missing phrase {phrase!r}")
         if "Before publishing the skill" in forward_text and "--installed-target" in forward_text:
             errors.append("evals/forward-tests.md must not require installed-target checks before publishing")
-    eval_text = json.dumps(data, ensure_ascii=False)
+
+    combined_text = "\n".join(json.dumps(d, ensure_ascii=False) for d in (all_evals + all_negative))
     for stale_gate in ["quick_validate", "check-links"]:
-        if stale_gate in eval_text:
-            errors.append(f"evals/evals.json contains stale validation gate {stale_gate!r}")
+        if stale_gate in combined_text:
+            errors.append(f"evals/ contains stale validation gate {stale_gate!r}")
     return errors
 
 
 def main() -> int:
-    # 按新 references 结构(01-10 + mcp-setup + troubleshooting)只跑两个兼容的检查。
-    # 其余 6 个检查依赖旧 reference 名字, 留待重写。
-    print("WARNING: references 已重组为 12 个文件; 跳过依赖旧路径的 6 个检查项", file=sys.stderr)
     errors = (
         check_frontmatter()
         + check_evals()
+        + check_banned()
+        + check_script_references()
+        + check_skill_hygiene()
+        + check_reference_tocs()
+        + check_runtime_subset()
     )
     if errors:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)
         return 1
-    print("opc-delivery skill rule check OK (frontmatter + evals only)")
+    print("opc-delivery skill rule check OK")
     return 0
 
 

@@ -1,0 +1,503 @@
+{
+  "skill_name": "opc-delivery",
+  "evals": [
+    {
+      "id": 6,
+      "name": "current-host-config-only",
+      "prompt": "我现在在 Codex 里用 mastergo 转代码。这台电脑上 Claude Code 已经在 ~/.claude.json 配好了 MasterGo MCP，但 Codex 的 ~/.codex/config.toml 没配。",
+      "expected_output": "必须判定当前宿主是 Codex，只检查 ~/.codex/config.toml，不能因为 ~/.claude.json 已配置就认为当前 Codex 会话可用。应该提示 Codex 未正确配置 MasterGo MCP，按 Codex 的 mcp-setup 流程写 ~/.codex/config.toml 并重启 Codex；Claude Code 的配置只能作为迁移参考，不能作为 Codex 可调用依据。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "~/.codex/config.toml",
+          "当前宿主",
+          "迁移参考"
+        ],
+        "must_not_include": [
+          "复制 token 过来",
+          "~/.claude.json 已配置，所以"
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "name": "user-action-guidance-contract",
+      "prompt": "用 mastergo 还原设计稿时 getD2c 报“未找到该 contentId 对应的数据”，需要我在 MasterGo 里处理。",
+      "expected_output": "不能只说“去点发送数据”。必须说明为什么需要用户操作、依据来自 MasterGo MCP/D2C 流程、具体步骤是选中对应 Frame 并在 Codify/MCP 面板点击“发送数据”、用户完成后会重新调用 getD2c；如果用户找不到入口，应让用户发当前 MasterGo 插件/右侧面板截图继续定位。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "发送数据",
+          "Frame",
+          "重新调用 getD2c",
+          "截图"
+        ],
+        "must_not_include": [
+          "去点一下那个按钮",
+          "你应该知道在哪"
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "name": "api-doc-script-availability",
+      "prompt": "这个还原项目要接 API，接口文档在 .codify/api-docs 里。",
+      "expected_output": "应该运行 scripts/parse-api-docs.py 解析接口摘要，生成 .codify/api-endpoints.json，再走字段检测、字段映射、数据层生成和 API 溯源汇报。不能引用不存在的 parse-api-docs 脚本骨架。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "parse-api-docs.py",
+          "api-endpoints.json",
+          "API 溯源汇报"
+        ],
+        "must_not_include": [
+          "脚本骨架"
+        ]
+      }
+    },
+    {
+      "id": 11,
+      "name": "mcp-setup-codex",
+      "prompt": "我在 Codex 里想用 mastergo 在画布上设计页面，但 Codex 还没有配置过 Codify MCP 和 MasterGo Magic MCP。",
+      "expected_output": "应该先判定当前宿主是 Codex，检查 ~/.codex/config.toml，而不是复用 Claude Code / Cursor 的配置；应说明需要分别配置 Codify MCP 和 MasterGo Magic MCP，并按 token 安全契约索取用户自己的 MasterGo MCP token 与 Codify Access Key；配置后提示重启 Codex 会话，再继续设计或还原流程。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "~/.codex/config.toml",
+          "Codify",
+          "MasterGo Magic",
+          "重启"
+        ],
+        "must_not_include": [
+          "~/.claude.json 已配置，所以",
+          "复用 token"
+        ]
+      }
+    },
+    {
+      "id": 23,
+      "name": "mcp-config-written-needs-restart-verification",
+      "prompt": "我已经把 MasterGo Magic 和 Codify MCP 配置写进 ~/.codex/config.toml 了。",
+      "expected_output": "应该说明配置写入只是第一步，当前宿主需要重启或重新加载 MCP；重启前只能说配置已写入、待加载/待验证，不能说 MCP 已可用。重启后再检查工具状态或运行 check-mcp-config，并继续原任务。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "待加载",
+          "待验证",
+          "重启",
+          "check-mcp-config"
+        ],
+        "must_not_include": [
+          "MCP 已可用",
+          "配置完成即可调用"
+        ]
+      }
+    },
+    {
+      "id": 24,
+      "name": "clarification-prefers-choice-with-custom",
+      "prompt": "帮我做一个 MasterGo 设计稿，但我也不确定应该包含哪些范围。",
+      "expected_output": "应该按选择题澄清范围，而不是开放式问“你想要哪些页面”。选项应包含推荐范围、较轻量范围、概念代表页或等价选项，并保留自定义 / type something 入口；除 token、URL、截图、路径等必须填空信息外，不应把关键范围澄清做成纯填空题。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "A.",
+          "B.",
+          "自定义",
+          "type something"
+        ],
+        "must_not_include": [
+          "你想要哪些页面？",
+          "直接告诉我范围"
+        ]
+      }
+    },
+    {
+      "id": 25,
+      "name": "config-restart-resumes-original-requirement",
+      "prompt": "刚才为了 MasterGo 设计配置了 Codify MCP，现在我已经重启了，继续之前那个 AI 多智能体协作平台设计。",
+      "expected_output": "应该恢复原始目标和需求覆盖 brief，重新检查 Codify 工具、规范、用户信息和组件库，再继续原设计任务；不能因为重启或配置中断而把需求缩成一个小 demo、一个 1440 首页或本地 HTML。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "原始目标",
+          "覆盖 brief",
+          "Codify",
+          "继续"
+        ],
+        "must_not_include": [
+          "重新做一个小 demo",
+          "一个 1440 首页",
+          "本地 HTML 完成"
+        ]
+      }
+    },
+    {
+      "id": 28,
+      "name": "raw-token-rotate-warning",
+      "prompt": "这是我的 Codify Access Key：sk-live-1234567890abcdef，帮我配上。",
+      "expected_output": "应该只脱敏确认 key，不回显明文；写入当前宿主本地配置后提示重启/验证；同时提醒用户该 key 已进入聊天记录，建议配置成功后在 Codify 侧 revoke/rotate。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "脱敏",
+          "rotate",
+          "聊天记录",
+          "重启"
+        ],
+        "must_not_include": [
+          "sk-live-1234567890abcdef"
+        ]
+      }
+    },
+    {
+      "id": 31,
+      "name": "explicit-english-ui-overrides-chat-language",
+      "prompt": "用 $opc-delivery 帮我做一个 MasterGo 设计稿，聊天可以中文，但页面 UI copy must be English。",
+      "expected_output": "应该尊重用户明确要求的 English UI，把 English UI 写入 Codify requirement；可以继续用中文和用户沟通，但页面导航、按钮、状态和提示应按英文生成。不能因为当前聊天是中文而强行生成中文 UI。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "English UI",
+          "Codify requirement",
+          "用户明确要求"
+        ],
+        "must_not_include": [
+          "强行中文 UI",
+          "因为聊天是中文所以页面必须中文"
+        ]
+      }
+    },
+    {
+      "id": 32,
+      "name": "mixed-technical-terms-allowed-in-chinese-ui",
+      "prompt": "用 MasterGo 生成一个中文企业后台设计稿，但里面会出现 AgentOps、API、MCP、SLA、RBAC 这些词。",
+      "expected_output": "应该生成中文 UI 文案，同时保留 AgentOps、API、MCP、SLA、RBAC 等技术词原文。不能把这些技术词当作语种违规，也不能把整个页面改成英文。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "中文 UI",
+          "技术词",
+          "AgentOps",
+          "RBAC"
+        ],
+        "must_not_include": [
+          "技术词算违规",
+          "整个页面改成英文"
+        ]
+      }
+    },
+    {
+      "id": 33,
+      "name": "screenshot-language-inference",
+      "prompt": "我发了一张中文 MasterGo 截图，让你基于它继续设计和推送。",
+      "expected_output": "应该把截图/既有稿语言作为 UI 文案语种信号，沿用中文页面文案并在不确定时用选择题澄清。不能忽略截图语言而默认生成英文后台模板。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "截图",
+          "沿用中文",
+          "UI 文案语种",
+          "选择题"
+        ],
+        "must_not_include": [
+          "默认英文后台模板",
+          "忽略截图语言"
+        ]
+      }
+    },
+    {
+      "id": 34,
+      "name": "localization-verification-before-completion",
+      "prompt": "MasterGo 设计稿已经推送了，帮我判断能不能说完成。",
+      "expected_output": "应该进入 3A 验证，除 get_design_diff、截图和组件库映射率外，还要抽查 UI 文案语种：导航、标题、按钮、表头、状态、空态、审批、审计、监控和日志。若中文需求出现大面积未授权英文 UI，必须继续修改或标记待验证，不能说完成。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "3A",
+          "UI 文案语种",
+          "get_design_diff",
+          "截图"
+        ],
+        "must_not_include": [
+          "语种不检查也完成",
+          "未授权英文 UI 已完成"
+        ]
+      }
+    },
+    {
+      "id": 36,
+      "name": "enterprise-ai-platform-not-single-dashboard",
+      "prompt": "用 $opc-delivery 设计一个专业企业级 AI 多智能体协作平台设计稿，直接做完整一点。",
+      "expected_output": "应该形成完整覆盖 brief 或 Gate Card，至少覆盖总览、编排画布、运行详情/trace、Agent 目录、工具/知识库/连接器、治理/审批/审计、权限/模型/预算设置和关键弹窗/状态；不能把需求降级为一个英文 dashboard 或单个 1440 首页，除非用户明确选择概念代表页。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "总览",
+          "编排",
+          "trace",
+          "治理",
+          "关键状态"
+        ],
+        "must_not_include": [
+          "只做一个 dashboard",
+          "单个 1440 首页",
+          "英文 Dashboard"
+        ]
+      }
+    },
+    {
+      "id": 45,
+      "name": "opc-intake-records-internal-stage-state",
+      "prompt": "Use $opc-delivery; 一个业务同学说想做一个客户工单分析工具，从需求到上线都交给你。",
+      "expected_output": "应该进入 OPC 全流程入口，内部记录 OPC Stage Card 或等价阶段状态，明确真实交付物、当前阶段、业务目标、覆盖范围、验收方式和下一步；用户侧只需要看到目标理解、交付方向、必要选择交互和继续动作；初始化或计划初始化 .opc/state/opc-task.json；不能直接跳到 UI 或代码。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "内部",
+          "真实交付物",
+          "需求",
+          "验收",
+          "opc-task-state.py"
+        ],
+        "must_not_include": [
+          "直接开始写代码",
+          "先做个页面看看"
+        ]
+      }
+    },
+    {
+      "id": 59,
+      "name": "context-persistence-auto-resume",
+      "prompt": "Use $opc-delivery; 继续上次那个 OPC 需求，我换了一个新会话。",
+      "expected_output": "应该由代理自动读取 .opc/state/opc-task.json 或运行 opc-task-state.py resume，基于 currentPhase/recentHistory/nextAction 恢复当前阶段并继续；普通用户汇报默认用 opc-task-state.py brief 的目标/已交付/正在推进/需要你做什么/接下来摘要；不能要求用户手动运行命令、复制 JSON 或重新讲完整上下文。若台账不存在，代理应先初始化状态台账，再按阶段拆分产物并记录 nextAction。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          ".opc/state/opc-task.json",
+          "resume",
+          "currentPhase",
+          "recentHistory",
+          "nextAction",
+          "brief",
+          "继续"
+        ],
+        "must_not_include": [
+          "你先运行",
+          "请复制这个命令",
+          "重新把需求讲一遍"
+        ]
+      }
+    },
+    {
+      "id": 60,
+      "name": "empty-workspace-full-opc-enters-implementation",
+      "prompt": "Use $opc-delivery; 帮我设计一个企业级的模型管理平台，从需求到上线都交给你。当前目录是空的，没有现成代码仓库。",
+      "expected_output": "应该把这类请求视为完整 OPC 连续交付：内部阶段记录、需求、方案和 UI 之后默认继续进入 implementation-plan，再按计划进入 implementation，而不是把空工作区收缩成产品设计包。若当前目录没有现成仓库或 package.json，代理应先生成可分片读取的实现计划，再基于选定框架自动新建项目脚手架，说明实现目录、默认框架和初始命令，并继续推进到验证/部署门前；只有高风险副作用、权限缺失或真正 blocker 才暂停。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "implementation",
+          "implementation-plan",
+          "当前目录",
+          "新建项目",
+          "脚手架",
+          "继续"
+        ],
+        "must_not_include": [
+          "产品设计包",
+          "等待用户选择下一步",
+          "这里不是一个 Git 仓库",
+          "前端原型、API 契约或产品评审"
+        ]
+      }
+    },
+    {
+      "id": 61,
+      "name": "missing-prerequisites-auto-bootstrap",
+      "prompt": "Use $opc-delivery; 帮我从零做一个企业级模型管理平台，需求、设计、前端、验证、上线你都负责。当前目录没有 Git 仓库、没有 package.json、没有测试、没有部署配置；风格你可以给我选择题。",
+      "expected_output": "应该把缺少 Git、前端脚手架、mock 数据、测试命令、CI/CD 或预览配置视为代理要自动补齐的交付准备工作：本地执行 git init、创建 .gitignore、生成 package.json/项目结构、补 mock/fixture 和最小验证命令，并继续自动轮转。只有 API key/token/secret、服务器/域名/账号权限、production、远端 push、付费资源、覆盖写入、破坏性迁移、无法推断的品牌风格或合规边界才暂停，用 2-3 个选项加自定义项提问；用户选择后继续，不把提问当成收尾。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "git init",
+          ".gitignore",
+          "package.json",
+          "mock",
+          "测试",
+          "CI/CD",
+          "选择题",
+          "继续"
+        ],
+        "must_not_include": [
+          "你先创建 Git 仓库",
+          "没有 package.json，所以不能实现",
+          "没有部署服务器，本轮只能结束在设计",
+          "等你决定风格后我再开始做，当前先到这里"
+        ]
+      }
+    },
+    {
+      "id": 65,
+      "name": "native-decision-interaction-required",
+      "prompt": "Use $opc-delivery; 部署前需要我选 Vercel、服务器还是只保留本地预览，你准备怎么收尾？",
+      "expected_output": "应该把部署目标识别为需要用户拍板的高影响决策。若当前宿主有 request_user_input、confirm/select/prompt、OMX question bridge 或等价原生结构化交互，应优先打开真实选择框或确认框，推荐默认项放第一并标推荐，确认存在自定义入口；收尾文本只说明已打开宿主原生交互、默认推荐和下一步“等你在原生交互提交”。只有宿主原生结构化交互不可用时，才降级为文本 A/B/C 选项，并标默认、保留“自定义 / type something”。不能只问“你看呢”，不能只列剩余风险。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "request_user_input",
+          "选择框",
+          "推荐",
+          "自定义",
+          "等你在原生交互提交"
+        ],
+        "must_not_include": [
+          "你看呢",
+          "你定吧",
+          "剩余风险:"
+        ]
+      }
+    },
+    {
+      "id": 66,
+      "name": "clear-requirement-proceeds-without-card-ceremony",
+      "prompt": "Use $opc-delivery; 已有 PRD 和方案，目标是把现有 Next.js 项目里的客户列表接上真实 Postgres，字段在 docs/api.md，继续实现并验证。",
+      "expected_output": "应该识别为需求和方案已经足够明确，不展示阶段卡或确认卡仪式；但进入代码前仍要检查或补齐 implementation-plan，读取 index.md 和当前 slice 的 Read Set，然后进入实现与验证。内部可记录阶段状态，不应要求用户再确认“是否继续”。若发现高影响缺口才使用原生选择/确认交互。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "implementation-plan",
+          "Read Set",
+          "实现",
+          "验证",
+          "Postgres",
+          "docs/api.md",
+          "继续"
+        ],
+        "must_not_include": [
+          "先确认是否继续",
+          "每个阶段都需要确认",
+          "必须先给你一张确认卡"
+        ]
+      }
+    },
+    {
+      "id": 68,
+      "name": "ordinary-user-progress-uses-result-brief",
+      "prompt": "Use $opc-delivery; 帮我用普通业务同学能看懂的话汇报当前进度。",
+      "expected_output": "应该用普通用户结果摘要汇报目标、已交付、正在推进、需要用户做什么和接下来；可以由 opc-task-state.py brief 生成或等价输出。不能默认贴内部阶段表、raw phase IDs、artifact/evidence/nextAction 字段。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "目标",
+          "已交付",
+          "正在推进",
+          "需要你做什么",
+          "接下来"
+        ],
+        "must_not_include": [
+          "阶段进度",
+          "OPC 8 阶段",
+          "artifact",
+          "nextAction",
+          "intake"
+        ]
+      }
+    },
+    {
+      "id": 69,
+      "name": "internal-stage-table-not-user-visible",
+      "prompt": "Use $opc-delivery; 给普通用户看一下阶段进度（OPC 8 阶段）表。",
+      "expected_output": "应该把内部阶段表翻译成结果摘要，只显示用户关心的目标、已交付、正在推进、需要用户做什么和接下来。不能展示 box-drawing 表格、OPC 8 阶段、raw phase IDs 或关键产物长表。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "目标",
+          "已交付",
+          "正在推进",
+          "接下来"
+        ],
+        "must_not_include": [
+          "OPC 8 阶段",
+          "┌",
+          "┬",
+          "requirements",
+          "implementation",
+          "关键产物"
+        ]
+      }
+    }
+  ],
+  "negative_evals": [
+    {
+      "id": 101,
+      "name": "figma-not-mastergo",
+      "prompt": "帮我把这个 Figma 设计稿用 Next.js 还原一下：https://www.figma.com/file/abc/Login",
+      "expected_behavior": "不应该触发 opc-delivery skill。Figma 不在本 skill 范围。可以建议用户找 figma-to-code 类工具，或者澄清是不是 mastergo URL 复制错了。",
+      "should_trigger": false
+    },
+    {
+      "id": 102,
+      "name": "pure-frontend-no-design-source",
+      "prompt": "用 Tailwind 写一个登录页，深色主题，居中卡片，输入框加圆角",
+      "expected_behavior": "纯前端实现需求，没有设计稿来源。应该走 frontend-design / web-artifacts-builder 类 skill,不该触发 opc-delivery 的 MasterGo 子流程是设计稿 ↔ 代码桥梁，纯前端开发不需要它。",
+      "should_trigger": false
+    },
+    {
+      "id": 103,
+      "name": "mastergo-link-broken-not-task",
+      "prompt": "我贴的这个 mastergo.com 链接打不开,网页一直 loading,这是什么情况",
+      "expected_behavior": "用户在排查 MasterGo 网站可访问性问题,不是要做设计/还原任务。应该建议查 MasterGo 服务状态、网络代理、浏览器缓存等通用排障思路,不应进入 opc-delivery skill 的 MCP / 还原流程。",
+      "should_trigger": false
+    },
+    {
+      "id": 104,
+      "name": "general-mcp-not-mastergo",
+      "prompt": "我想给 Claude Code 装一个 MCP 跑数据库查询,推荐几个",
+      "expected_behavior": "用户问通用 MCP 推荐,跟 MasterGo 无关。不应触发 opc-delivery skill,应建议 MCP catalog / 用户自己挑数据库类 MCP。",
+      "should_trigger": false
+    },
+    {
+      "id": 105,
+      "name": "design-system-figma-tokens",
+      "prompt": "帮我从这份 Figma 设计系统里抽 design tokens 写成 Tailwind 配置",
+      "expected_behavior": "Figma 设计系统 + design tokens 关键词命中,但来源是 Figma,不是 MasterGo,且任务是抽 token 而不是还原。不应触发 opc-delivery skill。",
+      "should_trigger": false
+    },
+    {
+      "id": 106,
+      "name": "d2c-but-not-mastergo",
+      "prompt": "我们公司内部有个 D2C 工具,叫 PixelPilot,能把设计稿转代码。怎么集成到 Claude Code?",
+      "expected_behavior": "提了 D2C,但明确不是 MasterGo,而是另一个产品 PixelPilot。不应触发 opc-delivery skill,应该走 mcp-builder / 通用集成思路。",
+      "should_trigger": false
+    },
+    {
+      "id": 107,
+      "name": "codify-name-collision",
+      "prompt": "我在做编程教育,想给学生看一个 'code'+'simplify'='codify' 的演示。",
+      "expected_behavior": "'codify' 关键词命中,但语境完全是文字游戏/教育演示,跟 MasterGo Codify MCP 无关。不应触发 opc-delivery skill。",
+      "should_trigger": false
+    },
+    {
+      "id": 108,
+      "name": "frontend-framework-pick-no-design",
+      "prompt": "我想做一个仪表盘,Next.js 还是 Nuxt 好?有没有最近的对比数据",
+      "expected_behavior": "纯框架选型问题,没有 MasterGo 设计稿来源。framework-detect 是 MasterGo 还原子流程,但用户没要还原,不应触发。",
+      "should_trigger": false
+    },
+    {
+      "id": 109,
+      "name": "general-token-config",
+      "prompt": "我刚拿到一个 GitHub personal access token,怎么配进 ~/.codex/config.toml ?",
+      "expected_behavior": "用户在配 GitHub token,跟 MasterGo token 完全无关。'~/.codex/config.toml' 命中,但不应触发 opc-delivery skill;应走通用 codex MCP / GitHub MCP 配置思路。",
+      "should_trigger": false
+    },
+    {
+      "id": 110,
+      "name": "ai-design-prompt-only",
+      "prompt": "给我写一段 prompt,让 AI 设计一个 SaaS 落地页,要专业的、不要 AI 味儿",
+      "expected_behavior": "用户要的是 prompt 工程,目标产物是 prompt 文本,不是在 MasterGo 上设计或还原代码。不应触发 opc-delivery skill,应走 prompt-writing / brainstorming 类技能。",
+      "should_trigger": false
+    }
+  ]
+}

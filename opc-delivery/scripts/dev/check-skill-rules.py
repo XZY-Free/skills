@@ -123,6 +123,14 @@ REQUIRED_EVAL_NAMES = {
     "native-decision-interaction-required",
     "clear-requirement-proceeds-without-card-ceremony",
     "low-risk-details-do-not-interrupt-user",
+    "deployment-default-is-local-production-server",
+    "deployment-parses-ssh-one-line-credentials",
+    "db-default-mysql-not-sqlite-or-postgres",
+    "mysql-auto-install-via-docker-when-missing",
+    "wrap-up-asks-once-about-remote-deploy",
+    "credentials-redacted-in-echo-and-release-md",
+    "production-remote-deploy-still-runs-premortem",
+    "no-paas-platforms-in-default-flow",
 }
 REQUIRED_NEGATIVE_EVAL_NAMES = {
     "figma-not-mastergo",
@@ -135,6 +143,7 @@ REQUIRED_NEGATIVE_EVAL_NAMES = {
     "frontend-framework-pick-no-design",
     "general-token-config",
     "ai-design-prompt-only",
+    "no-mention-of-vercel-or-netlify-when-deployment-target-unclear",
 }
 
 

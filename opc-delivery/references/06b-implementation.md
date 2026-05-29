@@ -39,7 +39,7 @@ OPC 默认交付**用户能登录能用的全栈应用**, 不是前端 + mock �
 
 1. **前端** — 路由、组件、状态、表单、表格、弹窗、空态/错误态、权限态
 2. **后端** — Node 系 API routes(默认 Next.js API routes / Hono / Fastify / Express, 按 solution 锁定的栈)
-3. **DB schema + 迁移** — 默认 Prisma schema(`schema.prisma`)+ `prisma migrate dev`; 或 Drizzle schema + `drizzle-kit push`
+3. **DB schema + 迁移** — 默认 Prisma schema(`schema.prisma`, provider `mysql`)+ `prisma migrate dev`; 本地无 MySQL 时按 [02-clarification.md#mysql-本地启动探嗅](02-clarification.md#mysql-本地启动探嗅) 自动起 Docker 容器
 4. **真实 API 接口** — CRUD、查询、鉴权、文件上传等; **不是 typed mock 包装层**
 5. **种子数据** — `prisma db seed` 或独立 seed 脚本灌入开发数据, 让首次启动就有可看的内容
 6. **`.env` + `.env.example`** — `.env.example` 进版本控制; `.env` 进 `.gitignore`。真实 secret 走宿主 user-scope 配置
@@ -61,7 +61,7 @@ OPC 默认交付**用户能登录能用的全栈应用**, 不是前端 + mock �
 2. 复用现有框架、组件库、图标库、数据层和 lint/typecheck/test 配置
 3. 未经明确需要, 不新增依赖
 
-无现有仓库时按方案或默认栈起脚手架(默认: Next.js 15 App Router + TS + Tailwind + shadcn/ui; Next.js API routes; SQLite + Prisma → Postgres; NextAuth)。
+无现有仓库时按方案或默认栈起脚手架(默认: Next.js 15 App Router + TS + Tailwind + shadcn/ui; Next.js API routes; MySQL + Prisma; NextAuth)。
 
 ### 空工作区启动规则
 
@@ -200,13 +200,24 @@ commit 是本地的, 用户随时丢弃。push 不是: 协作者会拉, CI 会�
 
 ## 后端 + DB 初始化
 
-按 solution 锁定的栈起服务。最常见路径(Next.js API routes + Prisma + SQLite):
+按 solution 锁定的栈起服务。最常见路径(Next.js API routes + Prisma + MySQL):
+
+先确认 MySQL 可达 — 详见 [02-clarification.md#mysql-本地启动探嗅](02-clarification.md#mysql-本地启动探嗅)。Docker 路径起一行:
+
+```bash
+docker run -d --name <app>-mysql -p 3306:3306 \
+  -e MYSQL_ROOT_PASSWORD=devpass \
+  -e MYSQL_DATABASE=<app> mysql:8
+```
+
+再初始化 Prisma:
 
 ```bash
 npm i prisma @prisma/client zod
 npm i -D @types/node tsx
-npx prisma init --datasource-provider sqlite
+npx prisma init --datasource-provider mysql
 # 编辑 prisma/schema.prisma, 按 solution 的 DB schema 概要建模
+# DATABASE_URL 写到 .env: mysql://root:devpass@localhost:3306/<app>
 npx prisma migrate dev --name init
 # 写 seed 脚本(prisma/seed.ts), 灌入开发数据
 npx prisma db seed
@@ -223,8 +234,8 @@ API 路由组织:
 `.env.example` 必填字段示例:
 
 ```
-DATABASE_URL="file:./dev.db"
-# 部署时切: DATABASE_URL="postgresql://user:pass@host:5432/db"
+DATABASE_URL="mysql://root:devpass@localhost:3306/<app>"
+# 部署时改成远端服务器上的 MySQL: mysql://user:pass@<server-ip>:3306/<app>
 NEXTAUTH_SECRET="<generate-with: openssl rand -base64 32>"
 NEXTAUTH_URL="http://localhost:3000"
 ```

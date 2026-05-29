@@ -29,7 +29,7 @@ description: "OPC 一人公司式产品交付工作流。当用户希望'从粗�
 |---|---|
 | 必需运行时 | `node>=18`, `python>=3.11` |
 | 默认后端栈 | Next.js API routes / Hono / Fastify / Express (Node 系) |
-| 默认数据层 | SQLite(本地开发) / Postgres(部署), 配 Prisma 或 Drizzle |
+| 默认数据层 | MySQL(本地 + 部署一致), 配 Prisma; 本地未装时按 Docker → native → 装 Docker 顺序自动探嗅 |
 | 设计工具 | `mcp__codify__*` 用于 MasterGo 画布设计 |
 | 还原工具 | `mcp__mastergo-magic-mcp__*` 用于 MasterGo D2C/DSL |
 | 常用验证 | Browser / Playwright、lint、typecheck、unit/e2e、build、部署状态 |
@@ -114,7 +114,8 @@ description: "OPC 一人公司式产品交付工作流。当用户希望'从粗�
 | [07b-restore-verify.md](references/07b-restore-verify.md) | 3B: Magic 还原核心验证(快速复刻 + 企业级) |
 | [07c-product-verify.md](references/07c-product-verify.md) | 3C: 产品成立验收(姿态 / 首屏 / 升降级 / 竞品 + 验证归档 + 不达标处理) |
 | [07d-restore-patches.md](references/07d-restore-patches.md) | 渲染补丁(蒙版/字体/胶囊/SVG/渐变) + 设计稿更新流(增量同步) |
-| [08-deployment.md](references/08-deployment.md) | CI/CD、部署目标、Vercel/Netlify/服务器路径、回放校准 |
+| [08-deployment.md](references/08-deployment.md) | 部署 (本地 production server 默认 + SSH 远端) 路由、回放校准 |
+| [08b-ssh-deploy.md](references/08b-ssh-deploy.md) | SSH 远程服务器部署: 一行凭证解析、远端探嗅装 Docker/MySQL/Node、健康检查、release.md |
 | [09-runtime-budget.md](references/09-runtime-budget.md) | 执行期资源边界(32MB / 长日志 / 多 Read / 截图回流) |
 | [10-contracts.md](references/10-contracts.md) | 核心契约总集: 收尾、交付、证据、持久化、Karpathy、token |
 | [11-project-docs.md](references/11-project-docs.md) | 项目长期文档萃取(README + docs/), 让接手者不破坏项目 |

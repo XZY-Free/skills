@@ -16,6 +16,7 @@
 - [必问 vs 不问 白名单](#必问-vs-不问-白名单)
 - [自治补齐矩阵](#自治补齐矩阵)
 - [Git 与后端启动规则](#git-与后端启动规则)
+- [MySQL 本地启动探嗅](#mysql-本地启动探嗅)
 - [宿主原生交互](#宿主原生交互)
 - [内部记录(确认卡 + discussion log)](#内部记录确认卡--discussion-log)
 - [用户可见输出](#用户可见输出)
@@ -59,7 +60,7 @@
 | 数据真实性 | 真实接入 / 演示数据 / 用户上传 CSV | 决定是否需要后端、数据库和验收口径 |
 | 范围承诺 | "企业级"/"完整"/"生产级"/"智能"/"后台"具体含义 | 直接改变模块数量和验收标准 |
 | 权限与合规 | RBAC、SSO、审计、客户数据、SLA、品牌硬约束 | 涉及安全、法务和信任 |
-| 部署路径 | 本地预览 / Vercel / Cloudflare / 自有服务器 / production | 决定凭证、成本和回滚 |
+| 部署路径 | 本地 production server / 远程服务器(SSH) — **仅当用户明确说"上线 / 部署 / 服务器"才问** | 决定凭证、成本和回滚 |
 | 账号与密钥 | API key、token、secret、私有 URL、服务器地址 | 代理不能代造或写入仓库 |
 | 副作用 | 远端 push、覆盖画布、覆盖服务器/数据库、破坏性迁移 | 不可逆或影响协作者 |
 | 付费资源 | 采购、开通云服务、升配 | 涉及真实成本 |
@@ -75,7 +76,7 @@
 - mock seed 具体值、内部 enum 取值、单文件代码组织
 - 可逆默认值(分页大小、默认排序、按钮文案微调)
 - typecheck / lint 失败如何修
-- 部署到 Vercel 还是 Netlify(除非用户素材已暗示某一个)
+- 部署到本地 production server 还是远程服务器(用户未提"部署/上线/服务器"时, 默认本地; 提了再问要不要远程)
 - 是否要写测试 / 要不要 commit
 - 已被用户、PRD、方案或现有代码明确锁定的事项
 
@@ -92,7 +93,7 @@
 | Git 仓库 | 当前业务工作区 `git init` + `.gitignore`, 按工程师直觉自治 commit(信号驱动, 一个 commit 一件事) | 已有父级仓库 / 目录所有权不清 / 需推远端 |
 | 前端工程 | 按方案或默认栈起脚手架(Next.js / Vite / Astro) | 现有项目强约束冲突 |
 | **Node 后端** | 起后端(Next.js API routes / Hono / Fastify / Express) + health endpoint | 后端栈影响长期维护且未明确 |
-| **DB + ORM** | `prisma init --datasource-provider sqlite`(开发) → Postgres(部署); 写 `schema.prisma` + `migrate dev` | DB 未明确且影响部署/迁移 |
+| **DB + ORM** | `prisma init --datasource-provider mysql`; 本地无 MySQL 时按 [MySQL 本地启动探嗅](#mysql-本地启动探嗅) 自动起 Docker; 写 `schema.prisma` + `migrate dev` | DB 选型用户明确要 Postgres / MariaDB / Mongo 等非默认 |
 | **API 路由** | 按 PRD/方案 endpoint 列表创建 handlers, 每个至少 happy path + 一个错误路径 | endpoint 数量影响范围且无法推断 |
 | **Seed 数据** | `prisma/seed.ts`, 灌入开发数据让首次跑就有内容 | 数据需要真实业务样本 |
 | 鉴权 | 按方案接入(NextAuth / Lucia / 自写 JWT) | 需第三方 IdP 凭证 |
@@ -120,23 +121,61 @@
 
 ### 后端 + DB
 
-按 solution 锁定的方案执行, 不重新选型。常见路径:
+按 solution 锁定的方案执行, 不重新选型。默认路径:
 
-**Next.js API routes + Prisma + SQLite(开发) → Postgres(部署)**:
+**Next.js API routes + Prisma + MySQL**:
 
 ```bash
+# 1. 起 MySQL — 详见下文 MySQL 本地启动探嗅
+docker run -d --name <app>-mysql -p 3306:3306 \
+  -e MYSQL_ROOT_PASSWORD=devpass \
+  -e MYSQL_DATABASE=<app> mysql:8
+
+# 2. 初始化 Prisma
 npm i prisma @prisma/client zod
 npm i -D @types/node tsx
-npx prisma init --datasource-provider sqlite
-# 写 prisma/schema.prisma(按 solution schema 概要)
+npx prisma init --datasource-provider mysql
+# 编辑 .env: DATABASE_URL="mysql://root:devpass@localhost:3306/<app>"
+# 编辑 prisma/schema.prisma, 按 solution schema 概要建模
 npx prisma migrate dev --name init
 # 写 prisma/seed.ts, 配置 package.json prisma.seed 字段
 npx prisma db seed
 ```
 
-**独立 Hono 后端**: `npm i hono @hono/node-server` + tsx, server/index.ts 注册路由, prisma 同上。
+**独立 Hono 后端**: `npm i hono @hono/node-server` + tsx, server/index.ts 注册路由, Prisma + MySQL 同上。
 
-DB 文件路径默认 `prisma/dev.db`(SQLite) 或 `DATABASE_URL` env(Postgres)。**绝不把 DB 文件提交进 Git**。
+DB 连接默认走 `DATABASE_URL` env(本地 docker 或远端服务器 MySQL)。**绝不把 `.env` 提交进 Git**, 但 `.env.example` 要进。
+
+## MySQL 本地启动探嗅
+
+本地无可用 MySQL 时, 按以下顺序自治处理, **不让用户停下来选**:
+
+```text
+1. docker info 能跑 (Docker 已装 + daemon 起着)
+   → docker run -d --name <app>-mysql -p 3306:3306 \
+       -e MYSQL_ROOT_PASSWORD=devpass \
+       -e MYSQL_DATABASE=<app> mysql:8
+   → 等 ~5 秒 healthcheck, mysqladmin ping 通过
+
+2. 系统已有 mysqld 服务起着
+   - macOS: brew services list 显示 mysql started
+   - Linux: systemctl is-active mysql / mysqld == active
+   - Windows: sc query mysql 显示 RUNNING
+   → 直接用, 让用户告诉你 root 密码或建专用账号
+
+3. 都没有 → 装 Docker + 走步骤 1
+   - macOS: brew install --cask docker (装完需要用户启动 Docker.app 一次)
+   - Linux: curl -fsSL https://get.docker.com | sh && systemctl enable --now docker
+   - Windows: winget install Docker.DockerDesktop
+   → 装完检测 docker info, 通了就跑步骤 1 的 docker run
+```
+
+何时问用户:
+- Docker daemon 没起来 + 用户机器有 native mysqld → 选择题问"用 Docker 隔离 还是 用本机已有的 mysqld"
+- 装 Docker 需要重启或系统授权 → 告诉用户怎么开, 完成后继续
+- 用户明确说要 Postgres / MariaDB / Mongo / 远端托管 DB → 走那条路径
+
+远端服务器部署时, MySQL 安装走 [08b-ssh-deploy.md](08b-ssh-deploy.md#远端依赖探嗅) 的远端探嗅, 默认同样走 Docker。
 
 ---
 

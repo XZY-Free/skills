@@ -126,21 +126,27 @@ OPC 默认交付不只是"能跑的代码", 还要让**别的开发者 / 别的 
 
 - 前端: <e.g. Next.js 15 App Router + TS + Tailwind + shadcn/ui>
 - 后端: <e.g. Next.js API routes / Hono / Fastify>
-- DB: <e.g. SQLite (dev) → Postgres (prod), Prisma>
+- DB: <e.g. MySQL 8 (Docker 容器本地起, 部署同一种), Prisma>
 - 鉴权: <e.g. NextAuth>
-- 部署: <e.g. Vercel preview + production>
+- 部署: <e.g. 本地 production server / 远程服务器 SSH>
 
 ## Quick Start
 
 \`\`\`bash
-# 1. 安装依赖
+# 1. 起 MySQL (本地无 MySQL 时跑这条)
+docker run -d --name <app>-mysql -p 3306:3306 \\
+  -e MYSQL_ROOT_PASSWORD=devpass \\
+  -e MYSQL_DATABASE=<app> mysql:8
+
+# 2. 安装依赖
 npm install
 
-# 2. 初始化 DB
+# 3. 初始化 DB
+cp .env.example .env  # 必要时改 DATABASE_URL
 npx prisma migrate dev
 npx prisma db seed
 
-# 3. 启动 dev server
+# 4. 启动 dev server
 npm run dev
 # → http://localhost:3000
 \`\`\`
@@ -179,9 +185,9 @@ docs/             # 接手者必读
 
 ## Deployment
 
-- Preview: 推到任意分支 → Vercel 自动 preview
-- Production: 推到 `main` → Vercel 自动 production
-- Rollback: `vercel rollback <deployment-id>`
+- 本地 production server: `npm run build && npm run start`, http://localhost:3000
+- 远程服务器(可选): SSH 部署, 见 [08b-ssh-deploy.md](#) 或项目自定义脚本
+- Rollback: 远端通过 pm2 切换上一版本, 或重跑 `git checkout <prev-tag> && npm run build`
 
 详见 [docs/runbook.md](docs/runbook.md)(如有)。
 

@@ -66,18 +66,22 @@
       "id": 49,
       "name": "deployment-preview-before-production",
       "prompt": "Use $opc-delivery; 前端实现好了，部署到服务器给我链接。",
-      "expected_output": "应该先走 CI/CD 和部署工作流，确认目标平台、环境变量、构建命令和回滚方式；默认先 preview deployment，production 需要用户明确要求；交付 release evidence，包括 URL、状态、健康检查和回滚路径。",
+      "expected_output": "应该识别 '部署到服务器' = 用户要远端 SSH 部署, 问'是部署到自己的服务器吗? 是的话发我 IP + 账号(例如 192.0.2.10 deploy/<password>)'。**不能**列 Vercel / Netlify / Cloudflare 4 选 1, **不能**主动要 VERCEL_TOKEN / NETLIFY_TOKEN。凭证缺失 → 等用户贴, 不静默退回本地; 凭证齐了 → 走 [08b-ssh-deploy.md] 流程。production 部署额外要 premortem + stop conditions + rollback。",
       "files": [],
       "checks": {
         "must_include": [
-          "preview",
-          "环境变量",
+          "IP",
+          "账号",
+          "ssh",
+          "MySQL",
           "rollback",
-          "release.md",
-          "URL"
+          "release.md"
         ],
         "must_not_include": [
           "默认 production",
+          "Vercel preview",
+          "Netlify",
+          "VERCEL_TOKEN",
           "不需要回滚"
         ]
       }
@@ -168,21 +172,23 @@
     {
       "id": 54,
       "name": "production-deploy-runs-premortem-redteam",
-      "prompt": "Use $opc-delivery; preview 验证过了，这次涉及权限和客户数据，准备上 production。",
-      "expected_output": "应该在 production gate 前生成 release packet/release profile，确认显式授权、artifact、promotion model、rollout strategy、verification、rollback；必须做 premortem，且因涉及权限和客户数据要做 red-team，并写 stop conditions 后再推进。",
+      "prompt": "Use $opc-delivery; 本地已经端到端验证过了, 这次涉及权限和客户数据, 准备部署到 192.0.2.10 root/<password> 上 production。",
+      "expected_output": "应该识别为 production 远端部署: 先做 release packet (mode=remote-ssh-production, artifact, environment, promotion model, rollout strategy, verification, rollback); 必须跑 premortem (top risks / early warnings / prevention / mitigation / owner); 因涉及权限和客户数据要做 red-team (权限 / 数据 / secrets / 不可逆动作); 写 stop conditions 后再走 [08b-ssh-deploy.md] 部署。这是 '重要事该停就停' 的硬性要求, 不因 '减少打断' 而跳过。release.md 凭证字段一律占位脱敏。",
       "files": [],
       "checks": {
         "must_include": [
           "release packet",
-          "release profile",
           "premortem",
           "red-team",
           "stop conditions",
-          "rollback"
+          "rollback",
+          "password-redacted"
         ],
         "must_not_include": [
-          "直接 --prod",
-          "无需回滚"
+          "直接 pm2 start",
+          "production 跳过 premortem",
+          "无需回滚",
+          "明文密码"
         ]
       }
     },

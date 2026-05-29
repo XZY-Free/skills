@@ -41,13 +41,13 @@
 
 - 后端栈会影响组织长期维护, 且用户已有明确偏好或现有系统约束
 - DB 选型会影响部署、成本、迁移或多人协作
-- 部署目标未明确, 或会从本地/preview 进入 production
+- 部署目标未明确, 或会涉及远程服务器部署 / production
 - 权限、审计、SSO、多租户、客户数据范围不明确
 - 方案需要采购、外部服务开通、付费 API、远端 push 或破坏性迁移
 
 **不需要用户拍板**:
 
-- 新项目默认 Next.js + Node API + SQLite/Postgres + Prisma/Drizzle
+- 新项目默认 Next.js + Node API + MySQL + Prisma
 - 目录布局、组件边界、内部 API 路由命名
 - 测试命令、本地脚手架、`.env.example`、基础 CI
 - 已被 PRD、现有项目或用户原话锁定的技术栈
@@ -79,7 +79,7 @@ OPC 默认全栈交付, 推荐 Node 系轻量栈:
 |---|---|---|---|
 | 前端 | Next.js 15 (App Router) | SSR、SEO、混合渲染 | React + Vite, Astro |
 | 后端 | Next.js API routes | 同仓库 monorepo, 起手最快 | Hono、Fastify、Express |
-| DB | SQLite + Prisma → Postgres + Prisma | 本地零配置, 部署可持久化 | MySQL、MongoDB、Supabase/PlanetScale |
+| DB | MySQL + Prisma | 本地 + 部署同一种 DB, 减少迁移成本 | MariaDB、Postgres(用户明确要求) |
 | ORM | Prisma | 类型安全、迁移好 | Drizzle、Kysely、手写 SQL |
 | 鉴权 | NextAuth(Auth.js) | 主流社交登录、邮箱 | Lucia、自写 JWT、Clerk/Supabase Auth |
 | 文件/对象存储 | 本地 `./uploads/` 开发, S3/R2 部署 | 上传/导出场景 | UploadThing、Cloudflare R2、Supabase Storage |
@@ -144,7 +144,7 @@ OPC 默认全栈交付, 推荐 Node 系轻量栈:
 - 单元 / 组件集成 / 浏览器截图 / 回归风险
 
 ## 部署计划
-- 部署目标: 本地 / Vercel / Netlify / Cloudflare / 自有服务器
+- 部署目标: 本地 production server / 远程服务器(SSH)
 - 环境变量/secrets / production gate / 回滚方式
 
 ## 自我审查

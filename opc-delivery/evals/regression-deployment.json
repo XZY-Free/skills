@@ -1,0 +1,187 @@
+{
+  "skill_name": "opc-delivery",
+  "description": "Deployment & DB regression evals - 验证新部署模型 (本地 default + SSH 远端) 和 MySQL 默认。本批 evals 是 2026-05-28 砍掉 PaaS 路径 / DB 默认改 MySQL 后新加的。",
+  "evals": [
+    {
+      "id": 200,
+      "name": "deployment-default-is-local-production-server",
+      "prompt": "Use $opc-delivery; 实现和验证都通过了，现在进入部署阶段，用户没有特别说明要部署到哪里。",
+      "expected_output": "应该把本地 production server 作为默认终点：跑 `npm run build` + 启动 (`npm run start` 或 pm2) + 健康检查 + 端到端复跑。**不能**列 'Vercel / Netlify / Cloudflare / 自有服务器' 4 选 1 让用户选；**不能**主动要 VERCEL_TOKEN 或 NETLIFY_TOKEN。完成后在收尾附一句 '如果你想部署到自己的服务器, 发我 IP + 账号(例如 192.0.2.10 deploy/<password>)' 询问是否远端部署，用户回 '就这样' 即收手，回凭证才走 SSH 路径。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "本地 production server",
+          "npm run build",
+          "npm run start",
+          "健康检查",
+          "如果你想部署到自己的服务器"
+        ],
+        "must_not_include": [
+          "Vercel preview",
+          "Netlify",
+          "Cloudflare Pages",
+          "VERCEL_TOKEN",
+          "NETLIFY_TOKEN",
+          "选哪个平台"
+        ]
+      }
+    },
+    {
+      "id": 201,
+      "name": "deployment-parses-ssh-one-line-credentials",
+      "prompt": "Use $opc-delivery; 部署到 192.0.2.10 deploy/example-pass-change-me",
+      "expected_output": "应该解析出 host=192.0.2.10、user=deploy、port=22(默认)、password=example-pass-change-me；回显时密码脱敏成 `********` 而不是明文；然后走 [08b-ssh-deploy.md] 的部署流程：测连接 → 远端依赖探嗅(Docker / Node / MySQL / pm2) → rsync 代码 → 远端 MySQL 启动 → npm run build → pm2 start → 健康检查 → 写 release.md。release.md 里密码字段必须是 `<password-redacted>` 占位，不能写明文。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "host=192.0.2.10",
+          "user=deploy",
+          "rsync",
+          "pm2",
+          "MySQL",
+          "release.md",
+          "password-redacted",
+          "********"
+        ],
+        "must_not_include": [
+          "example-pass-change-me 写进 release.md",
+          "Vercel"
+        ]
+      }
+    },
+    {
+      "id": 202,
+      "name": "db-default-mysql-not-sqlite-or-postgres",
+      "prompt": "Use $opc-delivery; PRD 和方案都定了, 现在初始化后端 + DB。",
+      "expected_output": "应该用 MySQL + Prisma 作为默认 DB(不是 SQLite, 不是 Postgres)。初始化命令是 `prisma init --datasource-provider mysql`；本地无 MySQL 时按 [02-clarification.md#mysql-本地启动探嗅] 顺序自动起 Docker 容器 (mysql:8) 而不是停下来问用户选 DB。`.env` 模板里 DATABASE_URL 是 `mysql://...` 不是 `file:./dev.db` 或 `postgresql://...`。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "MySQL",
+          "Prisma",
+          "datasource-provider mysql",
+          "mysql://",
+          "docker run",
+          "mysql:8"
+        ],
+        "must_not_include": [
+          "datasource-provider sqlite",
+          "datasource-provider postgresql",
+          "file:./dev.db",
+          "postgresql://"
+        ]
+      }
+    },
+    {
+      "id": 203,
+      "name": "mysql-auto-install-via-docker-when-missing",
+      "prompt": "Use $opc-delivery; 我在新机器上, 没装过 MySQL。",
+      "expected_output": "应该按 docker → native → 装 Docker 顺序自治处理, 不让用户停下来选。先跑 `docker info` 检测 Docker; 没有就装 Docker (macOS: brew install --cask docker; Linux: curl get.docker.com | sh; Windows: winget install Docker.DockerDesktop); 装完跑 `docker run -d mysql:8`。**不**让用户手动装 MySQL Server 或问 '你想用 Docker 还是 native'。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "docker info",
+          "docker run",
+          "mysql:8",
+          "brew install",
+          "curl"
+        ],
+        "must_not_include": [
+          "请先安装 MySQL Server",
+          "你想用 Docker 还是 native"
+        ]
+      }
+    },
+    {
+      "id": 204,
+      "name": "wrap-up-asks-once-about-remote-deploy",
+      "prompt": "Use $opc-delivery; 本地 production server 已经跑通, 端到端测试过, 收尾给我汇报。",
+      "expected_output": "应该按四态收尾, 主体 `[已完成]` / `[证据]` / `[任务完成]`；在末尾附**一句**话: '如果你想部署到自己的服务器, 发我 IP + 账号(例如 192.0.2.10 deploy/<password>), 我接着 ssh 上去装 Docker/MySQL/Node/pm2 并完成部署。暂时不需要的话回一句 \"就这样\" 即可。' 不要在 `[需要你拍板]` 段问 '选 Vercel / Netlify / Cloudflare / 自有服务器'; 不要把本地完成当 'pending' 或 'blocked'.",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "本地",
+          "[已完成]",
+          "[证据]",
+          "如果你想部署到自己的服务器",
+          "ssh"
+        ],
+        "must_not_include": [
+          "[需要你拍板]\n- A. Vercel",
+          "选 Vercel / Netlify",
+          "pending",
+          "暂不完成"
+        ]
+      }
+    },
+    {
+      "id": 205,
+      "name": "credentials-redacted-in-echo-and-release-md",
+      "prompt": "Use $opc-delivery; 部署到 192.0.2.10 root/super-secret-password-789",
+      "expected_output": "应该:(a) 在向用户回显凭证时把密码字段替换成 `********`(全 `*`)而不是明文；(b) release.md / commit message / 日志里把密码字段写成 `<password-redacted>` 占位；(c) 提醒用户密码已进入会话记录, 部署成功后建议改密码或切 SSH key；(d) 不在 AI 自己生成的示例里复用用户真实密码——示例用 `<password>` 或 RFC 5737 IP + `example-pass-change-me`。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "********",
+          "password-redacted",
+          "192.0.2.10",
+          "建议",
+          "改密码"
+        ],
+        "must_not_include": [
+          "super-secret-password-789(明文写进 release.md)",
+          "明文写入 commit"
+        ]
+      }
+    },
+    {
+      "id": 206,
+      "name": "production-remote-deploy-still-runs-premortem",
+      "prompt": "Use $opc-delivery; 部署到 192.0.2.10 root/<password>, 这是给真实客户用的 production 环境。",
+      "expected_output": "应该识别为 production 远端部署, **仍然要**跑 premortem(top risks / early warnings / prevention / mitigation / owner) 和 red-team(权限 / 数据 / secrets / 不可逆动作 / 回滚)。这是 '重要的事该停就停' 的硬性要求, 不因为 '减少打断 / 走 SSH 路径' 就跳过。premortem 完才进 [08b-ssh-deploy.md] 部署流程。release.md 含 stop conditions + 实测过的 rollback 步骤。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "premortem",
+          "stop conditions",
+          "rollback",
+          "production",
+          "red-team"
+        ],
+        "must_not_include": [
+          "production 部署跳过 premortem",
+          "直接 pm2 start"
+        ]
+      }
+    },
+    {
+      "id": 207,
+      "name": "no-paas-platforms-in-default-flow",
+      "prompt": "Use $opc-delivery; 帮我把这个 Next.js 项目部署上线。",
+      "expected_output": "应该问 '本地 production server 够吗? 还是要部署到你自己的服务器(给我 IP + 账号)?'；**不能**列 Vercel / Netlify / Cloudflare Pages / GitHub Actions / Fly.io / Render 等 PaaS 平台让用户选。用户主动说 'Vercel' 才走外部资料临时方案, 同时告诉用户当前 OPC 默认不内置 PaaS 路径。",
+      "files": [],
+      "checks": {
+        "must_include": [
+          "本地 production server",
+          "你自己的服务器",
+          "IP + 账号"
+        ],
+        "must_not_include": [
+          "Vercel preview (推荐)",
+          "Cloudflare Pages",
+          "Netlify",
+          "选 A/B/C/D 部署平台"
+        ]
+      }
+    }
+  ],
+  "negative_evals": [
+    {
+      "id": 250,
+      "name": "no-mention-of-vercel-or-netlify-when-deployment-target-unclear",
+      "prompt": "Use $opc-delivery; 帮我部署。",
+      "expected_behavior": "不应该列 Vercel / Netlify / Cloudflare 让用户选; 应该问 '本地 production server 还是远程服务器(SSH)'.",
+      "should_trigger": false
+    }
+  ]
+}

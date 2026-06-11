@@ -6,7 +6,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Maintainer](https://img.shields.io/badge/maintained_by-CR_Snow_AI_Team-DC2626.svg)](#acknowledgments)
-[![Skills](https://img.shields.io/badge/Skills-1-7C3AED.svg)](#skills-included)
+[![Skills](https://img.shields.io/badge/Skills-2-7C3AED.svg)](#skills-included)
 
 [简体中文](README.md) · **English**
 
@@ -27,8 +27,9 @@ Skills are markdown files plus supporting assets (references / evals / assets) �
 | Skill | One-liner | Entry |
 |---|---|---|
 | 🚀 **opc-delivery** | Turn a one-line business idea into a real page that runs, with plan / QA / deploy evidence | [SKILL.md](opc-delivery/SKILL.md) |
+| 🎞️ **webdeck** | Build presentation decks in HTML (training / reporting / sharing), tuned to *not look AI-made*, with a companion speaker script, exportable to editable PPT | [SKILL.md](webdeck/SKILL.md) |
 
-> Just 1 skill so far. More to come — naming convention below.
+> 2 skills so far. More to come — naming convention below.
 
 ### Learn about opc-delivery
 
@@ -93,12 +94,17 @@ Quick entry points:
 ├── SECURITY.md                   # Shared security policy (token handling, etc.)
 ├── CLAUDE.md                     # Repo-level hint for Claude Code
 ├── .github/                      # Issue / PR templates
-└── opc-delivery/                 # ← First skill
+├── opc-delivery/                 # skill: idea → shipped, full delivery
+│   ├── SKILL.md
+│   ├── agents/
+│   ├── references/
+│   ├── evals/
+│   └── scripts/
+└── webdeck/                      # skill: presentation decks in HTML
     ├── SKILL.md
-    ├── agents/
     ├── references/
-    ├── evals/
-    └── scripts/
+    ├── assets/                   # scaffold
+    └── scripts/                  # screenshot self-check
 ```
 
 ## Security

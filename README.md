@@ -6,7 +6,7 @@
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Maintainer](https://img.shields.io/badge/维护-华润雪花啤酒智数AI团队-DC2626.svg)](#致谢)
-[![Skills](https://img.shields.io/badge/Skills-1-7C3AED.svg)](#已收录的-skills)
+[![Skills](https://img.shields.io/badge/Skills-2-7C3AED.svg)](#已收录的-skills)
 
 **简体中文** · [English](README.en.md)
 
@@ -27,8 +27,9 @@ skill 是 markdown + 配套素材（references / evals / assets），不依赖�
 | Skill | 一句话简介 | 入口 |
 |---|---|---|
 | 🚀 **opc-delivery** | 把一句话业务想法做成能登录、能操作的真实页面，带方案、验证和部署证据 | [SKILL.md](opc-delivery/SKILL.md) |
+| 🎞️ **webdeck** | 用 HTML 做演示稿（培训/汇报/分享），主打『不像 AI 做的』，配套出讲稿、可转可编辑 PPT | [SKILL.md](webdeck/SKILL.md) |
 
-> 仓库目前只有 1 个 skill。后续会按业务场景持续增加，命名约定见下方"贡献新 skill"。
+> 仓库目前有 2 个 skill。后续会按业务场景持续增加，命名约定见下方"贡献新 skill"。
 
 ### 了解 opc-delivery
 
@@ -93,12 +94,17 @@ cp -r <skill-name> ~/.codex/skills/
 ├── SECURITY.md                   # 通用安全策略(token 处理等)
 ├── CLAUDE.md                     # 给 Claude Code 的仓库级提示
 ├── .github/                      # issue / PR 模板
-└── opc-delivery/                 # ← 第一个 skill
+├── opc-delivery/                 # skill:需求→上线全流程交付
+│   ├── SKILL.md
+│   ├── agents/
+│   ├── references/
+│   ├── evals/
+│   └── scripts/
+└── webdeck/                      # skill:用 HTML 做演示稿
     ├── SKILL.md
-    ├── agents/
     ├── references/
-    ├── evals/
-    └── scripts/
+    ├── assets/                   # 脚手架
+    └── scripts/                  # 截图自检
 ```
 
 ## 安全

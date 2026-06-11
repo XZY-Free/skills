@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<!--
+  webdeck 脚手架 —— 复制这份去改。
+  它只给「引擎」和「骨架」：翻页、字体、离线、投屏尺寸、入场动画。
+  长相是空的（中性占位），别照搬——每份 deck 的配色/版式现设计，否则做出来都一个样 = AI 味。
+
+  改哪儿：
+   1) <style> 里 :root 的颜色 token 和 .stage 的版式 —— 这次按内容重设计
+   2) 每个 <section class="slide"> 的内容
+
+  没有讲师备注：现场要念的台词放在单独的讲稿 .md 里（见 references/talk-track.md），
+  不内嵌在页面里，省得两处漂移。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>演示稿标题</title>
+<style>
+/* ===== 设计 token：这次按内容重设计，别照搬 ===== */
+:root{
+  --bg:#ffffff;
+  --ink:#1a1a1a;          /* 正文 */
+  --ink-soft:#555;        /* 次要文字 */
+  --mute:#999;            /* 更弱 */
+  --line:#e6e6e6;         /* 描边 */
+  --accent:#1a1a1a;       /* 强调色 —— 换成这次的主色 */
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+/* 系统中文字体栈：不依赖外部字体，国内放映不会因加载失败而难看 */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased;line-height:1.6;overflow:hidden;
+}
+
+/* ===== 引擎：一页一屏，按 16:9 投屏比例铺满 ===== */
+#deck{position:fixed;inset:0}
+.slide{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  padding:6vh 8vw;
+  opacity:0;visibility:hidden;transition:opacity .35s ease;
+}
+.slide.active{opacity:1;visibility:visible}
+.stage{width:100%;max-width:1040px}   /* 内容居中容器，版式在这里展开 */
+
+/* 入场动画：给元素加 data-r 和 style="--r:0/1/2..."，按顺序淡入上移 */
+.slide.active [data-r]{animation:rise .5s ease both;animation-delay:calc(var(--r,0) * .08s)}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* ===== 中性占位样式：删掉重写，别留着当模板 ===== */
+.kicker{font-family:var(--mono);font-size:14px;letter-spacing:.1em;color:var(--mute);text-transform:uppercase}
+.head{font-size:clamp(28px,4vw,48px);font-weight:800;line-height:1.2;margin:12px 0}
+.lead{font-size:clamp(16px,1.6vw,20px);color:var(--ink-soft);max-width:42em}
+
+/* ===== HUD：右下角操作提示 + 进度条 ===== */
+#bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0;transition:width .35s;z-index:9}
+.hud{position:fixed;right:18px;bottom:14px;font-family:var(--mono);font-size:12px;color:var(--mute);z-index:9;user-select:none}
+.hud b{color:var(--ink-soft)}
+.nav{position:fixed;left:18px;bottom:14px;display:flex;gap:8px;z-index:9}
+.nav button{font-family:var(--mono);font-size:16px;width:34px;height:34px;border:1px solid var(--line);background:#fff;border-radius:8px;cursor:pointer;color:var(--ink-soft)}
+.nav button:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ===== 窄屏兜底 ===== */
+@media(max-width:760px){.slide{padding:48px 24px}}
+</style>
+</head>
+<body>
+
+<div id="bar"></div>
+
+<div id="deck">
+
+  <!-- ========== 第 1 页 ========== -->
+  <section class="slide">
+    <div class="stage">
+      <div class="kicker" data-r style="--r:0">KICKER</div>
+      <h2 class="head" data-r style="--r:1">这里是标题</h2>
+      <p class="lead" data-r style="--r:2">这里是一句导语。把中性占位删掉，按这次内容重新设计版式和配色。</p>
+    </div>
+  </section>
+
+  <!-- ========== 第 2 页 ========== -->
+  <section class="slide">
+    <div class="stage">
+      <div class="kicker" data-r style="--r:0">KICKER</div>
+      <h2 class="head" data-r style="--r:1">第二页标题</h2>
+    </div>
+  </section>
+
+  <!-- 复制 section 继续加页 -->
+
+</div>
+
+<!-- HUD：操作提示 -->
+<div class="hud">← → 翻页　<b>T</b> 计时　<b>F</b> 全屏　<span id="clock"></span></div>
+<div class="nav"><button id="prev">‹</button><button id="next">›</button></div>
+
+<script>
+/* ===== 翻页引擎 ===== */
+const slides = [...document.querySelectorAll('.slide')];
+let i = 0;
+const bar = document.getElementById('bar');
+
+function show(n){
+  i = Math.max(0, Math.min(slides.length - 1, n));
+  slides.forEach((s, k) => s.classList.toggle('active', k === i));
+  bar.style.width = ((i + 1) / slides.length * 100) + '%';
+}
+function go(d){ show(i + d); }
+
+document.getElementById('next').addEventListener('click', e => { e.stopPropagation(); go(1); });
+document.getElementById('prev').addEventListener('click', e => { e.stopPropagation(); go(-1); });
+
+document.addEventListener('keydown', e => {
+  const k = e.key;
+  if (k === 'ArrowRight' || k === ' ' || k === 'PageDown') { e.preventDefault(); go(1); }
+  else if (k === 'ArrowLeft' || k === 'PageUp') { go(-1); }
+  else if (k === 'Home') { show(0); }
+  else if (k === 'End') { show(slides.length - 1); }
+  else if (k === 't' || k === 'T') { toggleTimer(); }
+  else if (k === 'f' || k === 'F') {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
+});
+
+/* 点击页面【不】翻页 —— 现场误触/想选文字时不会乱跳。只用键盘 ← → 或左下角 ‹ › 按钮翻页。 */
+
+/* ===== 计时器（可选）===== */
+let t0 = null, tick = null;
+const clock = document.getElementById('clock');
+function toggleTimer(){
+  if (tick) { clearInterval(tick); tick = null; t0 = null; clock.textContent = ''; return; }
+  t0 = Date.now();
+  tick = setInterval(() => {
+    const s = Math.floor((Date.now() - t0) / 1000);
+    clock.textContent = String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
+  }, 500);
+}
+
+show(0);
+</script>
+</body>
+</html>
